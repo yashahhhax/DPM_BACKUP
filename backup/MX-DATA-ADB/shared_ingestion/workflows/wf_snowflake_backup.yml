@@ -1,0 +1,27 @@
+resources:
+  jobs:
+    wf_snowflake_backup:
+      name: wf_snowflake_backup
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN
+      max_concurrent_runs: 100
+      tasks:
+        - task_key: snowflake_backup
+          notebook_task:
+            notebook_path: ../notebooks/ingestion/snowflake_backup.py 
+            source: WORKSPACE
+          existing_cluster_id: ${var.databricks_cluster_id}
+      tags:
+        use_case: snowflake_backup
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: secret_scope
+          default: ${var.databricks_secret_scope}
+        - name: table_name
+          default: ""
+        - name: query
+          default: ""

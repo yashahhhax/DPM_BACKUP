@@ -1,0 +1,55 @@
+{
+	"name": "ds_azure_mysql_server",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_mysql",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"server_name": "@dataset().server_name",
+				"user_name": "@dataset().user_name",
+				"secret_name": {
+					"value": "@dataset().secret_name",
+					"type": "Expression"
+				},
+				"database_name": "@dataset().database_name",
+				"key_vault_uri": "@dataset().key_vault_uri",
+				"port": {
+					"value": "@dataset().port",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"table_name": {
+				"type": "string"
+			},
+			"key_vault_uri": {
+				"type": "string"
+			},
+			"server_name": {
+				"type": "string"
+			},
+			"database_name": {
+				"type": "string"
+			},
+			"user_name": {
+				"type": "string"
+			},
+			"secret_name": {
+				"type": "string"
+			},
+			"port": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureMySqlTable",
+		"schema": [],
+		"typeProperties": {
+			"tableName": {
+				"value": "@dataset().table_name",
+				"type": "Expression"
+			}
+		}
+	}
+}

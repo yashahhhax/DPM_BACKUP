@@ -1,0 +1,95 @@
+pipeline_name: pl_google_analytics_to_parquet_master
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [05]
+  minutes: [00]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'google_analytics'           
+  secret_name: 'cloud-ga4-api-prd-apikey'
+  jwt_workflow_name: 'wf_get_ga_jwt_token'
+  workflow_name: 'wf_ingest_google_analytics'
+  base_url: 'https://analyticsdata.googleapis.com/v1beta/properties/'
+  from_date: "@string(formatDateTime(addDays(convertTimeZone(utcNow(),'UTC','Arabian Standard Time'),-15),'yyyy-MM-dd'))"
+  to_date: "@string(formatDateTime(addDays(convertTimeZone(utcNow(),'UTC','Arabian Standard Time'),-1),'yyyy-MM-dd'))"
+  use_case: 'google_analytics'
+
+# Note - schema_name contains the value of property_id  # skip_orchestration: true
+
+datasets:
+  - name: fwad_sessions
+    dataset_parameters:
+      table_name: 'fwad_sessions'
+      schema_name: '296551087'
+  - name: fwad_summary
+    dataset_parameters:
+      table_name: 'fwad_summary'
+      schema_name: '296551087'
+  - name: clymb_sessions
+    dataset_parameters:
+      table_name: 'clymb_sessions'
+      schema_name: '306103833'
+  - name: clymb_summary             
+    dataset_parameters:
+      table_name: 'clymb_summary'
+      schema_name: '306103833'
+  - name: yww_sessions             
+    dataset_parameters:
+      table_name: 'yww_sessions'
+      schema_name: '177077882'
+  - name: yww_summary         
+    dataset_parameters:
+      table_name: 'yww_summary'
+      schema_name: '177077882'
+  - name: swad_sessions           
+    dataset_parameters:
+      table_name: 'swad_sessions'
+      schema_name: '316757470'
+  - name: swad_summary           
+    dataset_parameters:
+      table_name: 'swad_summary'
+      schema_name: '316757470'
+  - name: wbw_sessions          
+    dataset_parameters:
+      table_name: 'wbw_sessions'
+      schema_name: '294901600'
+  - name: wbw_summary          
+    dataset_parameters:
+      table_name: 'wbw_summary'
+      schema_name: '294901600'
+  - name: qaw_sessions           
+    dataset_parameters:
+      table_name: 'qaw_sessions'
+      schema_name: '306115433'
+  - name: qaw_summary      
+    dataset_parameters:
+      table_name: 'qaw_summary'
+      schema_name: '306115433'
+  - name: tlp_sessions          
+    dataset_parameters:
+      table_name: 'tlp_sessions'
+      schema_name: '450566551'
+  - name: tlp_summary
+    dataset_parameters:
+      table_name: 'tlp_summary'
+      schema_name: '450566551'
+  - name: yi_sessions
+    dataset_parameters:
+      table_name: 'yi_sessions'
+      schema_name: '314832244'
+  - name: yi_summary  
+    dataset_parameters:
+      table_name: 'yi_summary'
+      schema_name: '314832244'
+  - name: aaz_summary  
+    dataset_parameters:
+      table_name: 'aaz_summary'
+      schema_name: '504429316'
+  - name: aaz_sessions  
+    dataset_parameters:
+      table_name: 'aaz_sessions'
+      schema_name: '504429316'

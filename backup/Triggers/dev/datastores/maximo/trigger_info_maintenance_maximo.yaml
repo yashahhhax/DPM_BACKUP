@@ -1,0 +1,60 @@
+pipeline_name: pl_sql_server_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [23]
+  minutes: [00]
+  
+activated: false
+
+datastore_parameters:
+  datastore_name: 'maximo'
+  server_name: '10.140.9.47'
+  user_name: 'farah\svc_mx_data_prd'
+  secret_name: 'onprem-sqlserver-wdws-svc-prd-password'
+  database_name: 'maximo'
+  schema_name: 'dbo'
+  use_case: 'maintenance_maximo'
+  # skip_orchestration: true
+
+datasets:
+  - name: 'dwh_maximo_lochier_v2'
+    pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'dwh_maximo_lochier_v2'
+      load_time_column: 'CHANGEDATE'
+      pk: 'UNIQUEID'
+  - name: 'dwh_maximo_sr_v2'
+    pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'dwh_maximo_sr_v2'
+      load_time_column: 'STATUSDATE'
+      pk: 'UNIQUEID'
+  - name: 'dwh_maximo_workorder_v2'
+    pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'dwh_maximo_workorder_v2'
+      load_time_column: 'CHANGEDATE'
+      pk: 'UNIQUEID'
+  - name: 'dwh_maximo_worktype_v2'
+    dataset_parameters:
+      table_name: 'dwh_maximo_worktype_v2'
+  - name: 'dwh_maximo_zone'
+    dataset_parameters:
+      table_name: 'dwh_maximo_zone'
+  - name: 'person'
+    dataset_parameters:
+      table_name: 'person'
+  - name: 'dwh_maximo_act_lab'
+    pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'dwh_maximo_act_lab'
+      load_time_column: 'TRANSDATE'
+      pk: 'UNIQUEID'
+  - name: 'dwh_maximo_plan_lab'
+    pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'dwh_maximo_plan_lab'
+      load_time_column: 'CHANGEDATE'
+      pk: 'UNIQUEID'

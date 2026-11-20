@@ -1,0 +1,36 @@
+pipeline_name: pl_sharepoint_excel_to_parquet
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [00]
+  minutes: [00]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sharepoint_file'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  secret_name: 'cloud-sharepoint-svc-prd-password'
+  first_row_header: true
+  drive_id: 'b!0SuTvDQmqEC-nZURiVe42rocL2Ese6NOuYaxKJKDJOTqAQ02xcdYSZeM14B2GoMl'
+  # skip_orchestration: true
+
+datasets:
+  - name: farah_ledger_data_historical
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      path: "/EBS TB Data/Farah TB/"
+      schema_name: 'mdop'
+      table_name: 'farah_ledger_data_historical'
+      input_file_name: "Farah_Ledger_Data_Historical.xlsx"
+      use_case: 'finance'
+  - name: miral_ledger_data_historical
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      path: "/EBS TB Data/Miral TB/"
+      schema_name: 'mdop'
+      table_name: 'miral_ledger_data_historical'
+      input_file_name: "Miral_Ledger_Data_Historical.xlsx"
+      use_case: 'finance'

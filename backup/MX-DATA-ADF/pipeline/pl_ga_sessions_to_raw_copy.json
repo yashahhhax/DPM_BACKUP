@@ -1,0 +1,117 @@
+{
+	"name": "pl_ga_sessions_to_raw_copy",
+	"properties": {
+		"activities": [
+			{
+				"name": "ga4_sessions_to_json",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:05:00",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "POST",
+						"requestBody": {
+							"value": "{\n    \"dateRanges\": [\n        {\n            \"startDate\": \"@{pipeline().parameters.start_date}\", \n            \"endDate\": \"@{pipeline().parameters.end_date}\"\n            }],\n    \"metrics\": [ \n        {\"name\": \"sessions\"}\n    ],\n    \"dimensions\":\n         [\n            {\"name\": \"date\"}\n        ]\n}",
+							"type": "Expression"
+						},
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "@concat('Bearer ',pipeline().parameters.jwt_token)",
+								"type": "Expression"
+							},
+							"Content-Type": "application/json"
+						},
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_rest_api",
+						"type": "DatasetReference",
+						"parameters": {
+							"base_url": {
+								"value": "@pipeline().parameters.base_url",
+								"type": "Expression"
+							},
+							"relative_url": {
+								"value": "@concat(pipeline().parameters.schema_name,':runReport')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_adls_json",
+						"type": "DatasetReference",
+						"parameters": {
+							"storage_account_uri": "@pipeline().globalParameters.storage_account_datalake_uri",
+							"container_name": "@pipeline().globalParameters.storage_container_datalake",
+							"directory": {
+								"value": "@toLower(concat('raw_', pipeline().parameters.datastore_name,'/',pipeline().parameters.schema_name,'_',pipeline().parameters.table_name,'/',pipeline().parameters.adf_load_time))",
+								"type": "Expression"
+							},
+							"file_name": {
+								"value": "@toLower(concat(pipeline().parameters.table_name, '_', pipeline().parameters.start_date,'.json'))",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://analyticsdata.googleapis.com/v1beta/properties/"
+			},
+			"jwt_token": {
+				"type": "string"
+			},
+			"start_date": {
+				"type": "string"
+			},
+			"end_date": {
+				"type": "string"
+			},
+			"datastore_name": {
+				"type": "string"
+			},
+			"schema_name": {
+				"type": "string"
+			},
+			"table_name": {
+				"type": "string"
+			},
+			"adf_load_time": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "GoogleAnalytics"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,15 @@
+Select *,
+    TO_HEX(SHA256(
+    CONCAT(
+      COALESCE(CAST(campaign_id AS STRING), ''), '|',
+      COALESCE(CAST(contact_id AS STRING), ''), '|',
+      COALESCE(CAST(customer_id AS STRING), ''), '|',
+      COALESCE(CAST(launch_id AS STRING), ''), '|',
+      COALESCE(CAST(message_id AS STRING), ''), '|',
+      COALESCE(CAST(link_id AS STRING), ''), '|',
+      COALESCE(CAST(user_agent AS STRING), ''), '|',
+      COALESCE(CAST(ip AS STRING), ''), '|',
+      COALESCE(CAST(event_time AS STRING), '')
+    )
+  )) AS fact_key
+FROM emarsys_miralbtoc_876026434.email_clicks_876026434

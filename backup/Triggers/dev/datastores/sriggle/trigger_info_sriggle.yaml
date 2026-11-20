@@ -1,0 +1,59 @@
+pipeline_name: pl_sriggle_api_to_parquet
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [12]
+  minutes: [00]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sriggle'
+  workflow_name: 'wf_ingest_sriggle_api_to_parquet'
+  use_case: 'sriggle'
+  host_name: 'https://mxeapi.signatureerp.com'
+  secret_key: 'cloud-sriggle-api-prd-apikey'
+  load_days: '1'   # TriggerTime - 1 day = yesterday; use -1 for watermark-driven mode
+
+# Trigger name format (from main.tf): sriggle_{table_name}  # skip_orchestration: true
+
+datasets:
+  # --- FACT TABLES (incremental from watermark date) ---
+  - name: booking
+    dataset_parameters:
+      table_name: 'booking'
+  - name: booking_cnx
+    dataset_parameters:
+      table_name: 'booking_cnx'
+  - name: booking_item
+    dataset_parameters:
+      table_name: 'booking_item'
+  - name: rep_arrival_manifest
+    dataset_parameters:
+      table_name: 'rep_arrival_manifest'
+  - name: ticket_media_codes
+    dataset_parameters:
+      table_name: 'ticket_media_codes'
+  - name: passenger_profile
+    dataset_parameters:
+      table_name: 'passenger_profile'
+  - name: booking_item_details
+    dataset_parameters:
+      table_name: 'booking_item_details'
+  # --- DIMENSION TABLES (full load from 2020-01-01) ---
+  - name: std_distribution_chanel
+    dataset_parameters:
+      table_name: 'std_distribution_chanel'
+  - name: client_detail
+    dataset_parameters:
+      table_name: 'client_detail'
+  - name: rep_trade_clients_report
+    dataset_parameters:
+      table_name: 'rep_trade_clients_report'
+  - name: supplier
+    dataset_parameters:
+      table_name: 'supplier'
+  - name: trade_client
+    dataset_parameters:
+      table_name: 'trade_client'

@@ -1,0 +1,65 @@
+pipeline_name: pl_oracle_fusion_bip_incremental
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [04]
+  minutes: [30]
+
+activated: true
+
+datastore_parameters:
+  datastore_name: 'fusion_bip_fin'
+  user_name: 'biacm.admin'
+  secret_name: 'cloud-fusion-bip-svc-prd-password'
+  base_url: 'https://enpk.fa.em8.oraclecloud.com:443/xmlpserver/services/v2/ReportService'
+  source_path: '/Custom/Data_Team/Fusion_AZ_Extract_DE/'
+  workflow_name: 'wf_ingest_fusion_bip_fusion'
+  load_time_column_type: timestamp
+  use_case: 'finance'
+  # full_load: true
+  # skip_orchestration: true
+
+datasets:
+  - name: fnd_id_flex_structures
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'FND_ID_FLEX_STRUCTURES'
+      use_case: 'finance, procurement'
+  - name: fnd_flex_values_vl
+    dataset_parameters:
+      table_name: 'FND_FLEX_VALUES_VL'
+      pk: 'FLEX_VALUE_SET_ID, FLEX_VALUE_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      use_case: 'finance, procurement'
+  - name: fnd_id_flex_segments
+    dataset_parameters:
+      table_name: 'FND_ID_FLEX_SEGMENTS'
+      pk: 'APPLICATION_ID, ID_FLEX_CODE, ID_FLEX_NUM, SEGMENT_NAME'
+      load_time_column: 'LAST_UPDATE_DATE'
+      use_case: 'finance, procurement'
+  - name: fnd_lookup_values
+    dataset_parameters:
+      table_name: 'FND_LOOKUP_VALUES'
+      pk: 'LANGUAGE, ROW_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+      use_case: 'finance, procurement'
+  - name: hz_cust_acct_sites_all
+    dataset_parameters:
+      table_name: 'HZ_CUST_ACCT_SITES_ALL'
+      pk: 'CUST_ACCT_SITE_ID,LAST_UPDATE_DATE,LAST_UPDATED_BY'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: hz_cust_site_uses_all
+    dataset_parameters:
+      table_name: 'HZ_CUST_SITE_USES_ALL'
+      pk: 'SITE_USE_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: xcc_budget_dist_accts
+    dataset_parameters:
+      table_name: 'XCC_BUDGET_DIST_ACCTS'
+      pk: 'HEADER_ID, LINE_NUMBER, CONTROL_BUDGET_ID, BUDGET_CCID, PERIOD_NAME, BUDGET_ACTION, MASTER_PERIOD_NAME'
+      load_time_column: 'LAST_UPDATE_DATE'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000

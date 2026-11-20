@@ -1,0 +1,332 @@
+{
+	"name": "pl_ipera_api_to_parquet_guests",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set relative URL",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set filter date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "relative_filter_url",
+					"value": {
+						"value": "@concat(pipeline().parameters.relative_url,'?per_page=',variables('per_page'),'&created_at=',variables('filter_date'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Set relative URL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(concat(pipeline().parameters.dataset_name,'_',pipeline().parameters.table_name))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"base_url\" : \"@{pipeline().parameters.base_url}\",\n  \"relative_url\":\"@{variables('relative_filter_url')}\",\n  \"secret_key\":\"@{pipeline().parameters.secret_name}\",\n  \"datastore_name\": \"@{toLower(pipeline().parameters.datastore_name)}\",\n  \"dataset_name\": \"@{toLower(pipeline().parameters.dataset_name)}\",\n  \"table_name\": \"@{toLower(pipeline().parameters.table_name)}\",\n  \"write_mode\": \"overwrite\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure_ingest",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "update_watermark",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.dataset_name,'_',pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "LookupOldWaterMarkActivity",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat(\n    'SELECT * FROM watermarktable WHERE TableName = ''', \n    toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.dataset_name,'_', pipeline().parameters.table_name)), \n    ''' ORDER BY watermarkvalue DESC'\n)\n",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql_managed_identity",
+						"type": "DatasetReference",
+						"parameters": {
+							"server_name": {
+								"value": "@pipeline().globalParameters.sqldb_fqdn",
+								"type": "Expression"
+							},
+							"database_name": "watermarks",
+							"table_name": "watermarktable"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Set filter date",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "LookupOldWaterMarkActivity",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "filter_date",
+					"value": {
+						"value": "@formatDateTime(\n    if(  greater(int(pipeline().parameters.load_days),-1),\n    addDays(convertTimeZone(pipeline().TriggerTime,'UTC', 'Arabian Standard Time'), mul(int(pipeline().parameters.load_days),-1)),\n    if(equals(activity('LookupOldWaterMarkActivity').output.count, 0),\n    addDays(convertTimeZone(utcNow(),'UTC', 'Arabian Standard Time'), -1)\n    , activity('LookupOldWaterMarkActivity').output.value[0].WatermarkValue)\n    ) ,\n    'yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "exec_pl_trigger_sql_query",
+				"description": "Get New Watermark",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_sql_query",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"workspace_url": {
+							"value": "@pipeline().globalParameters.databricks_transformation_workspace_url",
+							"type": "Expression"
+						},
+						"sql_serverless_id": {
+							"value": "@pipeline().globalParameters.databricks_transformation_sql_serverless_id",
+							"type": "Expression"
+						},
+						"sql_statement": {
+							"value": "@uriComponent(concat(\n        'select max(created_at) as max_date from transformation_',\n        pipeline().globalParameters.environment,\n        '.brz_',\n        toLower(replace(pipeline().parameters.datastore_name, '-', '_')),\n        '.vw_',\n        toLower(replace(pipeline().parameters.dataset_name, '-', '_')), '_',\n        toLower(replace(pipeline().parameters.table_name, '-', '_'))\n    ))",
+							"type": "Expression"
+						},
+						"wait_time_in_second": "5"
+					}
+				}
+			},
+			{
+				"name": "update_watermark",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "exec_pl_trigger_sql_query",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_managed_identity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"server_name": "@pipeline().globalParameters.sqldb_fqdn",
+						"database_name": "watermarks"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": {
+								"value": "UPDATE watermarktable SET [WatermarkValue] = '@{activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output}' WHERE [TableName] = '@{toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.dataset_name,'_' ,pipeline().parameters.table_name))}';\n\nIF @@ROWCOUNT = 0\n\nINSERT INTO watermarktable ([WatermarkValue], [TableName])\nVALUES (\n'@{activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output}',\n'@{toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.dataset_name,'_' ,pipeline().parameters.table_name))}'\n);",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "00:10:00"
+				}
+			}
+		],
+		"concurrency": 3,
+		"parameters": {
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-iperawifi-api-prd-tlp-apikey"
+			},
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://api.iperawifi.com/api/v1/"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "ipera"
+			},
+			"dataset_name": {
+				"type": "string",
+				"defaultValue": "guests"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "tlp"
+			},
+			"relative_url": {
+				"type": "string",
+				"defaultValue": "guests"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_ipera_api_to_parquet"
+			},
+			"load_days": {
+				"type": "string",
+				"defaultValue": "-1"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "ipera"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"filter_date": {
+				"type": "String"
+			},
+			"relative_filter_url": {
+				"type": "String"
+			},
+			"per_page": {
+				"type": "String",
+				"defaultValue": "100"
+			}
+		},
+		"folder": {
+			"name": "Ipera"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(concat(pipeline().parameters.dataset_name,'_',pipeline().parameters.table_name))",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

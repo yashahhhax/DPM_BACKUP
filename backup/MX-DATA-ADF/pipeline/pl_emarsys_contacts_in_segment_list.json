@@ -1,0 +1,145 @@
+{
+	"name": "pl_emarsys_contacts_in_segment_list",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute_adb_ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"datastore_name\": \"@{pipeline().parameters.datastore_name}\",\n  \"dataset_name\": \"@{pipeline().parameters.schema_name}\",\n  \"table_name\": \"@{pipeline().parameters.table_name}\",\n  \"write_mode\": \"overwrite\",\n  \"username\": \"@{pipeline().parameters.username}\",\n  \"secret_name\": \"@{pipeline().parameters.secret_name}\",\n  \"segment_id\": \"@{pipeline().parameters.segment_id}\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute_adb_ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "emarsys_api"
+			},
+			"schema_name": {
+				"type": "string",
+				"defaultValue": "emarsys_api"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "contacts_in_segment_list"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "emarsys"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_emarsys_contacts_in_segment_list"
+			},
+			"segment_id": {
+				"type": "string",
+				"defaultValue": "1022267425"
+			},
+			"username": {
+				"type": "string",
+				"defaultValue": "miral_b2c007"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-emarsys-api-prd-apikey"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"folder": {
+			"name": "Emarsys"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

@@ -1,0 +1,53 @@
+{
+	"name": "ds_adls_parquet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_adls",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"storage_account_uri": {
+					"value": "@dataset().storage_account_uri",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"storage_account_uri": {
+				"type": "string"
+			},
+			"container_name": {
+				"type": "string"
+			},
+			"datastore": {
+				"type": "string"
+			},
+			"dataset": {
+				"type": "string"
+			},
+			"tablename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@toLower(concat(\n    if(\n        equals(trim(dataset().tablename), ''),\n        '',\n        concat(dataset().tablename, '.snappy.parquet')\n    )\n)\n)",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@toLower(concat('datastore_', dataset().datastore, '/', 'dataset_', dataset().dataset))",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container_name",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}

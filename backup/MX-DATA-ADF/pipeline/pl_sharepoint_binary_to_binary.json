@@ -1,0 +1,367 @@
+{
+	"name": "pl_sharepoint_binary_to_binary",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy SharePoint to binary",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Generate URL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.03:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET",
+							"additionalHeaders": {
+								"value": "@{concat('Authorization: Bearer ', activity('Generate Token').output.access_token)}",
+								"type": "Expression"
+							},
+							"requestTimeout": ""
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_http_binary",
+						"type": "DatasetReference",
+						"parameters": {
+							"base_url": {
+								"value": "@variables('base_url')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_adls_binary",
+						"type": "DatasetReference",
+						"parameters": {
+							"container_name": {
+								"value": "@pipeline().globalParameters.storage_container_datalake",
+								"type": "Expression"
+							},
+							"directory": {
+								"value": "@concat(pipeline().parameters.datastore_name, '/', pipeline().parameters.directory)",
+								"type": "Expression"
+							},
+							"file_name": {
+								"value": "@pipeline().parameters.table_name",
+								"type": "Expression"
+							},
+							"storage_account_uri": {
+								"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Copy SharePoint to binary",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(\n    replace(\n        replace(\n            replace(pipeline().parameters.table_name, '.', ''),\n            ' ', '_'\n        ),\n        '-', '_'\n    )\n)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"skip_sync": true,
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "@pipeline().parameters.workflow_parameters",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@pipeline().parameters.table_name",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Generate Token",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get client secret",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": true
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"url": {
+						"value": "@concat('https://login.microsoftonline.com/', pipeline().parameters.tenant_id, '/oauth2/v2.0/token')",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "@concat('grant_type=client_credentials&client_id=',pipeline().parameters.user_name,'@0b0b76ba-8e32-4c41-8130-65ed5ca4353c','&client_secret=',replace(replace(activity('Get client secret').output.value, '+', '%2B'), '/', '%2F'),'&scope=https%3A%2F%2Fgraph.microsoft.com%2F.default')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get download url",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Generate Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"headers": {
+						"Authorization": {
+							"value": "@concat('Bearer ', activity('Generate Token').output.access_token)",
+							"type": "Expression"
+						},
+						"Accept": "application/json"
+					},
+					"url": {
+						"value": "@concat('https://graph.microsoft.com/v1.0/drives/', pipeline().parameters.drive_id, '/root:/', replace(concat(pipeline().parameters.path, pipeline().parameters.table_name), ' ', '%20'), ':')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Generate URL",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Get download url",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "base_url",
+					"value": {
+						"value": "@activity('Get download url').output['@microsoft.graph.downloadUrl']",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get client secret",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": {
+						"value": "@concat(pipeline().globalParameters.key_vault_uri, '/secrets/', pipeline().parameters.secret_name, '?api-version=7.0')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			}
+		],
+		"concurrency": 20,
+		"parameters": {
+			"path": {
+				"type": "string"
+			},
+			"secret_name": {
+				"type": "String",
+				"defaultValue": "cloud-sharepoint-svc-prd-password"
+			},
+			"user_name": {
+				"type": "String",
+				"defaultValue": "23548861-9379-4ee8-9b2f-680f630b2020"
+			},
+			"datastore_name": {
+				"type": "String",
+				"defaultValue": "sharepoint_file"
+			},
+			"table_name": {
+				"type": "String"
+			},
+			"tenant_id": {
+				"type": "String",
+				"defaultValue": "0b0b76ba-8e32-4c41-8130-65ed5ca4353c"
+			},
+			"column_mapping": {
+				"type": "Object"
+			},
+			"site": {
+				"type": "string"
+			},
+			"use_case": {
+				"type": "string"
+			},
+			"directory": {
+				"type": "String"
+			},
+			"workflow_name": {
+				"type": "string"
+			},
+			"workflow_parameters": {
+				"type": "object"
+			},
+			"drive_id": {
+				"type": "string"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"base_url": {
+				"type": "String"
+			}
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

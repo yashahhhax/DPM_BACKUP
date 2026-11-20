@@ -1,0 +1,79 @@
+resources:
+  jobs:
+    wf_dwh_dim_master_hotel_name:
+      name: wf_dwh_dim_master_hotel_name
+      tasks:
+        - task_key: slv_master_hotel_name
+          notebook_task:
+            notebook_path: ../notebooks/silver/slv_dim_master_hotel_names.py
+            source: WORKSPACE
+          existing_cluster_id: ${var.databricks_cluster_id}
+        - task_key: silver_master_hotel_name_dqc
+          depends_on:
+            - task_key: slv_master_hotel_name
+          timeout_seconds: 2700
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          retry_on_timeout: true
+          notebook_task:
+            notebook_path: ../shared_code/dqc/dqc_checks.py
+            base_parameters:
+              layer: slv
+              tablename: prep_dim_master_hotel_name
+              task_run_id: "{{task.run_id}}"
+            source: WORKSPACE
+          existing_cluster_id: ${var.databricks_cluster_id}
+        - task_key: scd2_load
+          depends_on:
+            - task_key: silver_master_hotel_name_dqc
+          run_if: ALL_DONE
+          timeout_seconds: 2700
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          retry_on_timeout: true
+          notebook_task:
+            notebook_path: ../notebooks/gold/gld_scd_type2.py
+            base_parameters:
+              tablename: master_hotel_name
+              current_job_run_id: "{{job.run_id}}"
+            source: WORKSPACE
+          existing_cluster_id: ${var.databricks_cluster_id}
+        - task_key: gold_master_hotel_name_dqc
+          depends_on:
+            - task_key: scd2_load
+          timeout_seconds: 2700
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          retry_on_timeout: true
+          notebook_task:
+            notebook_path: ../shared_code/dqc/dqc_checks.py
+            base_parameters:
+              layer: gld
+              tablename: dwh_dim_master_hotel_name
+              task_run_id: "{{task.run_id}}"
+            source: WORKSPACE
+          existing_cluster_id: ${var.databricks_cluster_id}
+        - task_key: failure_teams_notification
+          depends_on:
+            - task_key: gold_master_hotel_name_dqc
+          run_if: ALL_DONE
+          timeout_seconds: 2700
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          retry_on_timeout: true
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_job_alerts.py
+            base_parameters:
+              job_run_id: "{{job.run_id}}"
+              alert_type: failure
+            source: WORKSPACE
+          existing_cluster_id: ${var.databricks_cluster_id}
+      tags:
+        use_case: travelbox
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: usecase
+          default: travelbox

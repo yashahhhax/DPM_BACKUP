@@ -1,0 +1,661 @@
+{
+	"name": "pl_oracle_fusion_bip_incremental",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetToken",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"linkedServices": [
+						{
+							"referenceName": "ls_key_vault",
+							"type": "LinkedServiceReference"
+						}
+					],
+					"url": {
+						"value": "@concat(pipeline().globalParameters.key_vault_uri, '/secrets/', pipeline().parameters.secret_name, '?api-version=7.0')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "LookupOldWaterMarkActivity",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat(\n    'SELECT * FROM watermarktable WHERE TableName = ''', \n    toLower(concat(pipeline().parameters.datastore_name,'.',pipeline().parameters.table_name)), \n    ''' ORDER BY watermarkvalue DESC'\n)\n",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql_managed_identity",
+						"type": "DatasetReference",
+						"parameters": {
+							"server_name": {
+								"value": "@pipeline().globalParameters.sqldb_fqdn",
+								"type": "Expression"
+							},
+							"database_name": "watermarks",
+							"table_name": "watermarktable"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Set new_watermark",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "new_watermark",
+					"value": {
+						"value": "@formatDateTime(\n    convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time'),\n    'yyyy-MM-ddTHH:mm:ss'\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "If full_load or new incremental table",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "LookupOldWaterMarkActivity",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(bool(pipeline().parameters.full_load), equals(activity('LookupOldWaterMarkActivity').output.count, 0))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Set old_watermark_incremental",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "old_watermark",
+								"value": {
+									"value": "@if(\n    equals(toLower(pipeline().parameters.load_time_column_type), 'timestamp'),\n    if(\n        greater(int(pipeline().parameters.load_days), -1),\n        formatDateTime(addDays(variables('new_watermark'), mul(int(pipeline().parameters.load_days), -1)), 'yyyy-MM-dd'),\n        formatDateTime(activity('LookupOldWaterMarkActivity').output.value[0].WatermarkValue, 'yyyy-MM-dd')\n    ),\n    activity('LookupOldWaterMarkActivity').output.value[0].WatermarkValue\n)",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "fullload_delete_old_files",
+							"description": "In the case if a full load we're going to delete all the old table files in the storage account folder.",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_adls_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": "@pipeline().globalParameters.storage_account_datalake_uri",
+										"container_name": "@pipeline().globalParameters.storage_container_datalake",
+										"datastore": {
+											"value": "@toLower(pipeline().parameters.datastore_name)",
+											"type": "Expression"
+										},
+										"dataset": {
+											"value": "@toLower(pipeline().parameters.table_name)",
+											"type": "Expression"
+										},
+										"tablename": " "
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Set old_watermark_fulllod",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "old_watermark",
+								"value": {
+									"value": "@if(equals(toLower(pipeline().parameters.load_time_column_type), 'timestamp'), '2000-01-01', '0')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set_model_type",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "model_type",
+								"value": {
+									"value": "@toLower(pipeline().parameters.model_type)",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "update_watermark",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "switch_model",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"is_incremental": true,
+						"pk": {
+							"value": "@pipeline().parameters.pk",
+							"type": "Expression"
+						},
+						"timestamp_col": {
+							"value": "@pipeline().parameters.load_time_column",
+							"type": "Expression"
+						},
+						"is_fullload": {
+							"value": "@string(pipeline().parameters.full_load)",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"datastore_name\": \"@{toLower(pipeline().parameters.datastore_name)}\",\n  \"table_name\": \"@{toLower(pipeline().parameters.table_name)}\",\n  \"write_mode\": \"append\",\n  \"watermark_column\": \"@{pipeline().parameters.load_time_column}\",\n  \"watermark_column_type\": \"@{pipeline().parameters.load_time_column_type}\",\n  \"input_file_name\": \"@{concat(formatDateTime(variables('new_watermark'), 'yyyyMMddHHmmss'), '/')}\"\n}",
+							"type": "Expression"
+						},
+						"ingest_job_id": {
+							"value": "@if(equals(pipeline().parameters.datastore_name, 'fusion_bip_inv'), pipeline().globalParameters.databricks_wf_ingest_fusion_bip_inventory_job_id, pipeline().globalParameters.databricks_wf_ingest_fusion_bip_fusion_job_id)",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "switch_model",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "GetToken",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set new_watermark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "If full_load or new incremental table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(variables('model_type'))",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "normal_model",
+							"activities": [
+								{
+									"name": "copy_bip_report_normal_model",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 2,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "XmlSource",
+											"storeSettings": {
+												"type": "HttpReadSettings",
+												"requestMethod": "POST",
+												"additionalHeaders": "Content-Type: text/xml",
+												"requestBody": {
+													"value": "@concat(\n  '<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v2=\"http://xmlns.oracle.com/oxp/service/v2\">',\n    '<soapenv:Header/>',\n    '<soapenv:Body>',\n      '<v2:runReport>',\n        '<v2:reportRequest>',\n          '<v2:XDOPropertyList>',\n            '<v2:metaDataList></v2:metaDataList>',\n          '</v2:XDOPropertyList>',\n          '<v2:attributeFormat>csv</v2:attributeFormat>',\n          '<v2:parameterNameValues>',\n            '<v2:listOfParamNameValues>',\n              if(\n                equals(toLower(pipeline().parameters.load_time_column_type), 'int'),\n                concat(\n                  '<v2:item>',\n                    '<v2:name>p_max_id</v2:name>',\n                    '<v2:values>',\n                      '<v2:item>', variables('old_watermark'), '</v2:item>',\n                    '</v2:values>',\n                  '</v2:item>'\n                ),\n                concat(\n                  '<v2:item>',\n                    '<v2:name>p_from_dt</v2:name>',\n                    '<v2:values>',\n                      '<v2:item>',\n                        formatDateTime(variables('old_watermark'), 'MM-dd-yyyy'),\n                      '</v2:item>',\n                    '</v2:values>',\n                  '</v2:item>',\n                  '<v2:item>',\n                    '<v2:name>p_to_dt</v2:name>',\n                    '<v2:values>',\n                      '<v2:item>',\n                        formatDateTime(variables('new_watermark'), 'MM-dd-yyyy'),\n                      '</v2:item>',\n                    '</v2:values>',\n                  '</v2:item>'\n                )\n              ),\n            '</v2:listOfParamNameValues>',\n          '</v2:parameterNameValues>',\n          '<v2:reportAbsolutePath>',\n            pipeline().parameters.source_path,\n            toUpper(pipeline().parameters.table_name),\n            '.xdo',\n          '</v2:reportAbsolutePath>',\n          '<v2:sizeOfDataChunkDownload>-1</v2:sizeOfDataChunkDownload>',\n        '</v2:reportRequest>',\n        '<v2:userID>', pipeline().parameters.user_name, '</v2:userID>',\n        '<v2:password>', activity('GetToken').output.value, '</v2:password>',\n      '</v2:runReport>',\n    '</soapenv:Body>',\n  '</soapenv:Envelope>'\n)",
+													"type": "Expression"
+												},
+												"requestTimeout": ""
+											},
+											"formatSettings": {
+												"type": "XmlReadSettings",
+												"validationMode": "none",
+												"namespaces": true
+											}
+										},
+										"sink": {
+											"type": "JsonSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "JsonWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "ds_http_xml",
+											"type": "DatasetReference",
+											"parameters": {
+												"base_url": {
+													"value": "@pipeline().parameters.base_url",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_adls_json",
+											"type": "DatasetReference",
+											"parameters": {
+												"storage_account_uri": {
+													"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+													"type": "Expression"
+												},
+												"container_name": {
+													"value": "@pipeline().globalParameters.storage_container_datalake",
+													"type": "Expression"
+												},
+												"directory": {
+													"value": "@toLower(concat('raw_', pipeline().parameters.datastore_name,'/',pipeline().parameters.table_name,'/',formatDateTime(variables('new_watermark'), 'yyyyMMddHHmmss')))",
+													"type": "Expression"
+												},
+												"file_name": {
+													"value": "@concat(\n    toLower(pipeline().parameters.table_name), '_',\n    formatDateTime(variables('new_watermark'), 'yyyyMMddHHmmss'), '_',\n    formatDateTime('01-01-2000', 'yyyyMMdd'),\n    '_',\n    formatDateTime(variables('new_watermark'), 'yyyyMMdd'),\n    '.json'\n)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "fl_model",
+							"activities": [
+								{
+									"name": "copy_bip_report_fl_model",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "pl_oracle_fusion_bip_fl_model",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"user_name": {
+												"value": "@pipeline().parameters.user_name",
+												"type": "Expression"
+											},
+											"token": {
+												"value": "@activity('GetToken').output.value",
+												"type": "Expression"
+											},
+											"base_url": {
+												"value": "@pipeline().parameters.base_url",
+												"type": "Expression"
+											},
+											"report_path": {
+												"value": "@pipeline().parameters.source_path",
+												"type": "Expression"
+											},
+											"datastore_name": {
+												"value": "@pipeline().parameters.datastore_name",
+												"type": "Expression"
+											},
+											"table_name": {
+												"value": "@pipeline().parameters.table_name",
+												"type": "Expression"
+											},
+											"fetch": {
+												"value": "@pipeline().parameters.fl_model_batch_size",
+												"type": "Expression"
+											},
+											"adf_load_time": {
+												"value": "@formatDateTime(variables('new_watermark'), 'yyyy-MM-ddTHH:mm:ss')",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "exec_pl_trigger_sql_query",
+				"description": "Get new_watermark",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_sql_query",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"workspace_url": {
+							"value": "@pipeline().globalParameters.databricks_transformation_workspace_url",
+							"type": "Expression"
+						},
+						"sql_serverless_id": {
+							"value": "@pipeline().globalParameters.databricks_transformation_sql_serverless_id",
+							"type": "Expression"
+						},
+						"sql_statement": {
+							"value": "@concat(\n\t'select cast(max(',pipeline().parameters.load_time_column,') as string) as max_date from transformation_',\n\tpipeline().globalParameters.environment,\n\t'.brz_',\n\ttoLower(replace(pipeline().parameters.datastore_name, '-', '_')),\n\t'.vw_',\n\ttoLower(replace(pipeline().parameters.table_name, '-', '_'))\n)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "update_watermark",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "exec_pl_trigger_sql_query",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_managed_identity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"server_name": "@pipeline().globalParameters.sqldb_fqdn",
+						"database_name": "watermarks"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": {
+								"value": "UPDATE watermarktable SET [WatermarkValue] = '@{activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output}' WHERE [TableName] = '@{activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output}';\n\nIF @@ROWCOUNT = 0\n\nINSERT INTO watermarktable ([WatermarkValue], [TableName])\nVALUES (\n'@{activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output}',\n'@{toLower(concat(pipeline().parameters.datastore_name, '.',pipeline().parameters.table_name))}'\n);",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "00:10:00"
+				}
+			}
+		],
+		"concurrency": 50,
+		"parameters": {
+			"user_name": {
+				"type": "string",
+				"defaultValue": "biacm.admin"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-fusion-bip-svc-prd-password"
+			},
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://enpk.fa.em8.oraclecloud.com:443/xmlpserver/services/v2/ReportService"
+			},
+			"source_path": {
+				"type": "string",
+				"defaultValue": "/Custom/Data_Team/Fusion_AZ_Extract_DE/"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "fusion_bip_proc"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "AP_TERMS_VL"
+			},
+			"pk": {
+				"type": "string",
+				"defaultValue": "TERM_ID"
+			},
+			"load_time_column": {
+				"type": "string",
+				"defaultValue": "last_update_date"
+			},
+			"load_time_column_type": {
+				"type": "string",
+				"defaultValue": "timestamp"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "mdop"
+			},
+			"full_load": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_fusion_bip_fusion"
+			},
+			"load_days": {
+				"type": "string",
+				"defaultValue": "-1"
+			},
+			"model_type": {
+				"type": "string",
+				"defaultValue": "normal_model"
+			},
+			"fl_model_batch_size": {
+				"type": "int",
+				"defaultValue": 100000
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"new_watermark": {
+				"type": "String"
+			},
+			"old_watermark": {
+				"type": "String"
+			},
+			"model_type": {
+				"type": "String",
+				"defaultValue": "normal_model"
+			}
+		},
+		"folder": {
+			"name": "BIP"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

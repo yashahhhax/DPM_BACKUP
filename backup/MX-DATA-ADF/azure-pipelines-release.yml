@@ -1,0 +1,36 @@
+name: Deploy tagged release to preprod and prod
+
+resources:
+  repositories:
+    - repository: templateRepo
+      type: git
+      name: MX-DATA-DEVOPS-TEMPLATES
+      ref: refs/heads/main
+
+pr:
+  autoCancel: false
+
+trigger:
+  tags:
+    include:
+    - '*'
+
+stages:
+- template: build_adf.yml@templateRepo
+  parameters:
+    service_connection: 'sp-mx-data-terraform-dev-01'
+    environment: 'dev'
+
+- template: release_adf.yml@templateRepo
+  parameters:
+    name: PreProd
+    service_connection: 'sp-mx-data-terraform-preprd-01'
+    environment: 'preprd'
+    depends_on: 'Build'
+
+- template: release_adf.yml@templateRepo
+  parameters:
+    name: Prod
+    service_connection: 'sp-mx-data-terraform-prd-01'
+    environment: 'prd'
+    depends_on: 'PreProd'

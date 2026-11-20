@@ -1,0 +1,150 @@
+pipeline_name: pl_adhoc_sharepoint_csv_to_parquet
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [7]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sharepoint_file'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  secret_name: 'cloud-sharepoint-svc-prd-password'
+  site: 'FARAHFLFIN'
+  schema_name: 'drr'
+  use_case: 'drr'
+  # skip_orchestration: true
+
+datasets:
+  - name: t_fwad_budget_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'FWAD_BUDGET_2025.csv'
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: '{ "source_file_name": "FWAD_BUDGET_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_wbw_budget_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'WBW_BUDGET_2025.csv'
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: '{ "source_file_name": "WBW_BUDGET_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'  
+  - name: t_swad_budget_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'SWAD_BUDGET_2025.csv'
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: '{ "source_file_name": "SWAD_BUDGET_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_yww_budget_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'YWW_BUDGET_2025.csv'
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: '{ "source_file_name": "YWW_BUDGET_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_qaw_budget_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'QAW_BUDGET_2025.csv'
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: '{ "source_file_name": "QAW_BUDGET_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_clymb_budget_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'CLYMB_BUDGET_2025.csv'
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: '{ "source_file_name": "CLYMB_BUDGET_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_tlp_budget_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'TLP_BUDGET_2025.csv'
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: '{ "source_file_name": "TLP_BUDGET_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_aaz_budget_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'AAZ_BUDGET_2025.csv'
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: '{ "source_file_name": "AAZ_BUDGET_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  # Forecast triggers
+  - name: t_fwad_forecast_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'FWAD_FORECAST_2025.csv'
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: '{ "source_file_name": "FWAD_FORECAST_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_wbw_forecast_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'WBW_FORECAST_2025.csv'
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: '{ "source_file_name": "WBW_FORECAST_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_swad_forecast_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'SWAD_FORECAST_2025.csv'
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: '{ "source_file_name": "SWAD_FORECAST_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_yww_forecast_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'YWW_FORECAST_2025.csv'
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: '{ "source_file_name": "YWW_FORECAST_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_qaw_forecast_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'QAW_FORECAST_2025.csv'
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: '{ "source_file_name": "QAW_FORECAST_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_clymb_forecast_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'CLYMB_FORECAST_2025.csv'
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: '{ "source_file_name": "CLYMB_FORECAST_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_tlp_forecast_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'TLP_FORECAST_2025.csv'
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: '{ "source_file_name": "TLP_FORECAST_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_aaz_forecast_2025
+    dataset_parameters:
+      path: '2025/'
+      input_file_name: 'AAZ_FORECAST_2025.csv'
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: '{ "source_file_name": "AAZ_FORECAST_2025.csv" }'
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'

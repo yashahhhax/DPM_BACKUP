@@ -1,0 +1,178 @@
+{
+	"name": "pl_question_pro_to_raw_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "for_each_page",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get_survey_response",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@range(\n\t1,\n\tif(\n\t\tand(\n\t\t\tcontains(activity('get_survey_response').output,'pagination'),\n\t\t\tnot(equals(activity('get_survey_response').output.pagination.totalItems,0))\n\t\t),\n\t\tactivity('get_survey_response').output.pagination.totalPages,\n\t\t0\n\t)\n)",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Copy_survey_response_to json",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:30:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:05:00",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "POST",
+									"requestBody": {
+										"value": "{\"transactionEndDate\": \"@{pipeline().parameters.batch_start_date}\",\"transactionStartDate\":\"@{pipeline().parameters.batch_start_date}\"}",
+										"type": "Expression"
+									},
+									"additionalHeaders": {
+										"Content-Type": "application/json",
+										"api-key": {
+											"value": "@pipeline().parameters.api_key",
+											"type": "Expression"
+										}
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_rest_api",
+									"type": "DatasetReference",
+									"parameters": {
+										"base_url": {
+											"value": "@pipeline().parameters.base_url",
+											"type": "Expression"
+										},
+										"relative_url": {
+											"value": "?page=@{item()}&perPage=50",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_adls_json",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": {
+											"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+											"type": "Expression"
+										},
+										"container_name": "@pipeline().globalParameters.storage_container_datalake",
+										"directory": "@toLower(concat('raw_', pipeline().parameters.datastore_name,'/',pipeline().parameters.schema_name,'_',pipeline().parameters.table_name,'/',pipeline().parameters.adf_load_time))",
+										"file_name": {
+											"value": "@toLower(concat(pipeline().parameters.table_name, '_',item(), '_',pipeline().parameters.batch_start_date,'.json'))",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "get_survey_response",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json",
+						"api-key": {
+							"value": "@pipeline().parameters.api_key",
+							"type": "Expression"
+						}
+					},
+					"httpRequestTimeout": "00:05:00",
+					"url": {
+						"value": "@{pipeline().parameters.base_url}?page=1&perPage=50",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"value": "{\"transactionEndDate\": \"@{pipeline().parameters.batch_start_date}\",\"transactionStartDate\":\"@{pipeline().parameters.batch_start_date}\"}",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"base_url": {
+				"type": "string"
+			},
+			"batch_start_date": {
+				"type": "string"
+			},
+			"api_key": {
+				"type": "string"
+			},
+			"datastore_name": {
+				"type": "string"
+			},
+			"schema_name": {
+				"type": "string"
+			},
+			"table_name": {
+				"type": "string"
+			},
+			"adf_load_time": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"page": {
+				"type": "String",
+				"defaultValue": "1"
+			},
+			"per_page": {
+				"type": "String",
+				"defaultValue": "50"
+			}
+		},
+		"folder": {
+			"name": "GSS"
+		},
+		"annotations": []
+	}
+}

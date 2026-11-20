@@ -1,0 +1,75 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "Source Agent Identifier",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_agent_identifier",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Source Agent Identifier Type",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_agent_identifier_type",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Genesys Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "genesys_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Usename",
+                "type": "String"
+            },
+            "sink": {
+                "name": "username",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Mapping Source",
+                "type": "String"
+            },
+            "sink": {
+                "name": "mapping_source",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "source_file_name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_file_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

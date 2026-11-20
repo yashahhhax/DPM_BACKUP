@@ -1,0 +1,160 @@
+pipeline_name: pl_oracle_fusion_bicc_proc_incremental
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [06]
+  minutes: [00]
+
+activated: true
+
+datastore_parameters:
+  datastore_name: 'fusion_bicc_proc'
+  user_name: 'c36f679f141df2591f90cab7befe6f0c8f2a770f'
+  secret_name: 'cloud-fusion-oci-svc-prd-password'
+  base_url: 'https://axzjleyzf4ti.compat.objectstorage.me-dubai-1.oraclecloud.com'
+  source_path: 'Fusion_Azure_ADF'
+  use_case: 'procurement'
+  # skip_backup: true
+  # skip_exec_adb: true
+  # full_load: true
+  # full_load_date: '2026-05-16'
+  # load_days: 1
+  # skip_orchestration: true
+
+datasets:
+  - name: fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumentlineextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumentlineextractpvo'
+      pk: 'PoLineId'
+      load_time_column: 'LastUpdateDate'
+      use_case: 'finance, procurement'
+  - name: fscmtopmodelam_prcextractam_ponbiccextractam_negotiationlineextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_ponbiccextractam_negotiationlineextractpvo'
+      pk: 'AuctionHeaderId, LineNumber'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_ponbiccextractam_negotiationresponseheaderextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_ponbiccextractam_negotiationresponseheaderextractpvo'
+      pk: 'BidNumber'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_ponbiccextractam_negotiationresponselineextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_ponbiccextractam_negotiationresponselineextractpvo'
+      pk: 'BidNumber, LineNumber'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumentactionhistoryextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumentactionhistoryextractpvo'
+      pk: 'ActionCode, ObjectId, ObjectSubTypeCode, ObjectTypeCode, SequenceNum'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_porbiccextractam_browsingcategorytranslationextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_porbiccextractam_browsingcategorytranslationextractpvo'
+      pk: 'CategoryId, Language'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_poqbiccextractam_initiativeextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_poqbiccextractam_initiativeextractpvo'
+      pk: 'InitiativeId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_poqbiccextractam_initiativesupplierextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_poqbiccextractam_initiativesupplierextractpvo'
+      pk: 'InitSupplierId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_poqbiccextractam_qualificationextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_poqbiccextractam_qualificationextractpvo'
+      pk: 'QualificationId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_pozbiccextractam_supplierbusinessclassificationextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_pozbiccextractam_supplierbusinessclassificationextractpvo'
+      pk: 'ClassificationId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_pozbiccextractam_supplierproductsandservicesextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_pozbiccextractam_supplierproductsandservicesextractpvo'
+      pk: 'ClassificationId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_ponbiccextractam_negstyledoctypetranslationextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_ponbiccextractam_negstyledoctypetranslationextractpvo'
+      pk: 'DoctypeId, Language, StyleId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_ponbiccextractam_negotiationsupplieractivitypvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_ponbiccextractam_negotiationsupplieractivitypvo'
+      pk: 'AuctionHeaderIdOrigAmend, LastActivityCode, LastActivityTime, SessionId, TradingPartnerContactId, TradingPartnerId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_organizationam_organizationpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_organizationam_organizationpvo'
+      pk: 'OrgUnitClassificationId'
+      load_time_column: 'OrgUnitClassificationPEOLastUpdateDate, OrganizationUnitPEOLastUpdateDate, OrganizationUnitTranslationPEOLastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_pobiccextractam_procurementbuyersextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_pobiccextractam_procurementbuyersextractpvo'
+      pk: 'AssignmentId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumentdistributionextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumentdistributionextractpvo'
+      pk: 'PoDistributionId'
+      load_time_column: 'LastUpdateDate'
+      use_case: 'finance, procurement'
+  - name: fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumentlinelocationextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumentlinelocationextractpvo'
+      pk: 'LineLocationId'
+      load_time_column: 'LastUpdateDate'
+      use_case: 'finance, procurement'
+  - name: fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumenttypebextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumenttypebextractpvo'
+      pk: 'DocumentSubtype, DocumentTypeCode, PrcBuId'
+      load_time_column: 'PODocumentTypeLastUpdateDate'
+  - name: fscmtopmodelam_scmextractam_egpbiccextractam_categoryextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_scmextractam_egpbiccextractam_categoryextractpvo'
+      pk: 'CategoryBasePEOCategoryId'
+      load_time_column: 'CategoryBasePEOLastUpdateDate'
+  - name: fscmtopmodelam_scmextractam_egpbiccextractam_categorytranslationextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_scmextractam_egpbiccextractam_categorytranslationextractpvo'
+      pk: 'CategoryTranslationPEOCategoryId, CategoryTranslationPEOLanguage'
+      load_time_column: 'CategoryTranslationPEOLastUpdateDate'
+  - name: fscmtopmodelam_scmextractam_egpbiccextractam_itemextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_scmextractam_egpbiccextractam_itemextractpvo'
+      pk: 'ItemBasePEOInventoryItemId, ItemBasePEOOrganizationId'
+      load_time_column: 'ItemBasePEOLastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_porbiccextractam_requisitionheaderextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_porbiccextractam_requisitionheaderextractpvo'
+      pk: 'RequisitionHeaderId'
+      load_time_column: 'LastUpdateDate'
+      use_case: 'finance, procurement'
+  - name: fscmtopmodelam_prcextractam_pozbiccextractam_suppliersiteextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_pozbiccextractam_suppliersiteextractpvo'
+      pk: 'VendorSiteId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_scmextractam_scmrcsbiccextractam_invunitsofmeasurepvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_scmextractam_scmrcsbiccextractam_invunitsofmeasurepvo'
+      pk: 'UnitOfMeasureId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_scmextractam_scmrcsbiccextractam_invunitsofmeasuretranslationpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_scmextractam_scmrcsbiccextractam_invunitsofmeasuretranslationpvo'
+      pk: 'UnitOfMeasureId,Language'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_pozbiccextractam_supplierextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_pozbiccextractam_supplierextractpvo'
+      pk: 'VendorId'
+      load_time_column: 'LastUpdateDate'
+      use_case: 'finance, procurement'

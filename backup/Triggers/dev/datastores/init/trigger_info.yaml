@@ -1,0 +1,18 @@
+pipeline_name: pl_adf_init
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [18]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'init'
+  # skip_orchestration: true
+
+datasets:
+  - name: init
+    dataset_parameters:
+      container_name: "placeholder"

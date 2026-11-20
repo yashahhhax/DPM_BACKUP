@@ -1,0 +1,21 @@
+{
+	"name": "ls_http",
+	"properties": {
+		"parameters": {
+			"base_url": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "@{linkedService().base_url}",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous"
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

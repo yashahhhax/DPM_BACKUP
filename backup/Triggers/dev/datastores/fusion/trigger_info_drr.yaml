@@ -1,0 +1,111 @@
+pipeline_name: pl_odbc_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [10]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'fusion'
+  connection_string: 'DSN=ATP'
+  user_name: 'xxbip'
+  secret_name: 'onprem-atp-oracle-svc-prd-password'
+  schema_name: 'xxapps'
+  # skip_orchestration: true
+
+datasets:
+  # - name: xxflpm_bi_turnover_reasons_all
+  #   dataset_parameters:
+  #     table_name: 'xxflpm_bi_turnover_reasons_all'
+  #     use_case: 'drr'
+  - name: xxflpm_bi_people_dtls_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_people_dtls_all'
+      use_case: 'drr'
+  - name: xxflpm_bi_position_master_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_position_master_all'
+      use_case: 'drr'
+  - name: xxflpm_bi_emp_mast_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_emp_mast_all'
+      use_case: 'drr'
+  - name: xxflpm_bi_dept_master_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_dept_master_all'
+      use_case: 'drr'  
+  - name: xxflpm_bi_coa_dept_master_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_coa_dept_master_all'
+      use_case: 'drr'
+  - name: xxflp_maximo_gl_combs_ob_all
+    dataset_parameters:
+      table_name: 'xxflp_maximo_gl_combs_ob_all'
+      use_case: 'drr'
+  - name: xxflp_ig_tendor_accounts_v
+    dataset_parameters:
+      table_name: 'xxflp_ig_tendor_accounts_v'
+      use_case: 'drr'
+  - name: xxflpm_bi_emp_service_dtls_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_emp_service_dtls_all'
+      use_case: 'drr'
+  - name: xxapps_xxflp_bi_coa_segment_values_all
+    dataset_parameters:
+      table_name: 'xxflp_bi_coa_segment_values_all'
+      use_case: 'drr'
+  - name: xxapps_xxflpm_bi_acct_map_dtl_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_acct_map_dtl_all'
+      use_case: 'drr'
+  - name: xxapps_xxflpm_bi_acct_map_hdr_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_acct_map_hdr_all'
+      use_case: 'drr'
+  - name: xxapps_xxflpm_bi_coa_acct_master_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_coa_acct_master_all'
+      use_case: 'drr'
+  # - name: xxapps_xxflp_gl_accounts_master_all
+  #   dataset_parameters:
+  #     table_name: 'xxflp_gl_accounts_master_all'
+  #     use_case: 'drr'
+  - name: xxapps_xxflpm_bi_coa_sa_master_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_coa_sa_master_all'
+      use_case: 'drr'
+  - name: xxapps_xxflp_omni_dmg_cat_sa_map_all
+    dataset_parameters:
+      table_name: 'xxflp_omni_dmg_cat_sa_map_all'
+      use_case: 'drr, clymb_drr'
+  # - name: xxflp_bi_pr_headers_all
+  #   dataset_parameters:
+  #     table_name: 'xxflp_bi_pr_headers_all'
+  #     use_case: 'drr'
+  # - name: xxflp_bi_pr_details_all
+  #   dataset_parameters:
+  #     table_name: 'xxflp_bi_pr_details_all'
+  #     use_case: 'drr'
+  # - name: xxflp_bi_inv_items
+  #   dataset_parameters:
+  #     table_name: 'xxflp_bi_inv_items'
+  #     use_case: 'drr'
+  # - name: xxflp_bi_suppliers_all
+  #   dataset_parameters:
+  #     table_name: 'xxflp_bi_suppliers_all'
+  #     use_case: 'drr'
+  - name: xxflp_rev_manual_adj_iface_all
+    dataset_parameters:
+      table_name: 'xxflp_rev_manual_adj_iface_all'
+      use_case: 'drr'
+  - name: xxflp_omni_oprarea_act_map_all 
+    dataset_parameters:
+      table_name: 'XXFLP_OMNI_OPRAREA_ACT_MAP_ALL'
+      use_case: 'drr'
+  - name: xxmir_customer_all
+    dataset_parameters:
+      table_name: 'XXMIR_CUSTOMER_ALL'
+      use_case: 'drr'

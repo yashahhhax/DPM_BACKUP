@@ -1,0 +1,147 @@
+{
+	"name": "pl_social_media_to_parquet",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute_adb_ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{  \n  \"base_url\": \"@{pipeline().parameters.base_url}\",\n  \"secret_name\": \"@{pipeline().parameters.secret_name}\",\n  \"datastore_name\": \"@{pipeline().parameters.datastore_name}\",\n  \"dataset_name\": \"@{pipeline().parameters.schema_name}\",\n  \"table_name\": \"@{pipeline().parameters.table_name}\",\n  \"write_mode\": \"overwrite\",\n  \"start_date\": \"@{if(\n    or(empty(pipeline().parameters.start_date), equals(pipeline().parameters.start_date,'')),\n    formatDateTime(addDays(startOfMonth(addToTime(convertTimeZone(pipeline().TriggerTime,'UTC','Arabian Standard Time'),-1,'Month')),1),'yyyy-MM-dd'),pipeline().parameters.start_date)}\",\n  \"end_date\": \"@{if(\n    or(empty(pipeline().parameters.end_date), equals(pipeline().parameters.end_date,'')),\n    string(formatDateTime(addDays(startOfMonth(convertTimeZone(pipeline().TriggerTime,'UTC','Arabian Standard Time')),1),'yyyy-MM-dd')),pipeline().parameters.end_date)}\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute_adb_ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://api2.sprinklr.com/"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-sprinklr-api-prd-json-apikey"
+			},
+			"start_date": {
+				"type": "string"
+			},
+			"end_date": {
+				"type": "string"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "sprinklr"
+			},
+			"schema_name": {
+				"type": "string",
+				"defaultValue": "gss"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "social_media"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "gss"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_gss_social_media"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"folder": {
+			"name": "GSS"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

@@ -1,0 +1,23 @@
+{
+	"name": "ls_rest",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"base_url": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "@{linkedService().base_url}",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIwMzBlMzNjZi00MmUwLTRhYmYtODBhZi1mZjA4OTkxMTQ3NGEiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

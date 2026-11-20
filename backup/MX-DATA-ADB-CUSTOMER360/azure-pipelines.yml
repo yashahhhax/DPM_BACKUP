@@ -1,0 +1,39 @@
+name: Databricks
+ 
+resources:
+  repositories:
+    - repository: templateRepo
+      type: git
+      name: MX-DATA-DEVOPS-TEMPLATES
+      ref: refs/heads/main
+    - repository: sharedRepo
+      type: git
+      name: MX-DATA-ADB 
+      ref: 'refs/heads/development'   
+ 
+pr:
+  autoCancel: false
+ 
+trigger:
+  branches:
+    include:
+    - uat
+ 
+stages:
+
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: "Transformation_UAT"
+    service_connection: 'sp-mx-data-cicd-uat-01'
+    agent_pool_name: 'data-platform'
+    environment: 'uat'
+    folder_name: 'customer360'
+    job_to_run: 'wf_workflow_orchestration_config_customer360'
+
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: "Ingestion_UAT"
+    service_connection: 'sp-mx-data-cicd-uat-01'
+    agent_pool_name: 'data-platform'
+    environment: 'uat'
+    folder_name: 'customer360/ingestion'

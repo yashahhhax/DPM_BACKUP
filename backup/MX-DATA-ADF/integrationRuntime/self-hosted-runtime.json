@@ -1,0 +1,9 @@
+{
+	"name": "self-hosted-runtime",
+	"properties": {
+		"type": "SelfHosted",
+		"typeProperties": {
+			"selfContainedInteractiveAuthoringEnabled": false
+		}
+	}
+}

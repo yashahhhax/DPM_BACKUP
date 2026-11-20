@@ -1,0 +1,49 @@
+{
+	"name": "ls_dataverse",
+	"properties": {
+		"parameters": {
+			"key_vault_uri": {
+				"type": "String"
+			},
+			"service_principal_id": {
+				"type": "String"
+			},
+			"secret_name": {
+				"type": "String"
+			},
+			"server_name": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "CommonDataServiceForApps",
+		"typeProperties": {
+			"deploymentType": "Online",
+			"serviceUri": "@{linkedService().server_name}",
+			"authenticationType": "AADServicePrincipal",
+			"servicePrincipalId": "@{linkedService().service_principal_id}",
+			"servicePrincipalCredential": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": {
+					"value": "@linkedService().secret_name",
+					"type": "Expression"
+				}
+			},
+			"servicePrincipalCredentialType": "ServicePrincipalKey"
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

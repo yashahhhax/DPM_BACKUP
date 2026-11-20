@@ -1,0 +1,44 @@
+{
+	"name": "ls_google_bigquery",
+	"properties": {
+		"parameters": {
+			"project_id": {
+				"type": "string"
+			},
+			"secret_name": {
+				"type": "string"
+			},
+			"key_vault_uri": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "GoogleBigQueryV2",
+		"version": "1.1",
+		"typeProperties": {
+			"projectId": "@{linkedService().project_id}",
+			"authenticationType": "ServiceAuthentication",
+			"keyFileContent": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": {
+					"value": "@linkedService().secret_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

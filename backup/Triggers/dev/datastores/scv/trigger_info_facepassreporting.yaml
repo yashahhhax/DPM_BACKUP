@@ -1,0 +1,27 @@
+pipeline_name: pl_azure_sql_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [06]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'scv'
+  server_name: 'fe-prod-cdm-scvprimary.database.windows.net'
+  user_name: 'feprodcdmscvadmin'
+  secret_name: 'cloud-scv-sqlserver-sql-svc-prd-password'
+  database_name: 'fe-prod-cdm-scv-db'
+  schema_name: 'dbo'
+  use_case: 'facepassreporting'
+  # skip_orchestration: true
+
+datasets:
+  - name: t_mdm_rel
+    dataset_parameters:
+      table_name: 'T_MDM_REL'
+  - name: guest_relationships
+    dataset_parameters:
+      table_name: 'GUEST_RELATIONSHIPS'

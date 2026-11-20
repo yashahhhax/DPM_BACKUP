@@ -1,0 +1,101 @@
+pipeline_name: pl_sharepoint_excel_to_parquet
+
+schedule:
+  frequency: Month
+  interval: 1
+  monthDays: [10]
+  hours: [10]
+  minutes: [00]
+
+activated: false
+
+datastore_parameters:          
+  secret_name: 'cloud-sharepoint-svc-prd-password'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  datastore_name: 'sharepoint_file'
+  schema_name: 'ycautomation'
+  site: 'VOGTeam'
+  use_case: 'ycautomation'
+  first_row_header: 'true'
+  # skip_orchestration: true
+
+datasets:
+  - name: active_employee_list
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Mapping Files/'
+      table_name: 'active_employee_list'
+      input_file_name: "@concat('Active_Employee_List_',formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyyMMdd'),'.xlsx')"
+      sheet_name: 'active_list'
+  - name: manual_updates
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Manual Updates/'
+      table_name: 'manual_updates'
+      input_file_name: "@concat('Manual_Updates_',formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyyMMdd'),'.xlsx')"
+      sheet_name: 'csat_score'
+  - name: mirza_transactions_f1
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Mirza Revenue Report/'
+      table_name: 'mirza_transactions_f1'
+      input_file_name: "@concat('Mirza_Transactions_',formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyyMMdd'),'.xlsx')"
+      sheet_name: 'f1'
+  - name: mirza_transactions_non_f1             
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Mirza Revenue Report/'
+      table_name: 'mirza_transactions_non_f1'
+      input_file_name: "@concat('Mirza_Transactions_',formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyyMMdd'),'.xlsx')"
+      sheet_name: 'non_f1'
+  - name: payfort_revenue_ea            
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Payfort Revenue/'
+      table_name: 'payfort_revenue_ea'
+      input_file_name: "@concat('Payfort_Revenue_',formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyyMMdd'),'.xlsx')"
+      sheet_name: 'ea'
+  - name: payfort_revenue_ethara
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Payfort Revenue/'
+      table_name: 'payfort_revenue_ethara'
+      input_file_name: "@concat('Payfort_Revenue_',formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyyMMdd'),'.xlsx')"
+      sheet_name: 'ethara'
+  - name: payfort_revenue_parks
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Payfort Revenue/'
+      table_name: 'payfort_revenue_parks'
+      input_file_name: "@concat('Payfort_Revenue_',formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyyMMdd'),'.xlsx')"
+      sheet_name: 'parks'
+  - name: quality_scores
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Quality Scores/'
+      table_name: 'quality_scores'
+      input_file_name: "@concat('Quality_Scores_',formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyyMMdd'),'.xlsx')"
+      sheet_name: 'quality_data'
+  - name: queue_grouping_matrix
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Mapping Files/'
+      table_name: 'queue_grouping_matrix'
+      input_file_name:  "@concat('Queue_Grouping_Matrix_',formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyyMMdd'),'.xlsx')"
+      sheet_name: 'genesys'
+  - name: user_name_mapping          
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Mapping Files/'
+      table_name: 'user_name_mapping'
+      input_file_name: "@concat('User_Name_Mapping_',formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyyMMdd'),'.xlsx')"
+      sheet_name: 'revenue_sources_user_mapping'
+  - name: lad_revenue           
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/LAD Revenue/'
+      table_name: 'lad_revenue'
+      input_file_name: "@concat('LAD_Revenue_',formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyyMMdd'),'.xlsx')"
+      sheet_name: 'lad'
+  - name: ycia_incentive_cap_mapping           
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Lookup Files/'
+      table_name: 'ycia_incentive_cap_mapping'
+      input_file_name: "YCIA_incentive_cap_mapping.xlsx"
+      sheet_name: 'YCIA_incentive_cap_mapping'
+  - name: ycia_survey_score_conversion           
+    dataset_parameters:
+      path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Lookup Files/'
+      table_name: 'ycia_survey_score_conversion'
+      input_file_name: "YCIA_survey_score_conversion.xlsx"
+      sheet_name: 'YCIA_survey_score_conversion'

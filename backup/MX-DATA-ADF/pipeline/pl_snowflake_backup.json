@@ -1,0 +1,154 @@
+{
+	"name": "pl_snowflake_backup",
+	"properties": {
+		"activities": [
+			{
+				"name": "pl_trigger_ingestion_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_trigger_adb_ingestion",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(replace(pipeline().parameters.table_name, '.', '_'))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_trigger_adb_ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "set_query",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(replace(pipeline().parameters.table_name, '.', '_'))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"table_name\": \"@{toLower(pipeline().parameters.table_name)}\",\n  \"query\": \"@{variables('query')}\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set_query",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "query",
+					"value": {
+						"value": "@if(empty(pipeline().parameters.query), null,replace(pipeline().parameters.query, '\"', '\\\"'))",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "snowflake"
+			},
+			"table_name": {
+				"type": "string"
+			},
+			"query": {
+				"type": "string"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_snowflake_backup"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "snowflake_backup"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"query": {
+				"type": "String"
+			}
+		},
+		"annotations": [
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

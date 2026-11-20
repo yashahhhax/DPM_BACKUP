@@ -1,0 +1,72 @@
+pipeline_name: pl_sharepoint_list_to_parquet
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [08]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sharepoint_list'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  cert_secret_name: 'cloud-sharepoint-svc-prd-certificate-txt-01'
+  pass_secret_name: 'cloud-sharepoint-svc-prd-certificate-password-01'
+  base_url: 'https://miralgroup.sharepoint.com/sites'
+  # skip_orchestration: true
+
+datasets:
+  - name: eventreport
+    dataset_parameters:
+      site: 'MyMiral'
+      list_name: 'EventReport'
+      user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+      secret_name: 'cloud-sharepoint-svc-prd-password'
+      use_case: 'ea_drr'
+  - name: companydimension
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'CompanyDimension'
+      use_case: 'maintenance_maximo, drr, clymb_drr, ea_drr'
+  - name: glgroupmapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'GLGroupMapping'
+      use_case: 'drr, clymb_drr, ea_drr'
+  - name: drr_source_systems
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'DRR_Source_Systems'
+      use_case: 'maintenance_maximo, drr, clymb_drr, ea_drr'
+  - name: productmaster
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'ProductMaster'
+      use_case: 'drr, clymb_drr, ea_drr'
+  - name: revenue_transaction_type
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'Revenue_Transaction_Type'
+      use_case: 'drr, clymb_drr, ea_drr'
+  - name: market_segments
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'MARKET_SEGMENTS'
+      use_case: 'drr, ea_drr'
+  - name: drr_country_mapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'drr_country_mapping'
+      use_case: 'drr, ea_drr'
+  - name: coa_segment_mapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'COA_Segment_Mapping'
+      use_case: 'maintenance_maximo, drr, clymb_drr, ea_drr'
+  - name: outletmapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'OutletMapping'
+      use_case: 'drr, clymb_drr, ea_drr'

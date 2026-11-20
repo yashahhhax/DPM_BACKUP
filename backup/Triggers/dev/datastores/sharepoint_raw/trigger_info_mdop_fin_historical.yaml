@@ -1,0 +1,239 @@
+pipeline_name: pl_adhoc_sharepoint_binary_to_binary_enhanced
+ 
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [06]
+  minutes: [00]
+
+activated: false
+ 
+datastore_parameters:
+  ingest_workflow_name : "wf_ingest_mdop_fin_sharepoint_hotel"
+  trans_workflow_name: "wf_finance_hotel_tb"
+  datastore_name : "sharepoint_file"
+  schema_name : "mdop_fin"
+  site : "FARAHFLFIN"
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  secret_name: 'cloud-sharepoint-svc-prd-password'
+  use_case : "finance"
+  drive_id: 'b!0SuTvDQmqEC-nZURiVe42rocL2Ese6NOuYaxKJKDJOTqAQ02xcdYSZeM14B2GoMl'
+  # skip_orchestration: true
+
+datasets:
+  - name: dt_tb_2026_01
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/DT_Files/2026/"
+      table_name: "dt_tb"
+      input_file_name: "dt_tb_jan_2026.xlsx"
+      directory: "mdop_fin/dt_tb/2026/01"
+      ingest_workflow_parameters: "{\"input_file_name\":\"dt_tb_jan_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"dt_tb_jan_2026.xlsx\"}"
+  
+  - name: dt_tb_2026_02
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/DT_Files/2026/"
+      table_name: "dt_tb"
+      input_file_name: "dt_tb_feb_2026.xlsx"
+      directory: "mdop_fin/dt_tb/2026/02"
+      ingest_workflow_parameters: "{\"input_file_name\":\"dt_tb_feb_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"dt_tb_feb_2026.xlsx\"}"
+   
+  - name: dt_tb_2026_03
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/DT_Files/2026/"
+      table_name: "dt_tb"
+      input_file_name: "dt_tb_mar_2026.xlsx"
+      directory: "mdop_fin/dt_tb/2026/03"
+      ingest_workflow_parameters: "{\"input_file_name\":\"dt_tb_mar_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"dt_tb_mar_2026.xlsx\"}"
+   
+  - name: dt_tb_2026_04
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/DT_Files/2026/"
+      table_name: "dt_tb"
+      input_file_name: "dt_tb_apr_2026.xlsx"
+      directory: "mdop_fin/dt_tb/2026/04"
+      ingest_workflow_parameters: "{\"input_file_name\":\"dt_tb_apr_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"dt_tb_apr_2026.xlsx\"}"
+   
+  - name: dt_tb_2026_05
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/DT_Files/2026/"
+      table_name: "dt_tb"
+      input_file_name: "dt_tb_may_2026.xlsx"
+      directory: "mdop_fin/dt_tb/2026/05"
+      ingest_workflow_parameters: "{\"input_file_name\":\"dt_tb_may_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"dt_tb_may_2026.xlsx\"}"
+
+  - name: dt_tb_2026_06
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/DT_Files/2026/"
+      table_name: "dt_tb"
+      input_file_name: "dt_tb_jun_2026.xlsx"
+      directory: "mdop_fin/dt_tb/2026/06"
+      ingest_workflow_parameters: "{\"input_file_name\":\"dt_tb_jun_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"dt_tb_jun_2026.xlsx\"}"
+  
+  - name: dt_tb_2026_07
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/DT_Files/2026/"
+      table_name: "dt_tb"
+      input_file_name: "dt_tb_jul_2026.xlsx"
+      directory: "mdop_fin/dt_tb/2026/07"
+      ingest_workflow_parameters: "{\"input_file_name\":\"dt_tb_jul_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"dt_tb_jul_2026.xlsx\"}"
+
+  - name: dt_tb_2026_08
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/DT_Files/2026/"
+      table_name: "dt_tb"
+      input_file_name: "dt_tb_aug_2026.xlsx"
+      directory: "mdop_fin/dt_tb/2026/08"
+      ingest_workflow_parameters: "{\"input_file_name\":\"dt_tb_aug_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"dt_tb_aug_2026.xlsx\"}"
+
+  - name: ht_tb_2026_01
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/Hilton_Files/2026/"
+      table_name: "ht_tb"
+      input_file_name: "ht_tb_jan_2026.xlsx"
+      directory: "mdop_fin/ht_tb/2026/01"
+      ingest_workflow_parameters: "{\"input_file_name\":\"ht_tb_jan_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"ht_tb_jan_2026.xlsx\"}"
+  
+  - name: ht_tb_2026_02
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/Hilton_Files/2026/"
+      table_name: "ht_tb"
+      input_file_name: "ht_tb_feb_2026.xlsx"
+      directory: "mdop_fin/ht_tb/2026/02"
+      ingest_workflow_parameters: "{\"input_file_name\":\"ht_tb_feb_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"ht_tb_feb_2026.xlsx\"}"
+   
+  - name: ht_tb_2026_03
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/Hilton_Files/2026/"
+      table_name: "ht_tb"
+      input_file_name: "ht_tb_mar_2026.xlsx"
+      directory: "mdop_fin/ht_tb/2026/03"
+      ingest_workflow_parameters: "{\"input_file_name\":\"ht_tb_mar_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"ht_tb_mar_2026.xlsx\"}"
+   
+  - name: ht_tb_2026_04
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/Hilton_Files/2026/"
+      table_name: "ht_tb"
+      input_file_name: "ht_tb_apr_2026.xlsx"
+      directory: "mdop_fin/ht_tb/2026/04"
+      ingest_workflow_parameters: "{\"input_file_name\":\"ht_tb_apr_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"ht_tb_apr_2026.xlsx\"}"
+   
+  - name: ht_tb_2026_05
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/Hilton_Files/2026/"
+      table_name: "ht_tb"
+      input_file_name: "ht_tb_may_2026.xlsx"
+      directory: "mdop_fin/ht_tb/2026/05"
+      ingest_workflow_parameters: "{\"input_file_name\":\"ht_tb_may_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"ht_tb_may_2026.xlsx\"}"
+  
+  - name: ht_tb_2026_06
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/Hilton_Files/2026/"
+      table_name: "ht_tb"
+      input_file_name: "ht_tb_jun_2026.xlsx"
+      directory: "mdop_fin/ht_tb/2026/06"
+      ingest_workflow_parameters: "{\"input_file_name\":\"ht_tb_jun_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"ht_tb_jun_2026.xlsx\"}"
+
+  - name: ht_tb_2026_07
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/Hilton_Files/2026/"
+      table_name: "ht_tb"
+      input_file_name: "ht_tb_jul_2026.xlsx"
+      directory: "mdop_fin/ht_tb/2026/07"
+      ingest_workflow_parameters: "{\"input_file_name\":\"ht_tb_jul_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"ht_tb_jul_2026.xlsx\"}"
+
+  - name: ht_tb_2026_08
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/Hilton_Files/2026/"
+      table_name: "ht_tb"
+      input_file_name: "ht_tb_aug_2026.xlsx"
+      directory: "mdop_fin/ht_tb/2026/08"
+      ingest_workflow_parameters: "{\"input_file_name\":\"ht_tb_aug_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"ht_tb_aug_2026.xlsx\"}"
+
+  - name: wb_tb_2026_01
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/WB_Files/2026/"
+      table_name: "wb_tb"
+      input_file_name: "wb_tb_jan_2026.xlsx"
+      directory: "mdop_fin/wb_tb/2026/01"
+      ingest_workflow_parameters: "{\"input_file_name\":\"wb_tb_jan_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"wb_tb_jan_2026.xlsx\"}"
+  
+  - name: wb_tb_2026_02
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/WB_Files/2026/"
+      table_name: "wb_tb"
+      input_file_name: "wb_tb_feb_2026.xlsx"
+      directory: "mdop_fin/wb_tb/2026/02"
+      ingest_workflow_parameters: "{\"input_file_name\":\"wb_tb_feb_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"wb_tb_feb_2026.xlsx\"}"
+   
+  - name: wb_tb_2026_03
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/WB_Files/2026/"
+      table_name: "wb_tb"
+      input_file_name: "wb_tb_mar_2026.xlsx"
+      directory: "mdop_fin/wb_tb/2026/03"
+      ingest_workflow_parameters: "{\"input_file_name\":\"wb_tb_mar_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"wb_tb_mar_2026.xlsx\"}"
+   
+  - name: wb_tb_2026_04
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/WB_Files/2026/"
+      table_name: "wb_tb"
+      input_file_name: "wb_tb_apr_2026.xlsx"
+      directory: "mdop_fin/wb_tb/2026/04"
+      ingest_workflow_parameters: "{\"input_file_name\":\"wb_tb_apr_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"wb_tb_apr_2026.xlsx\"}"
+   
+  - name: wb_tb_2026_05
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/WB_Files/2026/"
+      table_name: "wb_tb"
+      input_file_name: "wb_tb_may_2026.xlsx"
+      directory: "mdop_fin/wb_tb/2026/05"
+      ingest_workflow_parameters: "{\"input_file_name\":\"wb_tb_may_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"wb_tb_may_2026.xlsx\"}"
+
+  - name: wb_tb_2026_06
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/WB_Files/2026/"
+      table_name: "wb_tb"
+      input_file_name: "wb_tb_jun_2026.xlsx"
+      directory: "mdop_fin/wb_tb/2026/06"
+      ingest_workflow_parameters: "{\"input_file_name\":\"wb_tb_jun_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"wb_tb_jun_2026.xlsx\"}"
+
+  - name: wb_tb_2026_07
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/WB_Files/2026/"
+      table_name: "wb_tb"
+      input_file_name: "wb_tb_jul_2026.xlsx"
+      directory: "mdop_fin/wb_tb/2026/07"
+      ingest_workflow_parameters: "{\"input_file_name\":\"wb_tb_jul_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"wb_tb_jul_2026.xlsx\"}"
+
+  - name: wb_tb_2026_08
+    dataset_parameters:
+      path: "/Trail_Balance/Hotel_TB/WB_Files/2026/"
+      table_name: "wb_tb"
+      input_file_name: "wb_tb_aug_2026.xlsx"
+      directory: "mdop_fin/wb_tb/2026/08"
+      ingest_workflow_parameters: "{\"input_file_name\":\"wb_tb_aug_2026.xlsx\"}"
+      trans_workflow_parameters: "{\"input_file_name\":\"wb_tb_aug_2026.xlsx\"}"

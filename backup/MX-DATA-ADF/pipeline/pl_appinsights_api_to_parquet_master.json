@@ -1,0 +1,314 @@
+{
+	"name": "pl_appinsights_api_to_parquet_master",
+	"properties": {
+		"activities": [
+			{
+				"name": "date_key",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "date_key",
+					"value": {
+						"value": "@formatDateTime(convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time'),'yyyy-MM-dd')\n ",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "api_to_raw_copy",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"storage_account_uri\": \"@{pipeline().globalParameters.storage_account_datalake_uri}\",\n  \"container_name\": \"@{pipeline().globalParameters.storage_container_datalake}\",\n  \"datastore_name\": \"@{toLower(pipeline().parameters.datastore_name)}\",\n  \"dataset_name\": \"@{toLower(pipeline().parameters.schema_name)}\",\n  \"table_name\": \"@{toLower(pipeline().parameters.table_name)}\",\n  \"write_mode\": \"overwrite\",\n  \"adf_load_time\": \"@{variables('adf_load_time')}\",\n  \"input_file_name\": \"@{concat(variables('adf_load_time'), '/')}\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Skipped",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "no_of_days",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "from_date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "no_of_days",
+					"value": {
+						"value": "@string(div(sub(\n    ticks(variables('date_key')),\n    ticks(variables('from_date'))\n), 864000000000))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "from_date",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "date_key",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "from_date",
+					"value": {
+						"value": "@if(empty(pipeline().parameters.from_date), variables('date_key'),pipeline().parameters.from_date)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set adf_load_time",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "adf_load_time",
+					"value": {
+						"value": "@formatDateTime(convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time'), 'yyyyMMddHHmmss')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "api_to_raw_copy",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "no_of_days",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set adf_load_time",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_appinsights_api_to_parquet_load",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"base_url": {
+							"value": "@pipeline().parameters.base_url",
+							"type": "Expression"
+						},
+						"secret_name": {
+							"value": "@pipeline().parameters.secret_name",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)",
+							"type": "Expression"
+						},
+						"schema_name": {
+							"value": "@toLower(pipeline().parameters.schema_name)",
+							"type": "Expression"
+						},
+						"table_name": {
+							"value": "@toLower(pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"start_timestamp": {
+							"value": "@variables('from_date')",
+							"type": "Expression"
+						},
+						"end_timestamp": {
+							"value": "@variables('date_key')",
+							"type": "Expression"
+						},
+						"adf_load_time": {
+							"value": "@variables('adf_load_time')",
+							"type": "Expression"
+						},
+						"no_of_days": {
+							"value": "@variables('no_of_days')",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://api.applicationinsights.io/v1/apps/c1467b98-8152-466f-ae0f-8e1d435a5b14/query"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-applogs-api-prd-apikey"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "appinsights"
+			},
+			"schema_name": {
+				"type": "string",
+				"defaultValue": "facepass"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "apps_logs"
+			},
+			"from_date": {
+				"type": "string"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "facepassappslogs"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_appinsights"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"adf_load_time": {
+				"type": "String"
+			},
+			"date_key": {
+				"type": "String"
+			},
+			"from_date": {
+				"type": "String"
+			},
+			"no_of_days": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Facepass"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

@@ -1,0 +1,33 @@
+resources:
+  jobs:
+    wf_send_executive_summary:
+      name: wf_send_executive_summary
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN
+      schedule:
+        quartz_cron_expression: 13 30 11 * * ?
+        timezone_id: Asia/Dubai
+        pause_status: ${var.pause_status_wf_send_executive_summary}
+      tasks:
+        - task_key: wf_send_executive_summary
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_executive_summary.py
+            base_parameters:
+              receiver_email_id: de.alerts@miral.ae,bi&analytics@miral.ae
+              secret_scope: ${var.databricks_secret_scope}
+              email_key: mx-data-team-email-password
+            source: WORKSPACE
+
+          min_retry_interval_millis: 900000
+      email_notifications:
+        on_failure:
+          - ${var.on_failure_email}
+      notification_settings:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}

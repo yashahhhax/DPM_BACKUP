@@ -1,0 +1,566 @@
+{
+	"name": "pl_oracle_fusion_bicc_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "set_input_file",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "input_file",
+					"value": {
+						"value": "@concat('*file_', replace(toLower(pipeline().parameters.table_name), '.', '_'), '-batch*-',formatDateTime(pipeline().parameters.business_date, 'yyyyMMdd'), '_*.csv.gz')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "if_full_load",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@pipeline().parameters.full_load",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "delete_existing_files",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_adls_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": {
+											"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+											"type": "Expression"
+										},
+										"container_name": {
+											"value": "@pipeline().globalParameters.storage_container_datalake",
+											"type": "Expression"
+										},
+										"datastore": {
+											"value": "@toLower(pipeline().parameters.datastore_name)",
+											"type": "Expression"
+										},
+										"dataset": {
+											"value": "@toLower(pipeline().parameters.table_name)",
+											"type": "Expression"
+										},
+										"tablename": " "
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "get_source_files",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "set_input_file",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_oracle_s3_csv_gz",
+						"type": "DatasetReference",
+						"parameters": {
+							"service_url": {
+								"value": "@pipeline().parameters.base_url",
+								"type": "Expression"
+							},
+							"access_key_id": {
+								"value": "@pipeline().parameters.user_name",
+								"type": "Expression"
+							},
+							"key_vault_uri": {
+								"value": "@pipeline().globalParameters.key_vault_uri",
+								"type": "Expression"
+							},
+							"secret_name": {
+								"value": "@pipeline().parameters.secret_name",
+								"type": "Expression"
+							},
+							"directory_name": {
+								"value": "@pipeline().parameters.source_directory",
+								"type": "Expression"
+							},
+							"file_name": {
+								"value": "@variables('input_file')",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "for_each_file",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "if_full_load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "if_no_files_found",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get_source_files').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 5,
+					"activities": [
+						{
+							"name": "check_if_already_exists",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_adls_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": {
+											"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+											"type": "Expression"
+										},
+										"container_name": {
+											"value": "@pipeline().globalParameters.storage_container_datalake",
+											"type": "Expression"
+										},
+										"datastore": {
+											"value": "@toLower(pipeline().parameters.datastore_name)",
+											"type": "Expression"
+										},
+										"dataset": {
+											"value": "@toLower(pipeline().parameters.table_name)",
+											"type": "Expression"
+										},
+										"tablename": {
+											"value": "@concat(formatDateTime(pipeline().parameters.business_date, 'yyyy_MM_dd_HH_mm'), '_', item().name)",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"exists"
+								],
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							}
+						},
+						{
+							"name": "if_not_copied",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "check_if_already_exists",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@not(activity('check_if_already_exists').output.exists)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "fusion_bicc_to_parquet",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 2,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"additionalColumns": [
+													{
+														"name": "adf_load_time",
+														"value": {
+															"value": "@pipeline().parameters.adf_load_time",
+															"type": "Expression"
+														}
+													}
+												],
+												"storeSettings": {
+													"type": "OracleCloudStorageReadSettings",
+													"recursive": true,
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "ParquetSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "ParquetWriteSettings"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"value": "@json(replace(string(pipeline().parameters.column_mapping), '\\n', '\\r\\n'))",
+												"type": "Expression"
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "ds_oracle_s3_csv_gz",
+												"type": "DatasetReference",
+												"parameters": {
+													"service_url": {
+														"value": "@pipeline().parameters.base_url",
+														"type": "Expression"
+													},
+													"access_key_id": {
+														"value": "@pipeline().parameters.user_name",
+														"type": "Expression"
+													},
+													"key_vault_uri": {
+														"value": "@pipeline().globalParameters.key_vault_uri",
+														"type": "Expression"
+													},
+													"secret_name": {
+														"value": "@pipeline().parameters.secret_name",
+														"type": "Expression"
+													},
+													"directory_name": {
+														"value": "@pipeline().parameters.source_directory",
+														"type": "Expression"
+													},
+													"file_name": {
+														"value": "@item().name",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ds_adls_parquet",
+												"type": "DatasetReference",
+												"parameters": {
+													"storage_account_uri": {
+														"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+														"type": "Expression"
+													},
+													"container_name": {
+														"value": "@pipeline().globalParameters.storage_container_datalake",
+														"type": "Expression"
+													},
+													"datastore": {
+														"value": "@toLower(pipeline().parameters.datastore_name)",
+														"type": "Expression"
+													},
+													"dataset": {
+														"value": "@toLower(pipeline().parameters.table_name)",
+														"type": "Expression"
+													},
+													"tablename": {
+														"value": "@concat(formatDateTime(pipeline().parameters.business_date, 'yyyy_MM_dd_HH_mm'), '_', item().name)",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_no_files_found",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "get_source_files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(length(activity('get_source_files').output.childItems), 0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "fail_no_files_found",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": {
+									"value": "@concat('No source files found for table: ', pipeline().parameters.table_name, ' on date: ', formatDateTime(pipeline().parameters.business_date, 'yyyy-MM-dd'))",
+									"type": "Expression"
+								},
+								"errorCode": "404"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "if_run_exec_adb",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "for_each_file",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(bool(pipeline().parameters.skip_exec_adb))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Execute adb ingestion",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_trigger_adb_ingestion",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"table_name": {
+										"value": "@toLower(pipeline().parameters.table_name)",
+										"type": "Expression"
+									},
+									"datastore_name": {
+										"value": "@toLower(pipeline().parameters.datastore_name)\n",
+										"type": "Expression"
+									},
+									"is_incremental": true,
+									"pk": {
+										"value": "@pipeline().parameters.pk",
+										"type": "Expression"
+									},
+									"timestamp_col": {
+										"value": "@pipeline().parameters.load_time_column",
+										"type": "Expression"
+									},
+									"is_fullload": {
+										"value": "@string(pipeline().parameters.full_load)",
+										"type": "Expression"
+									},
+									"last_updated_tag": {
+										"value": "@if(\n    equals(\n        formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Arabian Standard Time'), 'yyyy-MM-dd'),\n        formatDateTime(pipeline().parameters.business_date, 'yyyy-MM-dd')\n    ),\n    convertTimeZone(utcNow(), 'UTC', 'Arabian Standard Time'),\n    pipeline().parameters.business_date\n)",
+										"type": "Expression"
+									},
+									"skip_backup": {
+										"value": "@bool(pipeline().parameters.skip_backup)",
+										"type": "Expression"
+									},
+									"backup_wf_parameters": {
+										"value": "{\n    \"backup_workflow_name\": \"wf_table_specific_backup\",\n    \"business_date\": \"@{formatDateTime(pipeline().parameters.business_date, 'yyyy-MM-ddTHH:mm:ss')}\",\n    \"schema_name\": \"@{toLower(concat('brz_',pipeline().parameters.datastore_name))}\",\n    \"table_name\": \"@{toLower(concat('vw_',pipeline().parameters.table_name))}\"\n}",
+										"type": "Expression"
+									},
+									"skip_orchestration": {
+										"value": "@pipeline().parameters.skip_orchestration",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "update_watermark",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "if_run_exec_adb",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_managed_identity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"server_name": "@pipeline().globalParameters.sqldb_fqdn",
+						"database_name": "watermarks"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": {
+								"value": "UPDATE watermarktable SET [WatermarkValue] = '@{formatDateTime(pipeline().parameters.business_date, 'yyyy-MM-dd')}' WHERE [TableName] = '@{toLower(concat(pipeline().parameters.datastore_name,'.',pipeline().parameters.table_name))}';\n\nIF @@ROWCOUNT = 0\n\nINSERT INTO watermarktable ([WatermarkValue], [TableName])\nVALUES (\n'@{formatDateTime(pipeline().parameters.business_date, 'yyyy-MM-dd')}',\n'@{toLower(concat(pipeline().parameters.datastore_name,'.',pipeline().parameters.table_name))}'\n);",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "00:10:00"
+				}
+			}
+		],
+		"parameters": {
+			"user_name": {
+				"type": "string"
+			},
+			"secret_name": {
+				"type": "string"
+			},
+			"base_url": {
+				"type": "string"
+			},
+			"source_directory": {
+				"type": "string"
+			},
+			"datastore_name": {
+				"type": "string"
+			},
+			"table_name": {
+				"type": "string"
+			},
+			"pk": {
+				"type": "string"
+			},
+			"load_time_column": {
+				"type": "string"
+			},
+			"business_date": {
+				"type": "string"
+			},
+			"full_load": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"column_mapping": {
+				"type": "object"
+			},
+			"adf_load_time": {
+				"type": "string"
+			},
+			"skip_backup": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"skip_exec_adb": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"input_file": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "BICC"
+		},
+		"annotations": []
+	}
+}

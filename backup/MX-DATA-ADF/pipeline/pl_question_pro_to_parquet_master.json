@@ -1,0 +1,364 @@
+{
+	"name": "pl_question_pro_to_parquet_master",
+	"properties": {
+		"activities": [
+			{
+				"name": "set_start_date",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "start_date",
+					"value": {
+						"value": "@formatDateTime(pipeline().parameters.from_date, 'yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_end_date",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "end_date",
+					"value": {
+						"value": "@formatDateTime(pipeline().parameters.to_date, 'yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get_number_of_days",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "set_start_date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_end_date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "no_of days",
+					"value": {
+						"value": "@string(div(sub(ticks(variables('end_date')), ticks(variables('start_date'))),864000000000))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "for_each_day",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get_number_of_days",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set adf_load_time",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "GetToken",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@range(0,add(int(variables('no_of days')),1))",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "pl_question_pro_to_raw_load",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_question_pro_to_raw_load",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"base_url": {
+										"value": "@pipeline().parameters.base_url",
+										"type": "Expression"
+									},
+									"batch_start_date": {
+										"value": "@formatDateTime(addDays(variables('start_date'),int(item())),'yyyy-MM-dd')",
+										"type": "Expression"
+									},
+									"api_key": {
+										"value": "@activity('GetToken').output.value",
+										"type": "Expression"
+									},
+									"datastore_name": {
+										"value": "@pipeline().parameters.datastore_name",
+										"type": "Expression"
+									},
+									"schema_name": {
+										"value": "@pipeline().parameters.schema_name",
+										"type": "Expression"
+									},
+									"table_name": {
+										"value": "@pipeline().parameters.table_name",
+										"type": "Expression"
+									},
+									"adf_load_time": {
+										"value": "@variables('adf_load_time')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Execute_adb_ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "for_each_day",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"datastore_name\": \"@{pipeline().parameters.datastore_name}\",\n  \"dataset_name\": \"@{pipeline().parameters.schema_name}\",\n  \"table_name\": \"@{pipeline().parameters.table_name}\",\n  \"secret_name\": \"@{pipeline().parameters.secret_name}\",\n  \"write_mode\": \"overwrite\",\n  \"input_file_name\": \"@{concat(variables('adf_load_time'), '/')}\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute_adb_ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set adf_load_time",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "adf_load_time",
+					"value": {
+						"value": "@formatDateTime(convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time'), 'yyyyMMddHHmmss')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "GetToken",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"linkedServices": [
+						{
+							"referenceName": "ls_key_vault",
+							"type": "LinkedServiceReference"
+						}
+					],
+					"url": {
+						"value": "@concat(pipeline().globalParameters.key_vault_uri, '/secrets/', pipeline().parameters.secret_name, '?api-version=7.0')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			}
+		],
+		"concurrency": 20,
+		"parameters": {
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-questionpro-ak3-api-prd-apikey"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "questionpro"
+			},
+			"schema_name": {
+				"type": "string",
+				"defaultValue": "gss_ak3"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "survey_response"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_gss_question_pro"
+			},
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://api.questionpro.ae/a/api/v2/cx/responses"
+			},
+			"from_date": {
+				"type": "string"
+			},
+			"to_date": {
+				"type": "string"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "gss"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"start_date": {
+				"type": "String"
+			},
+			"end_date": {
+				"type": "String"
+			},
+			"no_of days": {
+				"type": "String"
+			},
+			"adf_load_time": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "GSS"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

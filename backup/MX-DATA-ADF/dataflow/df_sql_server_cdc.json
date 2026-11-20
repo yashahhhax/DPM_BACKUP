@@ -1,0 +1,71 @@
+{
+	"name": "df_sql_server_cdc",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_server_cdc",
+						"type": "DatasetReference"
+					},
+					"name": "source"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "ls_adls_cdc",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "addadfloadtime"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     container as string,",
+				"     datastore_name as string,",
+				"     schema_name as string,",
+				"     table_name as string,",
+				"     pk as string",
+				"}",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     enableNativeCdc: true,",
+				"     netChanges: true,",
+				"     skipInitialLoad: false,",
+				"     isolationLevel: 'READ_COMMITTED',",
+				"     format: 'table',",
+				"     partitionColumn: (split($pk, ',')[0]),",
+				"     partitionBy('external', 4)) ~> source",
+				"source derive(adf_load_time = currentUTC('Arabian Standard Time')) ~> addadfloadtime",
+				"addadfloadtime sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     compressionType: 'snappy',",
+				"     compressionLevel: 'Fastest',",
+				"     fileSystem: ($container),",
+				"     folderPath: (lower(concat('datastore_', $datastore_name, '/dataset_', $schema_name, '_', $table_name))),",
+				"     mergeSchema: true,",
+				"     autoCompact: true,",
+				"     optimizedWrite: true,",
+				"     vacuum: 0,",
+				"     deletable: true,",
+				"     insertable: true,",
+				"     updateable: true,",
+				"     upsertable: true,",
+				"     keys:(split($pk, ',')),",
+				"     umask: 0000,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink"
+			]
+		}
+	}
+}

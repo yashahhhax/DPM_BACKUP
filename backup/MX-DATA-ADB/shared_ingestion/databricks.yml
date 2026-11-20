@@ -1,0 +1,152 @@
+bundle:
+  name: shared_ingestion
+
+workspace:
+  root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+
+# the current_user requires Service Principal User on the run_as_sp
+# see https://learn.microsoft.com/en-us/azure/databricks/security/auth/access-control/service-principal-acl#grant-roles-on-a-service-principal
+
+permissions:
+  - group_name: ${var.can_view_group}
+    level: CAN_VIEW
+  - group_name: ${var.can_manage_group}
+    level: CAN_MANAGE    
+  - service_principal_name: ${workspace.current_user.userName}
+    level: CAN_MANAGE
+    
+include:
+  - workflows/*.yml
+
+variables:
+  environment:
+    description: Environment
+    default: dev
+    type: string
+#variable for view group
+  on_failure_email:
+    description: email_id for failure alerts
+    default: c73cc8ca.farahleisure.com@ae.teams.ms
+  ingest_teams_webhook:
+    description: webhook for failure alerts
+    default: 03fd40b2-dd6f-44a7-a1a2-db99a6ed7519
+  can_view_group:
+    description: Group which can view the job
+    default: dp_workflow_nonprd
+
+  can_manage_run_group:
+    description: Group which can run the job
+    default: dp_workflow_manage_run_nonprd
+
+  can_manage_group:
+    description: Group which can run the job
+    default: dp_workflow_manage_nonprd
+
+  databricks_cluster_id:
+    description: Generic cluster id
+    default: ""
+
+  databricks_secret_scope:
+    description: Databricks secret scope used to connect with snowflake
+    default: kv-mx-data-adf-inges-dev
+    
+  powerbi_refresh_azure_key_vault:
+    description: Azure key vault name used for Power BI refresh
+    default: kv-mx-data-adf-inges-dev
+  
+  powerbi_refresh_client_id:
+    description: Client id used for Power BI refresh
+    default: f17474d3-0383-4eae-a8f0-ec459ae8009e
+        
+  powerbi_refresh_secret_name:
+    description: Secret name used for Power BI refresh
+    default: sp-mx-data-power-bi-service-principal-client-secret
+        
+  powerbi_refresh_tenant_name:
+    description: Tenant Id that Power BI refresh datasets are created
+    default: 0b0b76ba-8e32-4c41-8130-65ed5ca4353c
+        
+  powerbi_refresh_modules:
+    description: To filter which module datasets in a use case to refresh in powerbi
+    default: ""
+
+  subscription:
+    description: Azure subscription id
+    default: 312989A6-AD5B-42B5-B553-4BB71EA31DF6
+  pause_status_sync_ingestion:
+    description: paused or unpaused of sync_ingestion workflow
+    default: PAUSED
+
+targets:
+  dev:
+    mode: production
+    default: true
+    workspace:
+      host: https://adb-2766497291955675.15.azuredatabricks.net
+    variables:
+      databricks_cluster_id: 
+        lookup: 
+          cluster: "development_cluster_01"
+      environment: ${bundle.target}
+      databricks_secret_scope: kv-mx-data-adf-inges-dev
+      can_view_group: dp_workflow_nonprd
+      on_failure_email: c73cc8ca.farahleisure.com@ae.teams.ms
+      ingest_teams_webhook: 03fd40b2-dd6f-44a7-a1a2-db99a6ed7519
+      pause_status_sync_ingestion: PAUSED
+    run_as:
+      service_principal_name: 05de1ac0-6c41-423f-9bd5-48a29bf53ff0
+
+  uat:
+    mode: production
+    workspace:
+      host: https://adb-1628851157633194.14.azuredatabricks.net/
+    variables:
+      databricks_cluster_id: 
+        lookup: 
+          cluster: "inges_uat_allpurpose_cluster_01"
+      environment: ${bundle.target}
+      databricks_secret_scope: kv-mx-data-adf-inges-uat
+      can_view_group: dp_workflow_nonprd
+      on_failure_email: c73cc8ca.farahleisure.com@ae.teams.ms
+      ingest_teams_webhook: 0edb6a13-b5be-45df-b2ec-5d64e3fb7851
+      pause_status_sync_ingestion: PAUSED
+    run_as:
+      service_principal_name: 388c7f42-e9ea-48b3-9925-721edb66f93a
+
+  preprd:
+    mode: production
+    workspace:
+      host: https://adb-1321531737024345.5.azuredatabricks.net/
+    variables:
+      databricks_cluster_id: 
+        lookup:
+          cluster: "inges_preprd_allpurpose_cluster_01"
+      environment: ${bundle.target}
+      databricks_secret_scope: kv-mx-data-adf-inges-pre
+      can_view_group: dp_workflow_prd
+      can_manage_run_group: dp_workflow_manage_run_prd
+      can_manage_group: dp_workflow_manage_prd 
+      on_failure_email: c73cc8ca.farahleisure.com@ae.teams.ms
+      ingest_teams_webhook: 60cca91c-01b9-472c-8342-ce00e042aeda
+      pause_status_sync_ingestion: PAUSED
+    run_as:
+      service_principal_name: 8c8d91bd-7449-48aa-99c3-9e95e3d6eef3
+
+  prd:
+    mode: production
+    workspace:
+      host: https://adb-2731791389375139.19.azuredatabricks.net/
+    variables:
+      databricks_cluster_id: 
+        lookup:
+          cluster: "inges_prd_allpurpose_cluster_01"
+      environment: ${bundle.target}
+      databricks_secret_scope: kv-mx-data-adf-inges-prd
+      can_view_group: dp_workflow_prd
+      can_manage_run_group: dp_workflow_manage_run_prd
+      can_manage_group: dp_workflow_manage_prd
+      on_failure_email: ee8c5002.farahleisure.com@ae.teams.ms
+      ingest_teams_webhook: dcc2307a-2e0e-4da7-8a49-fd12625dc50b
+      pause_status_sync_ingestion: UNPAUSED
+    run_as:
+      service_principal_name: cb780b23-7e5d-4eb1-a40d-d4a6350090a9

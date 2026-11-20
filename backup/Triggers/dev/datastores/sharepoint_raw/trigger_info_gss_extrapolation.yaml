@@ -1,0 +1,128 @@
+pipeline_name: pl_sharepoint_binary_to_binary_enhanced
+      
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [11]
+  minutes: [00]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sharepoint_file'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  secret_name: 'cloud-sharepoint-svc-prd-password'
+  use_case: 'gss'
+  schema_name: 'gss'
+  site: 'FARAHFLFIN'
+  directory: "@concat('gss/extra_polation/',formatDateTime(utcnow(), 'yyyy'))"
+  drive_id: 'b!0SuTvDQmqEC-nZURiVe42rocL2Ese6NOuYaxKJKDJORogIY-V1GORpQEl-Nwwwtp'
+  # skip_orchestration: true
+
+datasets:
+  - name: aaz_budget
+    dataset_parameters:
+      table_name: 'yearly_source_market_budget_attendance'
+      input_file_name: "@concat('Source_Market_Budget_AAZ_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "BudgetImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_budget_attendance\", \"input_file_name\": \"Source_Market_Budget_AAZ_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_budget'
+  - name: clymb_budget
+    dataset_parameters:
+      table_name: 'yearly_source_market_budget_attendance'
+      input_file_name: "@concat('Source_Market_Budget_CLYMB_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "BudgetImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_budget_attendance\", \"input_file_name\": \"Source_Market_Budget_CLYMB_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_budget'
+  - name: fwad_budget
+    dataset_parameters:
+      table_name: 'yearly_source_market_budget_attendance'
+      input_file_name: "@concat('Source_Market_Budget_FWAD_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "BudgetImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_budget_attendance\", \"input_file_name\": \"Source_Market_Budget_FWAD_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_budget'
+  - name: qaw_budget
+    dataset_parameters:
+      table_name: 'yearly_source_market_budget_attendance'
+      input_file_name: "@concat('Source_Market_Budget_QAW_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "BudgetImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_budget_attendance\", \"input_file_name\": \"Source_Market_Budget_QAW_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_budget'
+  - name: swad_budget
+    dataset_parameters:
+      table_name: 'yearly_source_market_budget_attendance'
+      input_file_name: "@concat('Source_Market_Budget_SWAD_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "BudgetImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_budget_attendance\", \"input_file_name\": \"Source_Market_Budget_SWAD_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_budget'
+  - name: tlp_budget
+    dataset_parameters:
+      table_name: 'yearly_source_market_budget_attendance'
+      input_file_name: "@concat('Source_Market_Budget_TLP_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "BudgetImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_budget_attendance\", \"input_file_name\": \"Source_Market_Budget_TLP_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_budget'
+  - name: wbw_budget
+    dataset_parameters:
+      table_name: 'yearly_source_market_budget_attendance'
+      input_file_name: "@concat('Source_Market_Budget_WBW_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "BudgetImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_budget_attendance\", \"input_file_name\": \"Source_Market_Budget_WBW_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_budget'
+  - name: yww_budget
+    dataset_parameters:
+      table_name: 'yearly_source_market_budget_attendance'
+      input_file_name: "@concat('Source_Market_Budget_YWW_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "BudgetImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_budget_attendance\", \"input_file_name\": \"Source_Market_Budget_YWW_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_budget'
+  - name: clymb_forecast
+    dataset_parameters:
+      table_name: 'yearly_source_market_forecast_attendance'
+      input_file_name: "@concat('Source_Market_Forecast_CLYMB_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "ForecastImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_forecast_attendance\", \"input_file_name\": \"Source_Market_Forecast_CLYMB_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_forecast'
+  - name: fwad_forecast
+    dataset_parameters:
+      table_name: 'yearly_source_market_forecast_attendance'
+      input_file_name: "@concat('Source_Market_Forecast_FWAD_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "ForecastImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_forecast_attendance\", \"input_file_name\": \"Source_Market_Forecast_FWAD_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_forecast'
+  - name: qaw_forecast
+    dataset_parameters:
+      table_name: 'yearly_source_market_forecast_attendance'
+      input_file_name: "@concat('Source_Market_Forecast_QAW_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "ForecastImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_forecast_attendance\", \"input_file_name\": \"Source_Market_Forecast_QAW_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_forecast'
+  - name: swad_forecast
+    dataset_parameters:
+      table_name: 'yearly_source_market_forecast_attendance'
+      input_file_name: "@concat('Source_Market_Forecast_SWAD_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "ForecastImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_forecast_attendance\", \"input_file_name\": \"Source_Market_Forecast_SWAD_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_forecast'
+  - name: tlp_forecast
+    dataset_parameters:
+      table_name: 'yearly_source_market_forecast_attendance'
+      input_file_name: "@concat('Source_Market_Forecast_TLP_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "ForecastImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_forecast_attendance\", \"input_file_name\": \"Source_Market_Forecast_TLP_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_forecast'
+  - name: wbw_forecast
+    dataset_parameters:
+      table_name: 'yearly_source_market_forecast_attendance'
+      input_file_name: "@concat('Source_Market_Forecast_WBW_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "ForecastImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_forecast_attendance\", \"input_file_name\": \"Source_Market_Forecast_WBW_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_forecast'
+  - name: yww_forecast
+    dataset_parameters:
+      table_name: 'yearly_source_market_forecast_attendance'
+      input_file_name: "@concat('Source_Market_Forecast_YWW_',formatDateTime(utcnow(), 'yyyy'), '.xlsx')"
+      path: "ForecastImport/"
+      workflow_parameters: "@concat('{\"datastore_name\": \"sharepoint_file\", \"dataset_name\": \"gss\", \"table_name\": \"yearly_source_market_forecast_attendance\", \"input_file_name\": \"Source_Market_Forecast_YWW_', formatDateTime(utcnow(), 'yyyy'), '.xlsx\", \"directory\": \"gss/extra_polation/', formatDateTime(utcnow(), 'yyyy'), '\"}')"
+      workflow_name: 'wf_ingest_gss_extrapolation_forecast'

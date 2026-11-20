@@ -1,0 +1,39 @@
+pipeline_name: pl_sharepoint_list_to_parquet
+
+schedule:
+    frequency: Day
+    interval: 1
+    # hours: [10,11,12,13,14,15,16,17,18,19,20,21,22]
+    # minutes: [20,50]
+    hours: [22]
+    minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sharepoint_list'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  cert_secret_name: 'cloud-sharepoint-svc-prd-certificate-txt-01'
+  pass_secret_name: 'cloud-sharepoint-svc-prd-certificate-password-01'
+  base_url: 'https://miralgroup.sharepoint.com/sites'
+  use_case: 'ridecollation'
+  # skip_orchestration: true
+
+datasets:
+  - name: parkevents
+    dataset_parameters:
+      site: 'ParkTimings'
+      list_name: 'ParkEvents'
+  - name: throughputcapacity
+    dataset_parameters:
+      site: 'FARAHFLFIN/RideCollation'
+      list_name: 'ThroughputCapacity'
+  - name: ridemasters
+    dataset_parameters:
+      site: 'FARAHFLFIN/RideCollation'
+      list_name: 'RideMasters'
+  - name: ridedowntime
+    dataset_parameters:
+      site: 'FARAHFLFIN/RideCollation'
+      list_name: 'RideDownTime'

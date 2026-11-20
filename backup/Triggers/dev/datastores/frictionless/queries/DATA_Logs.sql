@@ -1,0 +1,3 @@
+SELECT *
+FROM dbo.DATA_Logs WITH (NOLOCK)
+WHERE updatelogdate >= DATEADD(DAY, -10, CAST(GETDATE() AS DATE))

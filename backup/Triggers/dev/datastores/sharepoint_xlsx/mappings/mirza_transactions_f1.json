@@ -1,0 +1,135 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "ReservationNumber",
+                "type": "String"
+            },
+            "sink": {
+                "name": "reservation_number",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "CustomerEmailAddress",
+                "type": "String"
+            },
+            "sink": {
+                "name": "customer_email_address",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "ProductName",
+                "type": "String"
+            },
+            "sink": {
+                "name": "product_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "ProductCategory",
+                "type": "String"
+            },
+            "sink": {
+                "name": "product_category",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "CashierName",
+                "type": "String"
+            },
+            "sink": {
+                "name": "cashier_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Sales Channel",
+                "type": "String"
+            },
+            "sink": {
+                "name": "sales_channel",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "ProductPrice",
+                "type": "String"
+            },
+            "sink": {
+                "name": "product_price",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "LastTransactionDate",
+                "type": "String"
+            },
+            "sink": {
+                "name": "last_transaction_date",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "PaymentMethod",
+                "type": "String"
+            },
+            "sink": {
+                "name": "payment_method",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Sales_Quantity",
+                "type": "String"
+            },
+            "sink": {
+                "name": "sales_quantity",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "TOTAL",
+                "type": "String"
+            },
+            "sink": {
+                "name": "total",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "source_file_name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_file_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

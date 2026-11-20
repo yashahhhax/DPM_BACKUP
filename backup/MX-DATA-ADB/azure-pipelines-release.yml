@@ -1,0 +1,59 @@
+name: Deploy tagged release to preprod and prod
+
+resources:
+  repositories:
+    - repository: templateRepo
+      type: git
+      name: MX-DATA-DEVOPS-TEMPLATES  
+      ref: refs/heads/main    
+    - repository: sharedRepo
+      type: git
+      name: MX-DATA-ADB 
+      ref: 'refs/heads/main'      
+      
+pr:
+  autoCancel: false
+
+trigger:
+  tags:
+    include:
+    - '*'
+
+stages:
+# Pre-Prod
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: 'Transformation PreProd'
+    service_connection: 'sp-mx-data-cicd-preprd-01'
+    agent_pool_name: 'data-platform-preprd'
+    environment: 'preprd'
+    folder_name: 'shared_transformation'
+    job_to_run: wf_workflow_orchestration_config
+
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: 'Ingestion PreProd'
+    service_connection: 'sp-mx-data-cicd-preprd-01'
+    agent_pool_name: 'data-platform-preprd'
+    environment: 'preprd'
+    folder_name: 'shared_ingestion'
+
+# Prod
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: "Transformation Prod"
+    service_connection: 'sp-mx-data-cicd-prd-01'
+    agent_pool_name: 'data-platform-prd'
+    environment: 'prd'
+    folder_name: 'shared_transformation'
+    dependsOn: ['Ingestion_PreProd', 'Transformation_PreProd']
+    job_to_run: wf_workflow_orchestration_config
+
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: "Ingestion Prod"
+    service_connection: 'sp-mx-data-cicd-prd-01'
+    agent_pool_name: 'data-platform-prd'
+    environment: 'prd'
+    folder_name: 'shared_ingestion'
+    dependsOn: ['Ingestion_PreProd', 'Transformation_PreProd']

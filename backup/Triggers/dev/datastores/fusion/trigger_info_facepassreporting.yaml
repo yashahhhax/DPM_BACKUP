@@ -1,0 +1,26 @@
+pipeline_name: pl_odbc_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [06]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'fusion'
+  connection_string: 'DSN=ATP'
+  user_name: 'xxbip'
+  secret_name: 'onprem-atp-oracle-svc-prd-password'
+  schema_name: 'xxapps'
+  use_case: 'facepassreporting'
+  # skip_orchestration: true
+
+datasets:
+  - name: xxflp_bi_employees_all
+    dataset_parameters:
+      table_name: 'XXFLP_BI_EMPLOYEES_ALL'
+  - name: xxmir_employee_dependent_details
+    dataset_parameters:
+      table_name: 'XXMIR_EMPLOYEE_DEPENDENT_DETAILS'

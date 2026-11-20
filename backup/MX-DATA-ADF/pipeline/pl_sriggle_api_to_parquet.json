@@ -1,0 +1,246 @@
+{
+	"name": "pl_sriggle_api_to_parquet",
+	"properties": {
+		"activities": [
+			{
+				"name": "LookupOldWaterMarkActivity",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT '@{formatDateTime(utcNow(), 'yyyy-MM-dd')}' AS WatermarkValue,\n       '@{concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.table_name)}' AS TableName",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql_managed_identity",
+						"type": "DatasetReference",
+						"parameters": {
+							"server_name": {
+								"value": "@pipeline().globalParameters.sqldb_fqdn",
+								"type": "Expression"
+							},
+							"database_name": "watermarks",
+							"table_name": "watermarktable"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Set start_date",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "LookupOldWaterMarkActivity",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "start_date",
+					"value": {
+						"value": "@formatDateTime(if(greater(int(pipeline().parameters.load_days),-1),addDays(convertTimeZone(pipeline().TriggerTime,'UTC','Arabian Standard Time'),mul(int(pipeline().parameters.load_days),-1)),if(equals(activity('LookupOldWaterMarkActivity').output.count,0),addDays(convertTimeZone(utcNow(),'UTC','Arabian Standard Time'),-1),activity('LookupOldWaterMarkActivity').output.value[0].WatermarkValue)),'yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Set start_date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": "all_tables",
+						"datastore_name": "sriggle",
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"start_date\": \"@{variables('start_date')}\",\n  \"host_name\": \"@{pipeline().parameters.host_name}\",\n  \"secret_scope\": \"kv-mx-data-adf-inges-dev\",\n  \"secret_key\": \"@{pipeline().parameters.secret_key}\",\n  \"datastore_name\": \"@{pipeline().parameters.datastore_name}\",\n  \"table_name\": \"@{pipeline().parameters.table_name}\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure_ingest",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "update_watermark",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@pipeline().parameters.table_name",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime,'UTC','Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "update_watermark",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_managed_identity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"server_name": "@pipeline().globalParameters.sqldb_fqdn",
+						"database_name": "watermarks"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": {
+								"value": "UPDATE watermarktable SET [WatermarkValue] = '@{formatDateTime(utcNow(), 'yyyy-MM-dd')}' WHERE [TableName] = '@{concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.table_name)}';\n\nIF @@ROWCOUNT = 0\n\nINSERT INTO watermarktable ([WatermarkValue], [TableName])\nVALUES (\n'@{formatDateTime(utcNow(), 'yyyy-MM-dd')}',\n'@{concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.table_name)}'\n);",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "00:10:00"
+				}
+			}
+		],
+		"parameters": {
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_sriggle_api_to_parquet"
+			},
+			"host_name": {
+				"type": "string",
+				"defaultValue": "https://mxeapi.signatureerp.com"
+			},
+			"secret_key": {
+				"type": "string",
+				"defaultValue": "cloud-sriggle-api-prd-apikey"
+			},
+			"load_days": {
+				"type": "string",
+				"defaultValue": "1"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "sriggle"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "sriggle"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "booking"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"start_date": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Sriggle"
+		},
+		"annotations": [
+			"datasource_sriggle",
+			"sriggle"
+		]
+	}
+}

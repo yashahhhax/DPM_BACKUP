@@ -1,0 +1,82 @@
+pipeline_name: pl_dataverse_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [10]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'crm'
+  server_name: 'https://yascrm.crm4.dynamics.com/'
+  service_principal_id: 'fe2bd515-1f89-4b93-87eb-bd5f2832ea3c'
+  secret_name: 'cloud-crm-api-prd-apikey'
+  use_case: 'drr'
+  # skip_orchestration: true
+
+datasets:
+  - name: dot_country
+    dataset_parameters:
+      table_name: 'dot_country' 
+      use_case: 'drr, clymb_drr, customer360'
+  - name: transactioncurrency
+    dataset_parameters:
+      table_name: 'transactioncurrency' 
+  - name: team
+    dataset_parameters:
+      table_name: 'team'
+  # - name: msdyn_segment
+  #   dataset_parameters:
+  #     table_name: 'msdyn_segment' 
+  # - name: position
+  #   dataset_parameters:
+  #     table_name: 'position' 
+  # - name: territory
+  #   dataset_parameters:
+  #     table_name: 'territory' 
+  - name: dot_region
+    dataset_parameters:
+      table_name: 'dot_region'
+  - name: dot_segment
+    dataset_parameters:
+      table_name: 'dot_segment'
+      use_case: 'drr, customer360'
+  - name: account
+    dataset_parameters:
+      table_name: 'account'
+      use_case: 'drr, customer360'
+  - name: fe_omnidmgcategory
+    dataset_parameters:
+      table_name: 'fe_omnidmgcategory'
+  - name: systemuser
+    dataset_parameters:
+      table_name: 'systemuser'
+      use_case: 'drr, customer360'
+  - name: contact
+    pipeline_name: pl_dataverse_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'contact'
+      schema_name: 'crm'
+      pk: 'contactid'
+      load_time_column: 'modifiedon'
+      replace_string: '<<modifiedon>>'
+      use_case: 'drr, customer360'
+  - name: dot_accounttarget
+    dataset_parameters:
+      table_name: 'dot_accounttarget'
+  - name: dot_property
+    dataset_parameters:
+      table_name: 'dot_property'
+      use_case: 'drr, customer360'
+  - name: opportunity
+    dataset_parameters:
+      table_name: 'opportunity'
+  - name: yc_accountmanagerhistory
+    dataset_parameters:
+      table_name: 'yc_accountmanagerhistory'
+      use_case: 'drr, customer360'
+  - name: dot_accountbusinessunitprofile
+    dataset_parameters:
+      table_name: 'dot_accountbusinessunitprofile'

@@ -1,0 +1,67 @@
+{
+	"name": "ds_sql_server_onprem",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sql_server_onprem",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"key_vault_uri": {
+					"value": "@dataset().key_vault_uri",
+					"type": "Expression"
+				},
+				"server_name": {
+					"value": "@dataset().server_name",
+					"type": "Expression"
+				},
+				"database_name": {
+					"value": "@dataset().database_name",
+					"type": "Expression"
+				},
+				"user_name": {
+					"value": "@dataset().user_name",
+					"type": "Expression"
+				},
+				"secret_name": {
+					"value": "@dataset().secret_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"key_vault_uri": {
+				"type": "String"
+			},
+			"schema_name": {
+				"type": "string"
+			},
+			"table_name": {
+				"type": "String"
+			},
+			"server_name": {
+				"type": "String"
+			},
+			"database_name": {
+				"type": "String"
+			},
+			"user_name": {
+				"type": "String"
+			},
+			"secret_name": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schema_name",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().table_name",
+				"type": "Expression"
+			}
+		}
+	}
+}

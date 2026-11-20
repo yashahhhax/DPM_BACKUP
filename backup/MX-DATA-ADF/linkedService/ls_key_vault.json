@@ -1,0 +1,16 @@
+{
+	"name": "ls_key_vault",
+	"properties": {
+		"parameters": {
+			"key_vault_uri": {
+				"type": "String",
+				"defaultValue": "https://kv-mx-data-adf-inges-dev.vault.azure.net/"
+			}
+		},
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "@{linkedService().key_vault_uri}"
+		}
+	}
+}

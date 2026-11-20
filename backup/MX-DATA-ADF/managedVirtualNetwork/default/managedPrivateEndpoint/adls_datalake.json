@@ -1,0 +1,7 @@
+{
+	"name": "adls_datalake",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/312989a6-ad5b-42b5-b553-4bb71ea31df6/resourceGroups/rg-mx-data-datalake-dev/providers/Microsoft.Storage/storageAccounts/stmxdatadatalakedev01",
+		"groupId": "dfs"
+	}
+}

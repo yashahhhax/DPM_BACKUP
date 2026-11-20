@@ -1,0 +1,58 @@
+bundle:
+  name: shared_transformation
+
+workspace:
+  root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+
+# the current_user requires Service Principal User on the run_as_sp
+# see https://learn.microsoft.com/en-us/azure/databricks/security/auth/access-control/service-principal-acl#grant-roles-on-a-service-principal
+run_as:
+  service_principal_name: ${var.run_as_sp} 
+
+permissions:
+  - group_name: ${var.can_view_group}
+    level: CAN_VIEW
+  - service_principal_name: ${workspace.current_user.userName}
+    level: CAN_MANAGE
+
+include:
+  - workflows/*.yml
+
+variables:
+  environment:
+    description: Environment
+    default: dev
+    type: string
+
+
+  can_view_group:
+    description: Group which can view the job
+    default: dp_data_team_xebia
+    type: string
+
+  secret_scope:
+    description: secret scope used to send email
+    default: kv-mx-data-adf-inges-dev
+    type: string
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-485279261696768.8.azuredatabricks.net/
+    variables:
+      environment: ${bundle.target}
+      secret_scope: kv-mx-data-adf-inges-dev
+    run_as:
+      service_principal_name: 0b2873d0-ff7e-4521-9afb-159983ed213e
+
+  uat:
+    mode: production
+    workspace:
+      host: https://adb-125701397626662.2.azuredatabricks.net/
+    variables:
+      environment: ${bundle.target}
+      secret_scope: kv-mx-data-adf-inges-uat
+    run_as:
+      service_principal_name: b09074c2-d6b5-466f-b5a5-f0b931b04d0b

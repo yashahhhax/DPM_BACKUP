@@ -1,0 +1,29 @@
+pipeline_name: pl_mariadb_to_parquet_fullload
+
+schedule:
+    frequency: Day
+    interval: 1
+    hours: [01]
+    minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'clymb'
+  server_name: 'clymb622.datawarehouse.tunn3l.net'
+  database_name: 'dwh_clymb'
+  user_name: 'clymb'
+  secret_name: 'cloud-clymb-mariadb-svc-prd-password'
+  use_case: 'notification_drr'
+  # skip_orchestration: true
+
+datasets:
+  - name: addons
+    dataset_parameters:
+      table_name: 'addons'
+  - name: proflyer_pack_catalog
+    dataset_parameters:
+      table_name: 'proflyer_pack_catalog'
+  - name: invoices_items
+    dataset_parameters:
+      table_name: 'invoices_items'

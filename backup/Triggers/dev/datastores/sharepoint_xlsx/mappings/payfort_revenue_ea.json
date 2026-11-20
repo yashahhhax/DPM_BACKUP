@@ -1,0 +1,195 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "Merchant Reference",
+                "type": "String"
+            },
+            "sink": {
+                "name": "merchant_reference",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Invoice Number",
+                "type": "String"
+            },
+            "sink": {
+                "name": "invoice_number",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Customer Email",
+                "type": "String"
+            },
+            "sink": {
+                "name": "customer_email",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Order Description",
+                "type": "String"
+            },
+            "sink": {
+                "name": "order_description",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Amount",
+                "type": "String"
+            },
+            "sink": {
+                "name": "amount",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Currency",
+                "type": "String"
+            },
+            "sink": {
+                "name": "currency",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Mobile Number",
+                "type": "String"
+            },
+            "sink": {
+                "name": "mobile_number",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Customer Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "customer_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Payment Option",
+                "type": "String"
+            },
+            "sink": {
+                "name": "payment_option",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Operation Command",
+                "type": "String"
+            },
+            "sink": {
+                "name": "operation_command",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Status",
+                "type": "String"
+            },
+            "sink": {
+                "name": "status",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Invoice status",
+                "type": "String"
+            },
+            "sink": {
+                "name": "invoice_status",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Expiry Date",
+                "type": "String"
+            },
+            "sink": {
+                "name": "expiry_date",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Visits count",
+                "type": "String"
+            },
+            "sink": {
+                "name": "visits_count",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Created By",
+                "type": "String"
+            },
+            "sink": {
+                "name": "created_by",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Date & Time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "date_time",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Invoice  URL",
+                "type": "String"
+            },
+            "sink": {
+                "name": "invoice_url",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "source_file_name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_file_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

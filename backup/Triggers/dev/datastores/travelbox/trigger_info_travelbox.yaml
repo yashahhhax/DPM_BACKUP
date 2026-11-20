@@ -1,0 +1,76 @@
+pipeline_name: pl_oracle_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [00]
+  minutes: [15]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'travelbox'
+  server_name: '132.145.143.154'
+  service_name: 'yasprod.privatedbsn.yasprod.oraclevcn.com'
+  user_name: 'svc_mx_data_prd'
+  secret_name: 'onprem-tbx-oracle-svc-prd-password'
+  port: '1521'
+  schema_name: 'TBX'
+  use_case: 'travelbox'
+  # skip_orchestration: true
+
+datasets:
+  - name: vw_booking
+    pipeline_name: pl_oracle_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'VW_BOOKING'
+      load_time_column: 'LAST_CHANGED_TIME'
+      pk: 'BOOKING_ID'
+  - name: vw_booking_cnx
+    pipeline_name: pl_oracle_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'VW_BOOKING_CNX'
+      load_time_column: 'CNX_DATE'
+      pk: 'booking_id, cnx_no'
+  - name: vw_booking_item
+    pipeline_name: pl_oracle_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'VW_BOOKING_ITEM'
+      load_time_column: 'LAST_CHANGED_TIME'
+      pk: 'booking_id,booking_item_ref1,booking_item_ref2'
+  - name: vw_client_detail
+    pipeline_name: pl_oracle_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'VW_CLIENT_DETAIL'
+      load_time_column: 'MODIFIED_ON'
+      pk: 'client_id'
+  - name: vw_rep_trade_clients_report
+    pipeline_name: pl_oracle_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'VW_REP_TRADE_CLIENTS_REPORT'
+      load_time_column: 'MODIFIED_ON'
+      pk: 'CLIENT_ID'
+  - name: vw_std_distribution_chanel
+    dataset_parameters:
+      table_name: 'VW_STD_DISTRIBUTION_CHANEL'
+  - name: vw_trade_client
+    pipeline_name: pl_oracle_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'VW_TRADE_CLIENT'
+      load_time_column: 'MODIFIED_ON'
+      pk: 'client_id'
+  - name: vw_supplier
+    pipeline_name: pl_oracle_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'vw_supplier'
+      load_time_column: 'UPDATED_DATE'
+      pk: 'supplier_id,item'
+  - name: vw_ticket_media_codes
+    dataset_parameters:
+      table_name: 'VW_TICKET_MEDIA_CODES'
+  - name: vw_passenger_profile
+    dataset_parameters:
+      table_name: 'VW_PASSENGER_PROFILE'
+  - name: vw_rep_arrival_manifest
+    dataset_parameters:
+      table_name: 'VW_REP_ARRIVAL_MANIFEST'

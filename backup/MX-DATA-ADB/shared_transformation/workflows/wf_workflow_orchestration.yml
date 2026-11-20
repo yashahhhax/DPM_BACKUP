@@ -1,0 +1,75 @@
+resources:
+  jobs:
+    wf_workflow_orchestration_config:
+      name: wf_workflow_orchestration_config
+      tasks:
+        - task_key: workflow_orchestration_config
+          notebook_task:
+            notebook_path: ../notebooks/orchestration/workflow_config_functions.py
+            base_parameters:
+              environment: ${var.environment}
+            source: WORKSPACE
+          min_retry_interval_millis: 0
+          disable_auto_optimization: true
+        - task_key: send_failure_notification
+          depends_on:
+            - task_key: workflow_orchestration_config
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_job_alerts.py
+            base_parameters:
+              job_run_id: "{{job.run_id}}"
+              alert_type: failure
+            source: WORKSPACE          
+      tags:
+        use_case: ingestion
+      webhook_notifications:
+        on_failure:
+          - id: ${var.trans_teams_webhook}
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: usecase
+          default: shared_trans
+
+    workflow_orchestration:
+      name: workflow_orchestration
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN
+      tasks:
+        - task_key: workflow_orchestration
+          notebook_task:
+            notebook_path: ../notebooks/orchestration/workflow_orchestration.py
+            base_parameters:
+              environment: ${var.environment}
+            source: WORKSPACE
+          min_retry_interval_millis: 0
+          disable_auto_optimization: true
+        - task_key: send_failure_notification
+          depends_on:
+            - task_key: workflow_orchestration
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_job_alerts.py
+            base_parameters:
+              job_run_id: "{{job.run_id}}"
+              alert_type: failure
+            source: WORKSPACE
+      tags:
+        use_case: ingestion
+      webhook_notifications:
+        on_failure:
+          - id: ${var.trans_teams_webhook}
+      notification_settings:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: usecase
+          default: shared_trans

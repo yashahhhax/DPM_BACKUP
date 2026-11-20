@@ -1,0 +1,24 @@
+pipeline_name: pl_ipera_api_to_parquet_guest_loc_hierarchy
+
+schedule:
+    frequency: Day
+    interval: 1
+    hours: [09]
+    minutes: [50]
+
+activated: false
+
+datastore_parameters:
+  base_url: 'https://api.iperawifi.com/api/v1/'
+  datastore_name: 'ipera'
+  dataset_name: 'guest_loc_hierarchy'
+  relative_url: 'locations/hierarchy'
+  workflow_name: 'wf_ingest_ipera_api_to_parquet'
+  use_case: 'ipera'
+  # skip_orchestration: true
+
+datasets:
+  - name: swad
+    dataset_parameters:
+      table_name: 'swad'
+      secret_name: 'cloud-iperawifi-api-prd-swad-apikey'

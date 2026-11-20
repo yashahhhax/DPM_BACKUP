@@ -1,0 +1,249 @@
+tables:
+  - name: prep_dim_country
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: country_name
+  - name: prep_dim_b2b_partner
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: PARTNER_CRM_ACCOUNT_ID
+  - name: prep_dim_b2c_account
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: ACCOUNT_ID
+  - name: prep_dim_company
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: omni_siteid
+  - name: prep_dim_employee
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: EMPLOYEE_NUMBER        
+
+  - name: prep_dim_gl_account
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: GL_ACCOUNT_CODE
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: GL_ACCOUNT_CODE
+
+  - name: prep_dim_sub_analysis
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: SUB_ANALYSIS_CODE
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: SUB_ANALYSIS_CODE
+
+  - name: prep_dim_sales_account_manager
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: ACCOUNT_MANAGER_ID
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: SEGMENT_MANAGER_ID
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: PARTNER_CRM_ACCOUNT_ID
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: ACTIVE_FLAG
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: CRM_LAST_MODIFIED_DATE
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: CRM_ACTIVE_FROM
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: CRM_ACTIVE_TO
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: ACCOUNT_MANAGER_ID
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: SEGMENT_MANAGER_ID
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: PARTNER_CRM_ACCOUNT_ID
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: ACTIVE_FLAG
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: CRM_LAST_MODIFIED_DATE
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: CRM_ACTIVE_FROM
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: CRM_ACTIVE_TO
+
+  - name: prep_dim_department
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: DEPARTMENT_CODE
+
+  - name: prep_dim_cnf_lookups
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: lookuptableid
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: itemid
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: lookuptableid
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: itemid
+
+  - name: employee
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: EMPLOYEE_NUMBER
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: EMPLOYEE_ID
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: EMPLOYEE_NUMBER
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: EMPLOYEE_ID
+  - name: prep_lkp_source_system
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: SOURCE_SYSTEM_NAME
+
+  - name: prep_lkp_transaction_type
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: TRANSACTION_TYPE_CODE
+
+  - name: prep_lkp_season
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: SEASON_NAME
+  - name: prep_dim_market_segments
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: MKT_SEGMENT_CODE
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: MKT_SEGMENT_GROUP_CODE
+
+  - name: prep_dim_master_hotel_name
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: SOURCE_HOTEL_NAME
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: BUSINESS_ALIAS
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: HOTEL_CODE
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: STATUS
+
+

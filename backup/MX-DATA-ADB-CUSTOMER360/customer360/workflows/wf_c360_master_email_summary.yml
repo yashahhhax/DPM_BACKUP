@@ -1,0 +1,73 @@
+resources:
+  jobs:
+    wf_c360_master_email_summary:
+      name: wf_c360_master_email_summary
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN
+      schedule:
+        quartz_cron_expression: 00 00 15 * * ?
+        timezone_id: Asia/Dubai
+        pause_status: ${var.master_wf_pause_status}
+      tasks:
+        - task_key: send_etl_start_notification
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_job_alerts.py
+            base_parameters:
+              job_run_id: "{{job.run_id}}"
+              alert_type: start
+            source: WORKSPACE
+        - task_key: check_refreshment
+          depends_on:
+            - task_key: send_etl_start_notification
+          run_if: ALL_DONE
+          notebook_task:
+            notebook_path: ../notebooks/orchestration/check_job_refreshment.py
+            base_parameters:
+              current_job_run_id: "{{job.run_id}}"
+            source: WORKSPACE
+        - task_key: job_status_logging
+          depends_on:
+            - task_key: check_refreshment
+          notebook_task:
+            notebook_path: ../shared_code/logging/get_all_job_details.py
+            base_parameters:
+              job_config: '{    "master_job": {        "job_name":
+                "wf_c360_master_email_summary",        "tag":
+                "customer360"    },    "job_names": []}'
+            source: WORKSPACE
+        - task_key: etl_audit_loader
+          depends_on:
+            - task_key: job_status_logging
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_audit_loader.py
+            base_parameters:
+              subscription: 312989A6-AD5B-42B5-B553-4BB71EA31DF6
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+          disable_auto_optimization: true
+        - task_key: etl_email_summary
+          depends_on:
+            - task_key: etl_audit_loader
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_email_summary.py
+            base_parameters:
+              email_key: mx-data-team-email-password
+              secret_scope: ${var.databricks_secret_scope}
+              receiver_email_id: de.alerts@miral.ae
+              module: ""
+            source: WORKSPACE
+          min_retry_interval_millis: 900000
+      tags:
+        use_case: customer360
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: etl_job_alerts_required
+          default: yes
+        - name: usecase
+          default: customer360
+      run_as:
+        service_principal_name: ${var.service_principal_name}

@@ -1,0 +1,145 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "Booking ID",
+                "type": "String"
+            },
+            "sink": {
+                "name": "booking_id",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Type",
+                "type": "String"
+            },
+            "sink": {
+                "name": "type",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Total Amount",
+                "type": "String"
+            },
+            "sink": {
+                "name": "total_amount",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Customer",
+                "type": "String"
+            },
+            "sink": {
+                "name": "customer",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Date Fulfilled",
+                "type": "String"
+            },
+            "sink": {
+                "name": "date_fulfilled",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Created On",
+                "type": "String"
+            },
+            "sink": {
+                "name": "created_on",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Modified On",
+                "type": "String"
+            },
+            "sink": {
+                "name": "modified_on",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Status Reason",
+                "type": "String"
+            },
+            "sink": {
+                "name": "status_reason",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Created by Terminal",
+                "type": "String"
+            },
+            "sink": {
+                "name": "created_by_terminal",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Created By Ticket Channel",
+                "type": "String"
+            },
+            "sink": {
+                "name": "created_by_ticket_channel",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Created By",
+                "type": "String"
+            },
+            "sink": {
+                "name": "created_by",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "source_file_name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_file_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

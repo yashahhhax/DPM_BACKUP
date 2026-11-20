@@ -1,0 +1,82 @@
+{
+	"name": "pl_wait_for_workflow_runid",
+	"properties": {
+		"activities": [
+			{
+				"name": "Workflow completed",
+				"type": "Until",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('Get job status').output.status.state, 'TERMINATED')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Get job status",
+							"description": "",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Wait",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 300,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"url": {
+									"value": "@concat(pipeline().parameters.databricks_workspace_url, '/api/2.2/jobs/runs/get?run_id=', pipeline().parameters.run_id)",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "on-prem-self-hosted-runtime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"body": {
+									"cause": "Kicked off from ADF"
+								},
+								"authentication": {
+									"type": "MSI",
+									"resource": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+								}
+							}
+						},
+						{
+							"name": "Wait",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 30
+							}
+						}
+					],
+					"timeout": "0.00:30:00"
+				}
+			}
+		],
+		"parameters": {
+			"databricks_workspace_url": {
+				"type": "string"
+			},
+			"run_id": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Databricks"
+		},
+		"annotations": []
+	}
+}

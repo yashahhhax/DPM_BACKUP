@@ -1,0 +1,20 @@
+{
+	"name": "ls_adls_cdc",
+	"properties": {
+		"parameters": {
+			"storage_account_uri": {
+				"type": "String",
+				"defaultValue": "https://stmxdatadatalakedev01.dfs.core.windows.net/"
+			}
+		},
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "@{linkedService().storage_account_uri}"
+		},
+		"connectVia": {
+			"referenceName": "cdc-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,119 @@
+pipeline_name: pl_sharepoint_csv_to_parquet
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [06]
+  minutes: [00]
+
+activated: true
+
+datastore_parameters:
+  datastore_name: 'sharepoint_file'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  secret_name: 'cloud-sharepoint-svc-prd-password'
+  site: 'FARAHFLFIN'
+  schema_name: 'mdop'
+  use_case: 'finance'
+  drive_id: 'b!0SuTvDQmqEC-nZURiVe42rocL2Ese6NOuYaxKJKDJOTqAQ02xcdYSZeM14B2GoMl'
+  # skip_orchestration: true
+
+datasets:
+  - name: budget_forecast_adp
+    dataset_parameters:
+      path: "/Budget_Forecast/"
+      table_name: 'budget_forecast'
+      input_file_name: "Budget_Forecast_ADP.csv"
+      use_case: 'finance'
+  - name: budget_forecast_wtc
+    dataset_parameters:
+      path: "/Budget_Forecast/"
+      table_name: 'budget_forecast'
+      input_file_name: "Budget_Forecast_WTC.csv"
+      use_case: 'finance'
+  # - name: budget_forecast_2022
+  #   dataset_parameters:
+  #     path: "/Budget_Forecast/"
+  #     table_name: 'budget_forecast'
+  #     input_file_name: "Budget_Forecast_2022.csv"
+  #     use_case: 'finance'
+  - name: budget_forecast_2023
+    dataset_parameters:
+      path: "/Budget_Forecast/"
+      table_name: 'budget_forecast'
+      input_file_name: "Budget_Forecast_2023.csv"
+      use_case: 'finance'
+  - name: budget_forecast_2024
+    dataset_parameters:
+      path: "/Budget_Forecast/"
+      table_name: 'budget_forecast'
+      input_file_name: "Budget_Forecast_2024.csv"
+      use_case: 'finance'
+  - name: budget_forecast_2025
+    dataset_parameters:
+      path: "/Budget_Forecast/"
+      table_name: 'budget_forecast'
+      input_file_name: "Budget_Forecast_2025.csv"
+      use_case: 'finance'
+  - name: coa_structure_mapping
+    dataset_parameters:
+      path: "/COA_Mapping/"
+      table_name: 'coa_structure_mapping'
+      input_file_name: "COA_STRUCTURE_MAPPING.csv"
+      use_case: 'finance'
+  - name: account_mapping
+    dataset_parameters:
+      path: "/COA_Mapping/"
+      table_name: 'account_mapping'
+      input_file_name: "ACCOUNT_MAPPING.csv"
+      use_case: 'finance'
+  - name: department_mapping
+    dataset_parameters:
+      path: "/COA_Mapping/"
+      table_name: 'department_mapping'
+      input_file_name: "DEPARTMENT_MAPPING.csv"
+      use_case: 'finance'
+  - name: entity_mapping
+    dataset_parameters:
+      path: "/COA_Mapping/"
+      table_name: 'entity_mapping'
+      input_file_name: "ENTITY_MAPPING.csv"
+      use_case: 'finance'
+  - name: inter_entity_mapping
+    dataset_parameters:
+      path: "/COA_Mapping/"
+      table_name: 'inter_entity_mapping'
+      input_file_name: "INTER_ENTITY_MAPPING.csv"
+      use_case: 'finance'
+  - name: ledger_mapping
+    dataset_parameters:
+      path: "/COA_Mapping/"
+      table_name: 'ledger_mapping'
+      input_file_name: "LEDGER_MAPPING.csv"
+      use_case: 'finance'
+  - name: segment_mapping
+    dataset_parameters:
+      path: "/COA_Mapping/"
+      table_name: 'segment_mapping'
+      input_file_name: "SEGMENT_MAPPING.csv"
+      use_case: 'finance'
+  - name: manual_adjustment_file
+    dataset_parameters:
+      path: "/Manual_Adjustment_File/"
+      table_name: 'manual_adjustment_file'
+      input_file_name: "Manual_Adjustment_File.csv"
+      use_case: 'finance'
+  - name: reporting_line_template
+    dataset_parameters:
+      path: "/Reporting_Line_Template/"
+      table_name: 'reporting_line_template'
+      input_file_name: "REPORTING_LINE_TEMPLATE.csv"
+      use_case: 'finance'
+  # - name: mixeduse_tb
+  #   dataset_parameters:
+  #     path: "@concat('/Trail_Balance/MixedUse_TB/',formatDateTime(addDays(startOfMonth(utcNow()), -1), 'yyyy'),'/')"
+  #     table_name: "mixeduse_tb"
+  #     input_file_name: "@concat('mixeduse_tb_',formatDateTime(addDays(startOfMonth(utcNow()), -1), 'yyyy'),'.csv')"
+  #     schema_name: 'mdop_fin'
+  #     use_case: 'finance'

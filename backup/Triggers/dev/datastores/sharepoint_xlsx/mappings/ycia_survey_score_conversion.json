@@ -1,0 +1,41 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "VISIT_ABU_DHABI"
+            },
+            "sink": {
+                "name": "visit_abu_dhabi"
+            }
+        },
+        {
+            "source": {
+                "name": "EQUIVALENT"
+            },
+            "sink": {
+                "name": "equivalent"
+            }
+        },
+        {
+            "source": {
+                "name": "source_file_name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_file_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

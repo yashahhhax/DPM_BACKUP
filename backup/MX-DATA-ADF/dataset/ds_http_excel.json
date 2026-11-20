@@ -1,0 +1,36 @@
+{
+	"name": "ds_http_excel",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_http",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"base_url": {
+					"value": "@dataset().base_url",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"base_url": {
+				"type": "String"
+			},
+			"first_row_header": {
+				"type": "bool"
+			}
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation"
+			},
+			"sheetIndex": 0,
+			"firstRowAsHeader": {
+				"value": "@dataset().first_row_header",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	}
+}

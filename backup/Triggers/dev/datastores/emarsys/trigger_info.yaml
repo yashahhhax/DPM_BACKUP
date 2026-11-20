@@ -1,0 +1,59 @@
+pipeline_name: pl_google_bigquery_to_parquet_incremental
+
+schedule:
+    frequency: Day
+    interval: 1
+    hours: [10]
+    minutes: [00]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'emarsys_gbq'
+  project_id: 'sap-od-miralbtoc'
+  schema_name: 'emarsys_miralbtoc_876026434'
+  secret_name: 'cloud-gbq-api-prd-apikey'
+  load_days: 15
+  pk: 'fact_key'
+  load_time_column: 'loaded_at'
+  # full_load: true
+  use_case: 'emarsys'
+  # skip_orchestration: true
+
+datasets:
+  - name: email_campaigns_v2_876026434
+    pipeline_name: pl_google_bigquery_to_parquet_fullload
+    dataset_parameters:
+      table_name: 'email_campaigns_v2_876026434'
+      workflow_name: 'wf_ingest_emarsys_email_campaign_launch'
+      workflow_parameter: '{"username": "miral_b2c007","secret_name": "cloud-emarsys-api-prd-apikey"}'
+  - name: push_campaigns_876026434
+    dataset_parameters:
+      table_name: 'push_campaigns_876026434'
+  - name: push_sends_876026434
+    dataset_parameters:
+      table_name: 'push_sends_876026434'
+  - name: push_not_sends_876026434
+    dataset_parameters:
+      table_name: 'push_not_sends_876026434'
+  - name: email_unsubscribes_876026434
+    dataset_parameters:
+      table_name: 'email_unsubscribes_876026434'
+  - name: email_sends_876026434
+    dataset_parameters:
+      table_name: 'email_sends_876026434'
+  - name: email_opens_876026434
+    dataset_parameters:
+      table_name: 'email_opens_876026434'
+  - name: email_complaints_876026434
+    dataset_parameters:
+      table_name: 'email_complaints_876026434'
+  - name: email_clicks_876026434
+    dataset_parameters:
+      table_name: 'email_clicks_876026434'
+  - name: email_cancels_876026434
+    dataset_parameters:
+      table_name: 'email_cancels_876026434'
+  - name: email_bounces_876026434
+    dataset_parameters:
+      table_name: 'email_bounces_876026434'

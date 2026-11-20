@@ -1,0 +1,202 @@
+{
+	"name": "pl_oracle_fusion_bip_fl_model",
+	"properties": {
+		"activities": [
+			{
+				"name": "for_each_batch",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "set_source_row_count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@range(0, div(add(variables('source_row_count'), sub(int(pipeline().parameters.fetch), 1)), int(pipeline().parameters.fetch)))",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy BIP Report to Binary",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "XmlSource",
+									"storeSettings": {
+										"type": "HttpReadSettings",
+										"requestMethod": "POST",
+										"additionalHeaders": "Content-Type: text/xml",
+										"requestBody": {
+											"value": "@concat(\n'<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v2=\"http://xmlns.oracle.com/oxp/service/v2\">',\n    '<soapenv:Header/>',\n    '<soapenv:Body>',\n        '<v2:runReport>',\n            '<v2:reportRequest>',\n                '<v2:XDOPropertyList>',\n                    '<v2:metaDataList></v2:metaDataList>',\n                '</v2:XDOPropertyList>',\n                '<v2:attributeFormat>csv</v2:attributeFormat>',\n                '<v2:parameterNameValues>',\n                    '<v2:listOfParamNameValues>',\n\n                        '<v2:item>',\n                            '<v2:name>p_offset</v2:name>',\n                            '<v2:values>',\n                                '<v2:item>',\n                                    string(\n                                        mul(\n                                            item(),\n                                            int(pipeline().parameters.fetch)\n                                        )\n                                    ),\n                                '</v2:item>',\n                            '</v2:values>',\n                        '</v2:item>',\n\n                        '<v2:item>',\n                            '<v2:name>p_fetch</v2:name>',\n                            '<v2:values>',\n                                '<v2:item>',\n                                    string(\n                                        min(\n                                            int(pipeline().parameters.fetch),\n                                            sub(\n                                                variables('source_row_count'),\n                                                mul(\n                                                    item(),\n                                                    int(pipeline().parameters.fetch)\n                                                )\n                                            )\n                                        )\n                                    ),\n                                '</v2:item>',\n                            '</v2:values>',\n                        '</v2:item>',\n\n                    '</v2:listOfParamNameValues>',\n                '</v2:parameterNameValues>',\n\n                '<v2:reportAbsolutePath>',\n                    concat(\n                        pipeline().parameters.report_path,\n                        toUpper(pipeline().parameters.table_name),\n                        '_FL.xdo'\n                    ),\n                '</v2:reportAbsolutePath>',\n\n                '<v2:sizeOfDataChunkDownload>-1</v2:sizeOfDataChunkDownload>',\n\n            '</v2:reportRequest>',\n            '<v2:userID>', pipeline().parameters.user_name, '</v2:userID>',\n            '<v2:password>', pipeline().parameters.token, '</v2:password>',\n        '</v2:runReport>',\n    '</soapenv:Body>',\n'</soapenv:Envelope>'\n)",
+											"type": "Expression"
+										},
+										"requestTimeout": ""
+									},
+									"formatSettings": {
+										"type": "XmlReadSettings",
+										"validationMode": "none",
+										"namespaces": true
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_http_xml",
+									"type": "DatasetReference",
+									"parameters": {
+										"base_url": {
+											"value": "@pipeline().parameters.base_url",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_adls_json",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": {
+											"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+											"type": "Expression"
+										},
+										"container_name": {
+											"value": "@pipeline().globalParameters.storage_container_datalake",
+											"type": "Expression"
+										},
+										"directory": {
+											"value": "@toLower(concat('raw_', pipeline().parameters.datastore_name,'/',pipeline().parameters.table_name,'/',formatDateTime(pipeline().parameters.adf_load_time, 'yyyyMMddHHmmss')))",
+											"type": "Expression"
+										},
+										"file_name": {
+											"value": "@concat(\n    toLower(pipeline().parameters.table_name), '_',\n    formatDateTime(pipeline().parameters.adf_load_time, 'yyyyMMddHHmmss'), '_',\n    string(add(mul(item(), int(pipeline().parameters.fetch)), 1)), '_',\n    string(add(mul(item(), int(pipeline().parameters.fetch)), int(pipeline().parameters.fetch))),\n    '.json'\n)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "exec_pl_trigger_sql_query",
+				"description": "Get rows_count from bip_check_sum table",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_sql_query",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"workspace_url": {
+							"value": "@pipeline().globalParameters.databricks_transformation_workspace_url",
+							"type": "Expression"
+						},
+						"sql_serverless_id": {
+							"value": "@pipeline().globalParameters.databricks_transformation_sql_serverless_id",
+							"type": "Expression"
+						},
+						"sql_statement": {
+							"value": "@concat(\n\t'select rows_count from transformation_',\n\tpipeline().globalParameters.environment,\n\t'.brz_fusion_bip.vw_bip_check_sum where table_name = ''',\n\ttoUpper(pipeline().parameters.table_name),\n\t''''\n)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set_source_row_count",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "exec_pl_trigger_sql_query",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "source_row_count",
+					"value": {
+						"value": "@int(activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output)",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"user_name": {
+				"type": "string"
+			},
+			"token": {
+				"type": "string"
+			},
+			"base_url": {
+				"type": "string"
+			},
+			"report_path": {
+				"type": "string"
+			},
+			"datastore_name": {
+				"type": "string"
+			},
+			"table_name": {
+				"type": "string"
+			},
+			"fetch": {
+				"type": "int",
+				"defaultValue": 100000
+			},
+			"adf_load_time": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"source_row_count": {
+				"type": "Integer"
+			},
+			"offset": {
+				"type": "Integer",
+				"defaultValue": 0
+			}
+		},
+		"folder": {
+			"name": "BIP"
+		},
+		"annotations": []
+	}
+}

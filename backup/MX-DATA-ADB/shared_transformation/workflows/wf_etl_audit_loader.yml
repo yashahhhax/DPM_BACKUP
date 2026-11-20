@@ -1,0 +1,29 @@
+resources:
+  jobs:
+    wf_etl_audit_loader:
+      name: wf_etl_audit_loader
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN
+      tasks:
+        - task_key: etl_audit_loader
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_audit_loader.py
+            source: WORKSPACE
+          min_retry_interval_millis: 0
+      tags:
+        use_case: etl_audit_loader
+      webhook_notifications:
+        on_failure:
+          - id: ${var.trans_teams_webhook}
+      notification_settings:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
+      max_concurrent_runs: 100
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: subscription
+          default: ${var.subscription}

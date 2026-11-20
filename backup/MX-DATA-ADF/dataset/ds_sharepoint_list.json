@@ -1,0 +1,67 @@
+{
+	"name": "ds_sharepoint_list",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sharepoint_list",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"site_url": {
+					"value": "@dataset().site_url",
+					"type": "Expression"
+				},
+				"tenant_id": {
+					"value": "@dataset().tenant_id",
+					"type": "Expression"
+				},
+				"user_name": {
+					"value": "@dataset().user_name",
+					"type": "Expression"
+				},
+				"key_vault_uri": {
+					"value": "@dataset().key_vault_uri",
+					"type": "Expression"
+				},
+				"cert_secret_name": {
+					"value": "@dataset().cert_secret_name",
+					"type": "Expression"
+				},
+				"pass_secret_name": {
+					"value": "@dataset().pass_secret_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"site_url": {
+				"type": "String"
+			},
+			"tenant_id": {
+				"type": "String"
+			},
+			"user_name": {
+				"type": "String"
+			},
+			"key_vault_uri": {
+				"type": "String"
+			},
+			"cert_secret_name": {
+				"type": "String"
+			},
+			"pass_secret_name": {
+				"type": "String"
+			},
+			"list_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SharePointOnlineListResource",
+		"schema": [],
+		"typeProperties": {
+			"listName": {
+				"value": "@dataset().list_name",
+				"type": "Expression"
+			}
+		}
+	}
+}

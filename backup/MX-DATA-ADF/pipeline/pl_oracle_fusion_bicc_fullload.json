@@ -1,0 +1,368 @@
+{
+	"name": "pl_oracle_fusion_bicc_fullload",
+	"properties": {
+		"activities": [
+			{
+				"name": "set_input_file",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "set_adf_load_time",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "input_file",
+					"value": {
+						"value": "@concat('*file_', replace(toLower(pipeline().parameters.table_name), '.', '_'), '-batch*-',formatDateTime(variables('adf_load_time'), 'yyyyMMdd'), '_*.csv.gz')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "fusion_bicc_to_parquet",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "set_input_file",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "delete_existing_files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"additionalColumns": [
+							{
+								"name": "adf_load_time",
+								"value": {
+									"value": "@variables('adf_load_time')",
+									"type": "Expression"
+								}
+							}
+						],
+						"storeSettings": {
+							"type": "OracleCloudStorageReadSettings",
+							"recursive": true,
+							"wildcardFileName": {
+								"value": "@variables('input_file')",
+								"type": "Expression"
+							},
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"value": "@json(replace(string(pipeline().parameters.column_mapping), '\\n', '\\r\\n'))",
+						"type": "Expression"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_oracle_s3_csv_gz",
+						"type": "DatasetReference",
+						"parameters": {
+							"service_url": {
+								"value": "@pipeline().parameters.base_url",
+								"type": "Expression"
+							},
+							"access_key_id": {
+								"value": "@pipeline().parameters.user_name",
+								"type": "Expression"
+							},
+							"key_vault_uri": {
+								"value": "@pipeline().globalParameters.key_vault_uri",
+								"type": "Expression"
+							},
+							"secret_name": {
+								"value": "@pipeline().parameters.secret_name",
+								"type": "Expression"
+							},
+							"directory_name": {
+								"value": "@pipeline().parameters.source_path",
+								"type": "Expression"
+							},
+							"file_name": {
+								"value": "@variables('input_file')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_adls_parquet_folder",
+						"type": "DatasetReference",
+						"parameters": {
+							"storage_account_uri": {
+								"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+								"type": "Expression"
+							},
+							"container_name": {
+								"value": "@pipeline().globalParameters.storage_container_datalake",
+								"type": "Expression"
+							},
+							"datastore": {
+								"value": "@toLower(pipeline().parameters.datastore_name)",
+								"type": "Expression"
+							},
+							"dataset": {
+								"value": "@toLower(pipeline().parameters.table_name)",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "fusion_bicc_to_parquet",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"total_rows": {
+							"value": "@activity('fusion_bicc_to_parquet').output.rowsRead",
+							"type": "Expression"
+						},
+						"skip_backup": false,
+						"backup_wf_parameters": {
+							"value": "{\n    \"backup_workflow_name\": \"wf_table_specific_backup\",\n    \"business_date\": \"@{formatDateTime(variables('adf_load_time'), 'yyyy-MM-ddTHH:mm:ss')}\",\n    \"schema_name\": \"@{toLower(concat('brz_',pipeline().parameters.datastore_name))}\",\n    \"table_name\": \"@{toLower(concat('vw_',pipeline().parameters.table_name))}\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set_adf_load_time",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "adf_load_time",
+					"value": {
+						"value": "@formatDateTime(\n    convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time'),\n    'yyyy-MM-dd 00:00:00'\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "delete_existing_files",
+				"type": "Delete",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_adls_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"storage_account_uri": {
+								"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+								"type": "Expression"
+							},
+							"container_name": {
+								"value": "@pipeline().globalParameters.storage_container_datalake",
+								"type": "Expression"
+							},
+							"datastore": {
+								"value": "@toLower(pipeline().parameters.datastore_name)",
+								"type": "Expression"
+							},
+							"dataset": {
+								"value": "@toLower(pipeline().parameters.table_name)",
+								"type": "Expression"
+							},
+							"tablename": " "
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			}
+		],
+		"concurrency": 50,
+		"parameters": {
+			"user_name": {
+				"type": "string",
+				"defaultValue": "caab825bd4cbee36352836da66ebaa19997d6e00"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-fusion-oci-svc-uat-password"
+			},
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://axzjleyzf4ti.compat.objectstorage.me-dubai-1.oraclecloud.com"
+			},
+			"source_path": {
+				"type": "string",
+				"defaultValue": "Fusion_Azure_UAT"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "fusion_bicc"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "fscmtopmodelam_partiesanalyticsam_customer"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "finance"
+			},
+			"column_mapping": {
+				"type": "object"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"input_file": {
+				"type": "String"
+			},
+			"adf_load_time": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "BICC"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

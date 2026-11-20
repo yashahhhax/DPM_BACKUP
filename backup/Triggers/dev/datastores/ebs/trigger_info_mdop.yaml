@@ -1,0 +1,50 @@
+pipeline_name: pl_oracle_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [03]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'ebs'
+  server_name: '10.19.10.5'
+  service_name: 'ERPPROD'
+  user_name: 'XXAPPS_RO'
+  secret_name: 'onprem-ebs-oracle-svc-prd-password'
+  port: '1531'
+  use_case: 'finance'
+  # skip_orchestration: true
+
+datasets:
+  - name: gl_balances
+    dataset_parameters:
+      schema_name: 'GL'
+      table_name: 'GL_BALANCES'
+  - name: gl_code_combinations
+    dataset_parameters:
+      schema_name: 'GL'
+      table_name: 'GL_CODE_COMBINATIONS'
+      use_case: 'finance, procurement'
+  - name: gl_je_batches
+    dataset_parameters:
+      schema_name: 'GL'
+      table_name: 'GL_JE_BATCHES'
+  - name: gl_je_headers
+    dataset_parameters:
+      schema_name: 'GL'
+      table_name: 'GL_JE_HEADERS'
+  - name: gl_je_lines
+    dataset_parameters:
+      schema_name: 'GL'
+      table_name: 'GL_JE_LINES'
+  - name: gl_ledgers
+    dataset_parameters:
+      schema_name: 'GL'
+      table_name: 'GL_LEDGERS'
+  - name: hz_locations
+    dataset_parameters:
+      schema_name: 'AR'
+      table_name: 'HZ_LOCATIONS'
+      use_case: 'finance, procurement'

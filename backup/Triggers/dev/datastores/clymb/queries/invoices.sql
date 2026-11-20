@@ -1,0 +1,20 @@
+SELECT
+    id,
+    customer_id,
+    order_id,
+    credit_note,
+    credit_note_origin_invoice_id,
+    credit_note_invoice_id,
+    user_id,
+    date_create,
+    num,
+    origin,
+    status,
+    efpos,
+    total_exc_tax,
+    total_inc_tax,
+    total_paid,
+    fort_id,
+    authorization_code,
+    last_update
+from invoices i

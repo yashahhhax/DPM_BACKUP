@@ -1,0 +1,27 @@
+pipeline_name: pl_dataverse_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  # hours: [09,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+  # minutes: [29]
+  hours: [18]
+  minutes: [30]
+  
+activated: false
+
+datastore_parameters:
+  datastore_name: 'crm'
+  server_name: 'https://yascrm.crm4.dynamics.com/'
+  service_principal_id: 'fe2bd515-1f89-4b93-87eb-bd5f2832ea3c'
+  secret_name: 'cloud-crm-api-prd-apikey'
+  use_case: 'facepassappslogs'
+  # skip_orchestration: true
+
+datasets:
+  - name: yc_frictionlessenrollment
+    dataset_parameters:
+      table_name: 'yc_frictionlessenrollment'
+  - name: plugintracelog
+    dataset_parameters:
+      table_name: 'plugintracelog'

@@ -1,0 +1,197 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "LEDGER_LEDGER"
+            },
+            "sink": {
+                "name": "ledger_ledger"
+            }
+        },
+        {
+            "source": {
+                "name": "CURRENCY_CODE"
+            },
+            "sink": {
+                "name": "currency_code"
+            }
+        },
+        {
+            "source": {
+                "name": "ACTUAL_FLAG"
+            },
+            "sink": {
+                "name": "actual_flag"
+            }
+        },
+        {
+            "source": {
+                "name": "PERIOD_YEAR"
+            },
+            "sink": {
+                "name": "period_year"
+            }
+        },
+        {
+            "source": {
+                "name": "PERIOD_NUM"
+            },
+            "sink": {
+                "name": "period_num"
+            }
+        },
+        {
+            "source": {
+                "name": "PERIOD_NAME"
+            },
+            "sink": {
+                "name": "period_name"
+            }
+        },
+        {
+            "source": {
+                "name": "GL_DATE"
+            },
+            "sink": {
+                "name": "gl_date"
+            }
+        },
+        {
+            "source": {
+                "name": "FULL_CODE_COMBINATION"
+            },
+            "sink": {
+                "name": "full_code_combination"
+            }
+        },
+        {
+            "source": {
+                "name": "ENTITY"
+            },
+            "sink": {
+                "name": "entity"
+            }
+        },
+        {
+            "source": {
+                "name": "DEPARTMENT"
+            },
+            "sink": {
+                "name": "department"
+            }
+        },
+        {
+            "source": {
+                "name": "ACCOUNT"
+            },
+            "sink": {
+                "name": "account"
+            }
+        },
+        {
+            "source": {
+                "name": "INTER_ENTITY"
+            },
+            "sink": {
+                "name": "inter_entity"
+            }
+        },
+        {
+            "source": {
+                "name": "SEGMENT5"
+            },
+            "sink": {
+                "name": "segment5"
+            }
+        },
+        {
+            "source": {
+                "name": "SEGMENT6"
+            },
+            "sink": {
+                "name": "segment6"
+            }
+        },
+        {
+            "source": {
+                "name": "SEGMENT7"
+            },
+            "sink": {
+                "name": "segment7"
+            }
+        },
+        {
+            "source": {
+                "name": "SEGMENT8"
+            },
+            "sink": {
+                "name": "segment8"
+            }
+        },
+        {
+            "source": {
+                "name": "SEGMENT9"
+            },
+            "sink": {
+                "name": "segment9"
+            }
+        },
+        {
+            "source": {
+                "name": "SEGMENT10"
+            },
+            "sink": {
+                "name": "segment10"
+            }
+        },
+        {
+            "source": {
+                "name": "BEGINNING_BALANCE"
+            },
+            "sink": {
+                "name": "beginning_balance"
+            }
+        },
+        {
+            "source": {
+                "name": "PERIOD_NET_DR"
+            },
+            "sink": {
+                "name": "period_net_dr"
+            }
+        },
+        {
+            "source": {
+                "name": "PERIOD_NET_CR"
+            },
+            "sink": {
+                "name": "period_net_cr"
+            }
+        },
+        {
+            "source": {
+                "name": "ENDING_BALANCE"
+            },
+            "sink": {
+                "name": "ending_balance"
+            }
+        },
+        {
+            "source": {
+                "name": "ENTITY Code"
+            },
+            "sink": {
+                "name": "entity_code"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time"
+            },
+            "sink": {
+                "name": "adf_load_time"
+            }
+        }
+    ]
+}

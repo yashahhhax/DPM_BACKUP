@@ -1,0 +1,151 @@
+{
+	"name": "pl_drr_crm_api_to_parquet",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute_adb_ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.dataset_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"base_url\" : \"@{pipeline().parameters.base_url}\",\n  \"from_date\": \"@{pipeline().parameters.from_date}\",\n  \"to_date\": \"@{pipeline().parameters.to_date}\",\n  \"datastore_name\": \"@{pipeline().parameters.datastore_name}\",\n  \"dataset_name\": \"@{pipeline().parameters.dataset_name}\",\n  \"table_name\": \"@{pipeline().parameters.table_name}\",\n  \"client_id\" : \"@{pipeline().parameters.client_id}\",\n  \"client_secret\" : \"@{pipeline().parameters.client_secret}\",\n  \"env\" : \"@{pipeline().globalParameters.environment}\",\n  \"write_mode\": \"overwrite\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute_adb_ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@pipeline().parameters.table_name",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"from_date": {
+				"type": "string"
+			},
+			"to_date": {
+				"type": "string"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "drr"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_drr_crm_api"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "crm_api"
+			},
+			"dataset_name": {
+				"type": "string",
+				"defaultValue": "drr"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "lkp_crm_sub_segment"
+			},
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://yascrm.crm4.dynamics.com"
+			},
+			"client_id": {
+				"type": "string",
+				"defaultValue": "7f071879-cdae-4cf7-9ec8-2c7d258ab415"
+			},
+			"client_secret": {
+				"type": "string",
+				"defaultValue": "cloud-crm-invoices-api-prd-apikey"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"folder": {
+			"name": "DRR"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

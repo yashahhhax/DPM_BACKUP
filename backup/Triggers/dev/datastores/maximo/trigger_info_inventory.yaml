@@ -1,0 +1,81 @@
+pipeline_name: pl_sql_server_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [12]
+  minutes: [00]
+  
+activated: false
+
+datastore_parameters:
+  datastore_name: 'maximo'
+  server_name: '10.140.9.47'
+  user_name: 'farah\svc_mx_data_prd'
+  secret_name: 'onprem-sqlserver-wdws-svc-prd-password'
+  database_name: 'maximo'
+  schema_name: 'dbo'
+  use_case: 'inventory'
+  # skip_orchestration: true
+
+datasets:
+  - name: 'chartofaccounts'
+    pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'chartofaccounts'
+      load_time_column: 'last_update_date'
+      pk: 'chartofaccountsid'
+  - name: 'companies'
+    dataset_parameters:
+      table_name: 'companies'
+  - name: 'currency'
+    dataset_parameters:
+      table_name: 'currency'
+  - name: 'exchange'
+    dataset_parameters:
+      table_name: 'exchange'
+  - name: 'imglib'
+    dataset_parameters:
+      table_name: 'imglib'
+  - name: 'invbalances'
+    dataset_parameters:
+      table_name: 'invbalances'
+  - name: 'invcost'
+    dataset_parameters:
+      table_name: 'invcost'
+  - name: 'inventory'
+    dataset_parameters:
+      table_name: 'inventory'
+  - name: 'invlot'
+    dataset_parameters:
+      table_name: 'invlot'
+  - name: 'invtrans'
+    dataset_parameters:
+      table_name: 'invtrans'
+  - name: 'item'
+    dataset_parameters:
+      table_name: 'item'
+  - name: 'locations'
+    dataset_parameters:
+      table_name: 'locations'
+  - name: 'matrectrans'
+    dataset_parameters:
+      table_name: 'matrectrans'
+  - name: 'matusetrans'
+    dataset_parameters:
+      table_name: 'matusetrans'
+  - name: 'po'
+    dataset_parameters:
+      table_name: 'po'
+  - name: 'poline'
+    dataset_parameters:
+      table_name: 'poline'
+  - name: 'pr'
+    dataset_parameters:
+      table_name: 'pr'
+  - name: 'prline'
+    dataset_parameters:
+      table_name: 'prline'
+  - name: 'site'
+    dataset_parameters:
+      table_name: 'site'

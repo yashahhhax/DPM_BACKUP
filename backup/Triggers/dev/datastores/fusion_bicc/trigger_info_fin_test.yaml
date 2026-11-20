@@ -1,0 +1,376 @@
+pipeline_name: pl_oracle_fusion_bicc_fin_incremental
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [10]
+  minutes: [15]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'fusion_bicc_fin'
+  user_name: 'a807424c924ac446d01719e15e2519d1ec752527'
+  secret_name: 'cloud-fusion-oci-svc-uat-password'
+  base_url: 'https://axzjleyzf4ti.compat.objectstorage.me-dubai-1.oraclecloud.com'
+  source_path: 'Fusion_To_Azure_SIT'
+  use_case: 'finance'
+  skip_backup: false
+  skip_exec_adb: false
+  full_load: true
+  full_load_date: '2026-02-01'
+  # skip_orchestration: true
+
+datasets:
+  - name: fscmtopmodelam_finapinvsetuppmttermsam_paymenttermheadertranslationpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finapinvsetuppmttermsam_paymenttermheadertranslationpvo'
+      pk: 'TermId, Language'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_finapsharedcoream_trialbalancepvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finapsharedcoream_trialbalancepvo'
+      pk: 'AeHeaderId,InvoiceId,TrialBalanceAccountingClassCode,TrialBalanceCodeCombinationId'
+      load_time_column: 'TrialBalanceLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_apbiccextractam_disbursementheaderextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_apbiccextractam_disbursementheaderextractpvo'
+      pk: 'ApChecksAllCheckId'
+      load_time_column: 'ApChecksAllLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_apbiccextractam_invoicedistributionextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_apbiccextractam_invoicedistributionextractpvo'
+      pk: 'ApInvoiceDistributionsInvoiceDistributionId'
+      load_time_column: 'ApInvoiceDistributionsLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_apbiccextractam_invoicelineextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_apbiccextractam_invoicelineextractpvo'
+      pk: 'ApInvoiceLinesAllInvoiceId,ApInvoiceLinesAllLineNumber'
+      load_time_column: 'ApInvoiceLinesAllLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_apbiccextractam_invoicepaymentscheduleextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_apbiccextractam_invoicepaymentscheduleextractpvo'
+      pk: 'ApPaymentSchedulesAllInvoiceId, ApPaymentSchedulesAllPaymentNum'
+      load_time_column: 'ApPaymentSchedulesAllLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_apbiccextractam_paiddisbursementscheduleextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_apbiccextractam_paiddisbursementscheduleextractpvo'
+      pk: 'ApInvoicePaymentsAllInvoicePaymentId'
+      load_time_column: 'ApInvoicePaymentsAllLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_apbiccextractam_paymenthistorydistributionextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_apbiccextractam_paymenthistorydistributionextractpvo'
+      pk: 'ApPaymentHistDistsPaymentHistDistId'
+      load_time_column: 'ApPaymentHistDistsLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_analyticsextractserviceam_lookupvaluestlextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_analyticsextractserviceam_lookupvaluestlextractpvo'
+      pk: 'Language, LookupCode, LookupType, SetId, ViewApplicationId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_adjustmentextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_adjustmentextractpvo'
+      pk: 'ArAdjustmentAdjustmentId'
+      load_time_column: 'ArAdjustmentLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_distributionextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_distributionextractpvo'
+      pk: 'ArDistributionLineId'
+      load_time_column: 'ArDistributionLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_paymenttermextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_paymenttermextractpvo'
+      pk: 'RaTermBTermId'
+      load_time_column: 'RaTermBLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_receiptheaderextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_receiptheaderextractpvo'
+      pk: 'ArCashReceiptCashReceiptId'
+      load_time_column: 'ArCashReceiptLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_receipthistoryextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_receipthistoryextractpvo'
+      pk: 'ArCashReceiptHistoryCashReceiptHistoryId'
+      load_time_column: 'ArCashReceiptHistoryLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_receiptmethodaccountextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_receiptmethodaccountextractpvo'
+      pk: 'ArReceiptMethodAccountReceiptMethodId, ArReceiptMethodAccountRemitBankAcctUseId'
+      load_time_column: 'ArReceiptMethodAccountLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_receiptmethodextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_receiptmethodextractpvo'
+      pk: 'ArReceiptMethodReceiptMethodId'
+      load_time_column: 'ArReceiptMethodLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_receivableapplicationextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_receivableapplicationextractpvo'
+      pk: 'ArReceivableApplicationReceivableApplicationId'
+      load_time_column: 'ArReceivableApplicationLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_transactiondistributionextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_transactiondistributionextractpvo'
+      pk: 'RaCustTrxLineGlDistCustTrxLineGlDistId'
+      load_time_column: 'RaCustTrxLineGlDistLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_transactionheaderextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_transactionheaderextractpvo'
+      pk: 'RaCustomerTrxCustomerTrxId'
+      load_time_column: 'RaCustomerTrxLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_transactionlineextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_transactionlineextractpvo'
+      pk: 'RaCustomerTrxLineCustomerTrxLineId'
+      load_time_column: 'RaCustomerTrxLineLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_cebiccextractam_bankaccountuseextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_cebiccextractam_bankaccountuseextractpvo'
+      pk: 'BankAccountUsePEOBankAcctUseId'
+      load_time_column: 'BankAccountUsePEOLastUpdateDate'
+  - name: fscmtopmodelam_scmextractam_rcvbiccextractam_receivingreceipttransactionextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_scmextractam_rcvbiccextractam_receivingreceipttransactionextractpvo'
+      pk: 'RcvngRcptTrnsctnExtrctPEOTransactionId'
+      load_time_column: 'RcvngRcptTrnsctnExtrctPEOLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_apbiccextractam_prepaymentapplicationdistributionextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_apbiccextractam_prepaymentapplicationdistributionextractpvo'
+      pk: 'ApPrepayAppDistsPrepayAppDistId'
+      load_time_column: 'ApPrepayAppDistsLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_additionextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_additionextractpvo'
+      pk: 'AdditionAssetId'
+      load_time_column: 'AdditionLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_adjustmentextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_adjustmentextractpvo'
+      pk: 'AdjustmentAdjustmentLineId, AdjustmentTransactionHeaderId'
+      load_time_column: 'AdjustmentLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_assethistoryextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_assethistoryextractpvo'
+      pk: 'AssetHistoryAssetId, AssetHistoryTransactionHeaderIdIn'
+      load_time_column: 'AssetHistoryLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_assetinvoiceextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_assetinvoiceextractpvo'
+      pk: 'AssetInvoiceSourceLineId'
+      load_time_column: 'AssetInvoiceLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_assetkeyextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_assetkeyextractpvo'
+      pk: 'AssetKeyCodeCombinationId, AssetKeyStructureInstanceNumber'
+      load_time_column: 'AssetKeyLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_bookextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_bookextractpvo'
+      pk: 'BookTransactionHeaderIdIn'
+      load_time_column: 'BookLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_categorybookextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_categorybookextractpvo'
+      pk: 'CategoryBookCategoryBookId'
+      load_time_column: 'CategoryBookLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_categoryextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_categoryextractpvo'
+      pk: 'CategoryCategoryId'
+      load_time_column: 'CategoryLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_depreciationdetailextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_depreciationdetailextractpvo'
+      pk: 'DepreciationDetailAssetId, DepreciationDetailBookTypeCode, DepreciationDetailDistributionId, DepreciationDetailPeriodCounter'
+      load_time_column: 'DepreciationDetailLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_depreciationmethodextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_depreciationmethodextractpvo'
+      pk: 'DepreciationMethodMethodId'
+      load_time_column: 'DepreciationMethodLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_depreciationperiodextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_depreciationperiodextractpvo'
+      pk: 'DepreciationPeriodBookTypeCode, DepreciationPeriodPeriodCounter'
+      load_time_column: 'DepreciationPeriodLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_depreciationsummaryextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_depreciationsummaryextractpvo'
+      pk: 'DepreciationSummaryAssetId, DepreciationSummaryBookTypeCode, DepreciationSummaryPeriodCounter'
+      load_time_column: 'DepreciationSummaryLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_distributionhistoryextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_distributionhistoryextractpvo'
+      pk: 'DistributionHistoryDistributionId'
+      load_time_column: 'DistributionHistoryLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_locationextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_locationextractpvo'
+      pk: 'LocationLocationId, LocationStructureInstanceNumber'
+      load_time_column: 'LocationLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_retirementextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_retirementextractpvo'
+      pk: 'RetirementRetirementId'
+      load_time_column: 'RetirementLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_transactionheaderextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_transactionheaderextractpvo'
+      pk: 'TransactionHeaderTransactionHeaderId'
+      load_time_column: 'TransactionHeaderLastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumentheaderextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_pobiccextractam_purchasingdocumentheaderextractpvo'
+      pk: 'PoHeaderId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcpozpublicviewam_supplierpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcpozpublicviewam_supplierpvo'
+      pk: 'VendorId'
+      load_time_column: 'BusClass1LastUpdateDate, BusClass2LastUpdateDate, BusClass3LastUpdateDate, BusClass4LastUpdateDate, BusClass5LastUpdateDate, BusClass6LastUpdateDate, ParentLastUpdateDate, SupplierLastUpdateDate, WithholdingTaxGroupsLastUpdateDate'
+  - name: fscmtopmodelam_finccbudgetaccountpublicmodelam_budgetaccount
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finccbudgetaccountpublicmodelam_budgetaccount'
+      pk: 'BudgetCodeCombinationId'
+      load_time_column: 'BudgetAccountLastUpdateDate, FlexStructInstancLastUpdateDate'
+  - name: fscmtopmodelam_fincccontrolenginepublicmodelam_controlbudgetpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_fincccontrolenginepublicmodelam_controlbudgetpvo'
+      pk: 'ControlBudgetId'
+      load_time_column: 'ControlBudgetUnsecuredLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_xlabiccextractam_eventtypetlextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_xlabiccextractam_eventtypetlextractpvo'
+      pk: 'EventTypeTranslationApplicationId, EventTypeTranslationEntityCode, EventTypeTranslationEventClassCode, EventTypeTranslationEventTypeCode, EventTypeTranslationLanguage'
+      load_time_column: 'EventTypeTranslationLastUpdateDate'
+  - name: fscmtopmodelam_fingljrnlentriesam_journalencumbrancepvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_fingljrnlentriesam_journalencumbrancepvo'
+      pk: 'EncumbranceTypeId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_porbiccextractam_requisitiondistributionextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_porbiccextractam_requisitiondistributionextractpvo'
+      pk: 'DistributionId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_prcextractam_porbiccextractam_requisitionlineextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_prcextractam_porbiccextractam_requisitionlineextractpvo'
+      pk: 'RequisitionLineId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_scmextractam_cmrbiccextractam_cmrpurchaseorderdtlsextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_scmextractam_cmrbiccextractam_cmrpurchaseorderdtlsextractpvo'
+      pk: 'CmrPurchaseOrderDtlsPEOEventDate, CmrPurchaseOrderDtlsPEOExternalSystemRefId, CmrPurchaseOrderDtlsPEOExternalSystemReference'
+      load_time_column: 'CmrPurchaseOrderDtlsPEOLastUpdateDate'
+  - name: fscmtopmodelam_scmextractam_cmrbiccextractam_cmrrcveventsextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_scmextractam_cmrbiccextractam_cmrrcveventsextractpvo'
+      pk: 'CmrRcvEventsPEOAccountingEventId'
+      load_time_column: 'CmrRcvEventsPEOLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_analyticsextractserviceam_applicationspvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_analyticsextractserviceam_applicationspvo'
+      pk: 'ApplicationId'
+      load_time_column: 'Language'
+  - name: fscmtopmodelam_finextractam_arbiccextractam_paymentscheduleextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_arbiccextractam_paymentscheduleextractpvo'
+      pk: 'ArPaymentSchedulePaymentScheduleId'
+      load_time_column: 'ArPaymentScheduleLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_fabiccextractam_bookcontrolextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_fabiccextractam_bookcontrolextractpvo'
+      pk: 'BookControlBookTypeCode'
+      load_time_column: 'BookControlLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_glbiccextractam_balanceextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_glbiccextractam_balanceextractpvo'
+      pk: 'BalanceActualFlag, BalanceCodeCombinationId, BalanceCurrencyCode, BalanceEncumbranceTypeId, BalanceLedgerId, BalancePeriodName, BalanceTranslatedFlag'
+      load_time_column: 'BalanceLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_glbiccextractam_budgetbalanceextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_glbiccextractam_budgetbalanceextractpvo'
+      pk: 'BudgetName, ConcatAccount, CurrencyCode, CurrencyType, LedgerId, PeriodName'
+      load_time_column: 'GlBudBalLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_glbiccextractam_journalbatchextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_glbiccextractam_journalbatchextractpvo'
+      pk: 'JournalBatchJeBatchId'
+      load_time_column: 'JournalBatchLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_glbiccextractam_journalheaderextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_glbiccextractam_journalheaderextractpvo'
+      pk: 'JeHeaderId'
+      load_time_column: 'GlJeHeadersLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_glbiccextractam_journalimportreferenceextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_glbiccextractam_journalimportreferenceextractpvo'
+      pk: 'GlImportReferencesGlSlLinkId, GlImportReferencesGlSlLinkTable, GlImportReferencesJeHeaderId, GlImportReferencesJeLineNum, GlImportReferencesReference1, GlImportReferencesReference10, GlImportReferencesReference2, GlImportReferencesReference3, GlImportReferencesReference4, GlImportReferencesReference5, GlImportReferencesReference6, GlImportReferencesReference7, GlImportReferencesReference8, GlImportReferencesReference9'
+      load_time_column: 'GlImportReferencesLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_glbiccextractam_journallineextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_glbiccextractam_journallineextractpvo'
+      pk: 'JeHeaderId, JeLineNum'
+      load_time_column: 'GlJeLinesLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_glbiccextractam_ledgerextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_glbiccextractam_ledgerextractpvo'
+      pk: 'LedgerLedgerId'
+      load_time_column: 'LedgerLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_glbiccextractam_periodstatusextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_glbiccextractam_periodstatusextractpvo'
+      pk: 'GlPeriodStatusesApplicationId, GlPeriodStatusesLedgerId, GlPeriodStatusesPeriodName'
+      load_time_column: 'GlPeriodStatusesLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_xlabiccextractam_subledgerjournaldistributionextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_xlabiccextractam_subledgerjournaldistributionextractpvo'
+      pk: 'JournalEntryDistributionAeHeaderId,JournalEntryDistributionApplicationId,JournalEntryDistributionRefAeHeaderId,JournalEntryDistributionTempLineNum'
+      load_time_column: 'JournalEntryDistributionLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_xlabiccextractam_subledgerjournaleventextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_xlabiccextractam_subledgerjournaleventextractpvo'
+      pk: 'EventPEOApplicationId,EventPEOEventId'
+      load_time_column: 'EventPEOLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_xlabiccextractam_subledgerjournalheaderextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_xlabiccextractam_subledgerjournalheaderextractpvo'
+      pk: 'JournalEntryHeaderAeHeaderId,JournalEntryHeaderApplicationId'
+      load_time_column: 'JournalEntryHeaderLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_xlabiccextractam_subledgerjournallineextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_xlabiccextractam_subledgerjournallineextractpvo'
+      pk: 'JournalEntryLineAeHeaderId,JournalEntryLineAeLineNum,JournalEntryLineApplicationId'
+      load_time_column: 'JournalEntryLineLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_xlabiccextractam_subledgerjournaltransactionentityextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_xlabiccextractam_subledgerjournaltransactionentityextractpvo'
+      pk: 'TransactionEntityId'
+      load_time_column: 'TransactionLastUpdateDate'
+  - name: fscmtopmodelam_finextractam_apbiccextractam_invoiceheaderextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_apbiccextractam_invoiceheaderextractpvo'
+      pk: 'ApInvoicesInvoiceId'
+      load_time_column: 'ApInvoicesLastUpdateDate'
+      use_case: 'finance, procurement'
+  - name: fscmtopmodelam_partiesanalyticsam_customer
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_partiesanalyticsam_customer'
+      pk: 'PartyId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_partiesanalyticsam_customeraccount
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_partiesanalyticsam_customeraccount'
+      pk: 'CustAccountId'
+      load_time_column: 'LastUpdateDate'
+  - name: fscmtopmodelam_finextractam_glbiccextractam_codecombinationextractpvo
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_finextractam_glbiccextractam_codecombinationextractpvo'
+      pk: 'CodeCombinationCodeCombinationId'
+      load_time_column: 'CodeCombinationLastUpdateDate'
+      use_case: 'finance, procurement'
+  - name: fscmtopmodelam_partiesanalyticsam_partysite
+    dataset_parameters:
+      table_name: 'fscmtopmodelam_partiesanalyticsam_partysite'
+      pk: 'PartySiteId'
+      load_time_column: 'LastUpdateDate'

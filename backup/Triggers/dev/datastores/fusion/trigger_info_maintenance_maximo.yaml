@@ -1,0 +1,34 @@
+pipeline_name: pl_odbc_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [02]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'fusion'
+  connection_string: 'DSN=ATP'
+  user_name: 'xxbip'
+  secret_name: 'onprem-atp-oracle-svc-prd-password'
+  schema_name: 'xxapps'
+  use_case: 'maintenance_maximo'
+  # skip_orchestration: true
+
+datasets:
+  - name: xxflpm_bi_position_master_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_position_master_all'
+  - name: xxflpm_bi_emp_mast_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_emp_mast_all'
+  - name: xxflpm_bi_dept_master_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_dept_master_all'
+  - name: xxflpm_bi_coa_dept_master_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_coa_dept_master_all'
+  - name: xxflpm_bi_emp_service_dtls_all
+    dataset_parameters:
+      table_name: 'xxflpm_bi_emp_service_dtls_all'

@@ -1,0 +1,27 @@
+name: Ingestion Data Factory - UAT
+
+resources:
+  repositories:
+    - repository: templateRepo
+      type: git
+      name: MX-DATA-DEVOPS-TEMPLATES
+      ref: refs/heads/f-testrunner
+
+trigger:
+  branches:
+    include:
+    - UA  # UAT pipeline trigger 
+stages:
+- template: build_adf.yml@templateRepo
+  parameters:
+    name: 'Build'
+    service_connection: 'sp-mx-data-terraform-uat-01'
+    environment: 'uat'
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - template: release_adf.yml@templateRepo
+    parameters:
+      name: UAT
+      service_connection: 'sp-mx-data-terraform-uat-01'
+      environment: 'uat'
+      depends_on: 'Build'

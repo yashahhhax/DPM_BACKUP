@@ -1,0 +1,20 @@
+SELECT
+    id,
+    activity_type,
+    checkin,
+    zone,
+    time_start,
+    time_end,
+    catalog_id,
+    voucher_id,
+    voucher_code,
+    invoice_id,
+    order_id,
+    backlog_id,
+    product_code,
+    product_title,
+    customer_id,
+    date_create,
+    price_inc_tax,
+    price_exc_tax
+from activity_bookings ab

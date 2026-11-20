@@ -1,0 +1,318 @@
+pipeline_name: pl_oracle_fusion_bip_incremental
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [04]
+  minutes: [30]
+
+activated: true
+
+datastore_parameters:
+  datastore_name: 'fusion_bip_hr'
+  user_name: 'biacm.admin'
+  secret_name: 'cloud-fusion-bip-svc-prd-password'
+  base_url: 'https://enpk.fa.em8.oraclecloud.com:443/xmlpserver/services/v2/ReportService'
+  source_path: '/Custom/Data_Team/Fusion_AZ_Extract_HCM_DE/'
+  workflow_name: 'wf_ingest_fusion_bip_fusion'
+  load_time_column_type: timestamp
+  use_case: 'hr'
+  # full_load: true
+  # skip_orchestration: true
+
+datasets:
+  - name: per_users
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PER_USERS'
+  - name: hrm_plan_incumbents
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRM_PLAN_INCUMBENTS'
+  - name: job_criticality
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'JOB_CRITICALITY'
+  - name: fun_all_business_units_v
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'FUN_ALL_BUSINESS_UNITS_V'
+      from_date: '2022-01-01'
+  - name: per_periods_of_service
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PER_PERIODS_OF_SERVICE'
+      from_date: '2022-01-01'
+  - name: per_people_legislative_f
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PER_PEOPLE_LEGISLATIVE_F'
+      from_date: '2022-01-01'
+  - name: per_citizenships
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PER_CITIZENSHIPS'
+      from_date: '2022-01-01'
+  - name: hr_lookups
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HR_LOOKUPS'
+      from_date: '2022-01-01'
+  - name: per_asg_responsibilities
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PER_ASG_RESPONSIBILITIES'
+      from_date: '2022-01-01'
+  - name: hrr_dashboards
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRR_DASHBOARDS'
+      from_date: '2022-01-01'
+  - name: hrr_meetings
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRR_MEETINGS'
+      from_date: '2022-01-01'
+  - name: hrt_rating_levels_vl
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRT_RATING_LEVELS_VL'
+      from_date: '2022-01-01'
+  - name: hrt_rating_models_vl
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRT_RATING_MODELS_VL'
+      from_date: '2022-01-01'
+  - name: hrq_qstn_responses
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRQ_QSTN_RESPONSES'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: hrq_qstnr_responses
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRQ_QSTNR_RESPONSES'
+      from_date: '2022-01-01'
+  - name: hrq_qstnr_participants
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRQ_QSTNR_PARTICIPANTS'
+      from_date: '2022-01-01'
+  - name: hrq_questionnaires_b
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRQ_QUESTIONNAIRES_B'
+      from_date: '2022-01-01'
+  - name: hrq_questionnaires_tl
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRQ_QUESTIONNAIRES_TL'
+      from_date: '2022-01-01'
+  - name: hrq_qstnr_questions
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRQ_QSTNR_QUESTIONS'
+      from_date: '2022-01-01'
+  - name: hrq_questions_tl
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRQ_QUESTIONS_TL'
+      from_date: '2022-01-01'
+  - name: hrt_notes
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRT_NOTES'
+      from_date: '2022-01-01'
+  - name: hrm_plan_candidates
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRM_PLAN_CANDIDATES'
+      from_date: '2022-01-01'
+  - name: hrm_plans
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRM_PLANS'
+      from_date: '2022-01-01'
+  - name: per_departments
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PER_DEPARTMENTS'
+  - name: fnd_lookup_values_tl
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'FND_LOOKUP_VALUES_TL'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: pay_run_result_values
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PAY_RUN_RESULT_VALUES'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: hr_all_organization_units
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HR_ALL_ORGANIZATION_UNITS'
+  - name: per_legal_employers
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PER_LEGAL_EMPLOYERS'
+  - name: hr_all_organization_units_f
+    dataset_parameters:
+      table_name: 'HR_ALL_ORGANIZATION_UNITS_F'
+      pk: 'ORGANIZATION_ID,EFFECTIVE_START_DATE'
+      load_time_column: 'LAST_UPDATE_DATE'
+      use_case: 'procurement'
+  - name: hr_all_positions
+    dataset_parameters:
+      table_name: 'HR_ALL_POSITIONS'
+      pk: 'POSITION_ID, EFFECTIVE_START_DATE'
+      load_time_column: 'last_update_date'
+  - name: hr_all_positions_f
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HR_ALL_POSITIONS_F'
+      # pk: 'POSITION_ID, EFFECTIVE_START_DATE'
+      # load_time_column: 'last_update_date'
+  - name: hr_all_positions_f_tl
+    dataset_parameters:
+      table_name: 'HR_ALL_POSITIONS_F_TL'
+      pk: 'POSITION_ID, LANGUAGE, EFFECTIVE_START_DATE'
+      load_time_column: 'last_update_date'
+  - name: hr_documents_of_record
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HR_DOCUMENTS_OF_RECORD'
+      # pk: 'DOCUMENTS_OF_RECORD_ID'
+      # load_time_column: 'last_update_date'
+  - name: hrc_txn_data
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRC_TXN_DATA'
+      # pk: 'TRANSACTION_DATA_ID'
+      # load_time_column: 'last_update_date'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: hrc_txn_header
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'HRC_TXN_HEADER'
+      # pk: 'TRANSACTION_ID'
+      # load_time_column: 'last_update_date'
+  - name: pay_defined_balances
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PAY_DEFINED_BALANCES'
+      # pk: 'DEFINED_BALANCE_ID'
+      # load_time_column: 'last_update_date'
+  - name: pay_element_entries_f
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PAY_ELEMENT_ENTRIES_F'
+      # pk: 'ELEMENT_ENTRY_ID, EFFECTIVE_START_DATE'
+      # load_time_column: 'last_update_date'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: pay_element_entry_values_f
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PAY_ELEMENT_ENTRY_VALUES_F'
+      # pk: 'ELEMENT_ENTRY_VALUE_ID, EFFECTIVE_START_DATE'
+      # load_time_column: 'last_update_date'
+      model_type: 'fl_model'
+      fl_model_batch_size: 50000
+  - name: pay_flow_instances
+    dataset_parameters:
+      table_name: 'PAY_FLOW_INSTANCES'
+      pk: 'FLOW_INSTANCE_ID'
+      load_time_column: 'last_update_date'
+  - name: pay_payroll_rel_actions
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PAY_PAYROLL_REL_ACTIONS'
+      # pk: 'PAYROLL_REL_ACTION_ID'
+      # load_time_column: 'payroll_rel_action_id'
+      # load_time_column_type: int
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: pay_requests
+    dataset_parameters:
+      table_name: 'PAY_REQUESTS'
+      pk: 'PAY_REQUEST_ID'
+      load_time_column: 'last_update_date'
+  - name: pay_run_balances
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PAY_RUN_BALANCES'
+      # pk: 'RUN_BALANCE_ID'
+      # load_time_column: 'effective_date'
+      model_type: 'fl_model'
+      fl_model_batch_size: 50000
+  - name: pay_run_results
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PAY_RUN_RESULTS'
+      # pk: 'RUN_RESULT_ID'
+      # load_time_column: 'run_result_id'
+      # load_time_column_type: int
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: per_all_assignments_m
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PER_ALL_ASSIGNMENTS_M'
+      # pk: 'ASSIGNMENT_ID, EFFECTIVE_START_DATE, EFFECTIVE_LATEST_CHANGE, EFFECTIVE_SEQUENCE'
+      # load_time_column: 'last_update_date'
+  - name: per_assignment_supervisors_f
+    dataset_parameters:
+      table_name: 'PER_ASSIGNMENT_SUPERVISORS_F'
+      pk: 'ASSIGNMENT_SUPERVISOR_ID, EFFECTIVE_START_DATE'
+      load_time_column: 'last_update_date'
+  - name: per_contact_relships_f
+    dataset_parameters:
+      table_name: 'PER_CONTACT_RELSHIPS_F'
+      pk: 'CONTACT_RELATIONSHIP_ID, EFFECTIVE_START_DATE'
+      load_time_column: 'last_update_date'
+  - name: per_email_addresses
+    dataset_parameters:
+      table_name: 'PER_EMAIL_ADDRESSES'
+      pk: 'EMAIL_ADDRESS_ID'
+      load_time_column: 'last_update_date'
+  - name: per_grades
+    dataset_parameters:
+      table_name: 'PER_GRADES'
+      pk: 'GRADE_ID, EFFECTIVE_START_DATE'
+      load_time_column: 'last_update_date'
+  - name: per_grades_f
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PER_GRADES_F'
+      # pk: 'LAST_UPDATE_DATE, LAST_UPDATED_BY, GRADE_ID, EFFECTIVE_START_DATE'
+      # load_time_column: 'last_update_date'
+  - name: per_grades_f_tl
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'PER_GRADES_F_TL'
+      # pk: 'LAST_UPDATE_DATE, LAST_UPDATED_BY, GRADE_ID, LANGUAGE, EFFECTIVE_START_DATE'
+      # load_time_column: 'last_update_date'
+  - name: per_jobs_f
+    dataset_parameters:
+      table_name: 'PER_JOBS_F'
+      pk: 'JOB_ID, EFFECTIVE_START_DATE'
+      load_time_column: 'last_update_date'
+  - name: per_jobs_f_tl
+    dataset_parameters:
+      table_name: 'PER_JOBS_F_TL'
+      pk: 'JOB_ID, LANGUAGE, EFFECTIVE_START_DATE'
+      load_time_column: 'last_update_date'
+  - name: per_people_groups
+    dataset_parameters:
+      table_name: 'PER_PEOPLE_GROUPS'
+      pk: 'PEOPLE_GROUP_ID'
+      load_time_column: 'last_update_date'
+  - name: hr_document_types_b
+    dataset_parameters:
+      table_name: 'HR_DOCUMENT_TYPES_B'
+      pk: 'DOCUMENT_TYPE_ID'
+      load_time_column: 'last_update_date'

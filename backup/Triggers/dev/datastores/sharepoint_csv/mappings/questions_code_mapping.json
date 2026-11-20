@@ -1,0 +1,45 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "QUESTIONTYPE"
+            },
+            "sink": {
+                "name": "questiontype"
+            }
+        },
+        {
+            "source": {
+                "name": "Main Question"
+            },
+            "sink": {
+                "name": "main_question"
+            }
+        },
+        {
+            "source": {
+                "name": "Sub Question"
+            },
+            "sink": {
+                "name": "sub_question"
+            }
+        },
+        {
+            "source": {
+                "name": "Code"
+            },
+            "sink": {
+                "name": "code"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time"
+            },
+            "sink": {
+                "name": "adf_load_time"
+            }
+        }
+    ]
+}

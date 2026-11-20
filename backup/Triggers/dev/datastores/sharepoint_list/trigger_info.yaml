@@ -1,0 +1,185 @@
+pipeline_name: pl_sharepoint_list_to_parquet
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [00]
+  minutes: [05]
+
+activated: true
+
+datastore_parameters:
+  datastore_name: 'sharepoint_list'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  cert_secret_name: 'cloud-sharepoint-svc-prd-certificate-txt-01'
+  pass_secret_name: 'cloud-sharepoint-svc-prd-certificate-password-01'
+  base_url: 'https://miralgroup.sharepoint.com/sites'
+  # skip_orchestration: true
+
+datasets:
+  - name: country_code_correction_list
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'Country_Code_Correction_List'
+      use_case: 'drr'
+  - name: coa_segment_mapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'COA_Segment_Mapping'
+      use_case: 'maintenance_maximo, drr, clymb_drr, ea_drr'
+  - name: companydimension
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'CompanyDimension'
+      use_case: 'maintenance_maximo, drr, clymb_drr, ea_drr'
+  - name: glgroupmapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'GLGroupMapping'
+      use_case: 'drr, clymb_drr, ea_drr'
+  - name: operatingareaexport
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'OPERATINGAREAEXPORT'
+      use_case: 'drr, clymb_drr'
+  - name: market_segments
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'MARKET_SEGMENTS'
+      use_case: 'drr, ea_drr'
+  - name: fwadrevenuecommission
+    dataset_parameters:
+      site: 'FARAHFLFIN/FWADFIN'
+      list_name: 'FWADRevenueCommission'
+      use_case: 'drr'
+  - name: ywwrevenuecommission
+    dataset_parameters:
+      site: 'FARAHFLFIN/YWWFIN'
+      list_name: 'YWWRevenueCommission'
+      use_case: 'drr'
+  - name: qexrevenuecommission
+    dataset_parameters:
+      site: 'FARAHQEX/FIN'
+      list_name: 'QEXRevenueCommission'
+      use_case: 'drr'
+  - name: productmaster
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'ProductMaster'
+      use_case: 'drr, clymb_drr, ea_drr'
+  - name: manualadjustmentexclusionlist
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'ManualAdjustmentExclusionList'
+      use_case: 'drr'
+  - name: parkreopeningcapacityallocationframework
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'ParkReopeningCapacityAllocationFramework'
+      use_case: 'drr'
+  - name: omniproducttobucketformallocationmapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'OmniProductToBucketFormAllocationMapping'
+      use_case: 'drr'
+  - name: outletmapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'OutletMapping'
+      use_case: 'drr, clymb_drr, ea_drr'
+  - name: revenue_transaction_type
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'Revenue_Transaction_Type'
+      use_case: 'drr, clymb_drr, ea_drr'
+  - name: drr_source_systems
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'DRR_Source_Systems'
+      use_case: 'maintenance_maximo, drr, clymb_drr, ea_drr'
+  - name: swadthirdparty
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'SWADThirdParty'
+      use_case: 'drr'
+  - name: seasons
+    dataset_parameters:
+      site: 'FARAHFLMS'
+      list_name: 'Seasons'
+      use_case: 'drr, clymb_drr'
+  - name: tlprevenuecommission
+    dataset_parameters:
+      site: 'FARAHFLFIN/TLPFinance'
+      list_name: 'TLPRevenueCommission'
+      use_case: 'drr'
+  - name: wbwrevenuecommission
+    dataset_parameters:
+      site: 'FARAHWBW/WBWFIN'
+      list_name: 'WBWRevenueCommission'
+      use_case: 'drr'
+  - name: parkclosuredays
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'ParkClosureDays'
+      use_case: 'drr'
+  - name: partnersegment_promocode_map
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'PartnerSegment_PromoCode_Map'
+      use_case: 'drr'
+  - name: clymbthirdparty
+    dataset_parameters:
+      site: 'FARAHFLFIN/CLYMB'
+      list_name: 'CLYMBThirdParty'
+      use_case: 'drr'
+  - name: GLClassificationFusion
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'GLClassificationFusion'
+      use_case: 'oracle_gl'
+  - name: drr_country_mapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'drr_country_mapping'
+      use_case: 'drr, ea_drr'
+  - name: outletlist_ride_collation
+    dataset_parameters:
+      site: 'DataPlatformTeam-Internal'
+      list_name: 'Outletlist_Ride_Collation'
+      use_case: 'ridecollation'
+  - name: inv_ora_loc_mapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'inv_ora_loc_mapping'
+      use_case: 'inventory'
+  - name: inv_entity_openingdate
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'Inv_Entity_OpeningDate'
+      use_case: 'inventory'
+  - name: inv_guest_service_items
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'inv_guest_service_items'
+      use_case: 'inventory'
+  - name: inv_loc_mapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'Inv_Loc_Mapping'
+      use_case: 'inventory'
+  - name: inv_warehouse_capacity
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'Inv_Warehouse_Capacity'
+      use_case: 'inventory'
+  - name: hotelsmasterlist
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'HotelsMasterList'
+      use_case: 'travelbox'
+  - name: aazrevenuecommission
+    dataset_parameters:
+      site: 'FARAHFLFIN/AAZFinance'
+      list_name: 'AAZRevenueCommission'
+      use_case: 'drr'

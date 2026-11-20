@@ -1,0 +1,495 @@
+{
+	"name": "pl_dataverse_to_parquet_incremental",
+	"properties": {
+		"activities": [
+			{
+				"name": "LookupOldWaterMarkActivity",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat(\n    'SELECT * FROM watermarktable WHERE TableName = ''', \n    toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))\n, \n    ''' ORDER BY watermarkvalue DESC'\n)",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql_managed_identity",
+						"type": "DatasetReference",
+						"parameters": {
+							"server_name": {
+								"value": "@pipeline().globalParameters.sqldb_fqdn",
+								"type": "Expression"
+							},
+							"database_name": "watermarks",
+							"table_name": "watermarktable"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "sql_dataverse_to_parquet",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "If full_load or new incremental table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.03:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "CommonDataServiceForAppsSource",
+						"additionalColumns": [
+							{
+								"name": "adf_load_time",
+								"value": {
+									"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+									"type": "Expression"
+								}
+							}
+						],
+						"query": {
+							"value": "@replace(pipeline().parameters.query, pipeline().parameters.replace_string, variables('old_watermark'))",
+							"type": "Expression"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"value": "@json(replace(string(pipeline().parameters.column_mapping), '\\n', '\\r\\n'))",
+						"type": "Expression"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_dataverse",
+						"type": "DatasetReference",
+						"parameters": {
+							"table_name": {
+								"value": "@toLower(pipeline().parameters.table_name)",
+								"type": "Expression"
+							},
+							"key_vault_uri": {
+								"value": "@pipeline().globalParameters.key_vault_uri",
+								"type": "Expression"
+							},
+							"service_principal_id": {
+								"value": "@pipeline().parameters.service_principal_id",
+								"type": "Expression"
+							},
+							"secret_name": {
+								"value": "@pipeline().parameters.secret_name",
+								"type": "Expression"
+							},
+							"server_name": {
+								"value": "@pipeline().parameters.server_name",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_adls_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"storage_account_uri": {
+								"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+								"type": "Expression"
+							},
+							"container_name": {
+								"value": "@pipeline().globalParameters.storage_container_datalake",
+								"type": "Expression"
+							},
+							"datastore": {
+								"value": "@toLower(pipeline().parameters.datastore_name)\n",
+								"type": "Expression"
+							},
+							"dataset": {
+								"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)\n",
+								"type": "Expression"
+							},
+							"tablename": {
+								"value": "@formatDateTime(utcnow(), 'yyyy_MM_dd_HH_mm')\n",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "If full_load or new incremental table",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "LookupOldWaterMarkActivity",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(pipeline().parameters.full_load, equals(activity('LookupOldWaterMarkActivity').output.count, 0))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Set old_watermark",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "old_watermark",
+								"value": {
+									"value": "@if(greater(pipeline().parameters.load_days, -1), convertTimeZone(addDays(pipeline().TriggerTime, mul(pipeline().parameters.load_days, -1)), 'UTC', 'Arabian Standard Time'), activity('LookupOldWaterMarkActivity').output.value[0].WatermarkValue)",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "fullload_delete_old_files",
+							"description": "In the case if a full load we're going to delete all the old table files in the storage account folder. ",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_adls_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": "@pipeline().globalParameters.storage_account_datalake_uri",
+										"container_name": "@pipeline().globalParameters.storage_container_datalake",
+										"datastore": {
+											"value": "@pipeline().parameters.datastore_name",
+											"type": "Expression"
+										},
+										"dataset": {
+											"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+											"type": "Expression"
+										},
+										"tablename": " "
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "Set old_watermark_full_load",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "old_watermark",
+								"value": "2000-01-01"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "sql_dataverse_to_parquet",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"is_incremental": true,
+						"pk": {
+							"value": "@pipeline().parameters.pk",
+							"type": "Expression"
+						},
+						"timestamp_col": {
+							"value": "@pipeline().parameters.load_time_column",
+							"type": "Expression"
+						},
+						"is_fullload": {
+							"value": "@string(or(pipeline().parameters.full_load, equals(activity('LookupOldWaterMarkActivity').output.count, 0)))",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "update_watermark",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "exec_pl_trigger_sql_query",
+				"description": "Get new_watermark",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_sql_query",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"workspace_url": {
+							"value": "@pipeline().globalParameters.databricks_transformation_workspace_url",
+							"type": "Expression"
+						},
+						"sql_serverless_id": {
+							"value": "@pipeline().globalParameters.databricks_transformation_sql_serverless_id",
+							"type": "Expression"
+						},
+						"sql_statement": {
+							"value": "@concat(\n\t'select max(', pipeline().parameters.load_time_column, ') as max_date from transformation_',\n\tpipeline().globalParameters.environment,\n\t'.brz_',\n\ttoLower(replace(pipeline().parameters.datastore_name, '-', '_')),\n\t'.vw_',\n\ttoLower(replace(pipeline().parameters.schema_name, '-', '_')), '_',\n\ttoLower(replace(pipeline().parameters.table_name, '-', '_'))\n)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "update_watermark",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "exec_pl_trigger_sql_query",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_managed_identity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"server_name": "@pipeline().globalParameters.sqldb_fqdn",
+						"database_name": "watermarks"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": {
+								"value": "UPDATE watermarktable SET [WatermarkValue] = '@{activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output}' WHERE [TableName] = '@{toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))}';\n\nIF @@ROWCOUNT = 0\n\nINSERT INTO watermarktable ([WatermarkValue], [TableName])\nVALUES (\n'@{activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output}',\n'@{toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))}'\n);",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "00:10:00"
+				}
+			}
+		],
+		"concurrency": 20,
+		"parameters": {
+			"server_name": {
+				"type": "String",
+				"defaultValue": "https://yascrm.crm4.dynamics.com/"
+			},
+			"service_principal_id": {
+				"type": "String",
+				"defaultValue": "fe2bd515-1f89-4b93-87eb-bd5f2832ea3c"
+			},
+			"secret_name": {
+				"type": "String",
+				"defaultValue": "cloud-crm-api-prd-apikey"
+			},
+			"datastore_name": {
+				"type": "String",
+				"defaultValue": "crm"
+			},
+			"schema_name": {
+				"type": "String",
+				"defaultValue": "crm"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "contact"
+			},
+			"pk": {
+				"type": "string",
+				"defaultValue": "contactid"
+			},
+			"load_time_column": {
+				"type": "String",
+				"defaultValue": "modifiedon"
+			},
+			"query": {
+				"type": "string"
+			},
+			"replace_string": {
+				"type": "string"
+			},
+			"load_days": {
+				"type": "int",
+				"defaultValue": -1
+			},
+			"full_load": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"use_case": {
+				"type": "string"
+			},
+			"column_mapping": {
+				"type": "object"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"old_watermark": {
+				"type": "String"
+			}
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

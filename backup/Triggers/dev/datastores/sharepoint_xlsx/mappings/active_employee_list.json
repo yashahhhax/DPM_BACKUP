@@ -1,0 +1,265 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "#",
+                "type": "String"
+            },
+            "sink": {
+                "name": "num",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Person ID",
+                "type": "String"
+            },
+            "sink": {
+                "name": "person_id",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Communicated Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "communicated_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Genesys Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "genesys_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Kronos Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "kronos_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Username",
+                "type": "String"
+            },
+            "sink": {
+                "name": "username",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "TEAM",
+                "type": "String"
+            },
+            "sink": {
+                "name": "team",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Assistant Manager",
+                "type": "String"
+            },
+            "sink": {
+                "name": "assistant_manager",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Religion",
+                "type": "String"
+            },
+            "sink": {
+                "name": "religion",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Last working date",
+                "type": "String"
+            },
+            "sink": {
+                "name": "last_working_date",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Start",
+                "type": "String"
+            },
+            "sink": {
+                "name": "start",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Nationality",
+                "type": "String"
+            },
+            "sink": {
+                "name": "nationality",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Sprinklr Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "sprinklr_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Oacle Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "oacle_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Asset Managed",
+                "type": "String"
+            },
+            "sink": {
+                "name": "asset_managed",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Role",
+                "type": "String"
+            },
+            "sink": {
+                "name": "role",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Status",
+                "type": "String"
+            },
+            "sink": {
+                "name": "status",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Language",
+                "type": "String"
+            },
+            "sink": {
+                "name": "language",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Current Role Start Date",
+                "type": "String"
+            },
+            "sink": {
+                "name": "current_role_start_date",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Probation End Date",
+                "type": "String"
+            },
+            "sink": {
+                "name": "probation_end_date",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Probation",
+                "type": "String"
+            },
+            "sink": {
+                "name": "probation",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "# of Month",
+                "type": "String"
+            },
+            "sink": {
+                "name": "num_of_month",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Fixed KPIS until",
+                "type": "String"
+            },
+            "sink": {
+                "name": "fixed_kpis_until",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Start Month of KPIS",
+                "type": "String"
+            },
+            "sink": {
+                "name": "start_month_of_kpis",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "source_file_name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_file_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

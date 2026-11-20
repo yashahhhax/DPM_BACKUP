@@ -1,0 +1,55 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "Assistant Manager // Agent",
+                "type": "String"
+            },
+            "sink": {
+                "name": "assistant_manager_agent",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "QUALITY",
+                "type": "String"
+            },
+            "sink": {
+                "name": "quality",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "COMMENTS",
+                "type": "String"
+            },
+            "sink": {
+                "name": "comments",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "source_file_name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_file_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

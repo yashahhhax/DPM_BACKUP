@@ -1,0 +1,92 @@
+pipeline_name: pl_mariadb_to_parquet_fullload
+
+schedule:
+    frequency: Day
+    interval: 1
+    hours: [10]
+    minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'clymb'
+  server_name: 'clymb622.datawarehouse.tunn3l.net'
+  database_name: 'dwh_clymb'
+  user_name: 'clymb'
+  secret_name: 'cloud-clymb-mariadb-svc-prd-password'
+  use_case: 'clymb_drr'
+  # skip_orchestration: true
+
+datasets:
+  - name: addons
+    dataset_parameters:
+      table_name: 'addons'
+  - name: activity_catalog
+    dataset_parameters:
+      table_name: 'activity_catalog'
+  - name: activity_partner_vouchers_pass
+    dataset_parameters:
+      table_name: 'activity_partner_vouchers_pass'
+  - name: activity_timeslots
+    dataset_parameters:
+      table_name: 'activity_timeslots'
+  - name: catalog
+    dataset_parameters:
+      table_name: 'catalog'
+  - name: combo_packages
+    dataset_parameters:
+      table_name: 'combo_packages'
+  - name: customers
+    dataset_parameters:
+      table_name: 'customers'
+  - name: other_products
+    dataset_parameters:
+      table_name: 'other_products'
+  - name: partner_vouchers
+    dataset_parameters:
+      table_name: 'partner_vouchers'
+  - name: partners
+    dataset_parameters:
+      table_name: 'partners'
+  - name: proflyer_pack_catalog
+    dataset_parameters:
+      table_name: 'proflyer_pack_catalog'
+  - name: timeslots
+    dataset_parameters:
+      table_name: 'timeslots'
+  - name: users
+    dataset_parameters:
+      table_name: 'users'
+  - name: discount
+    dataset_parameters:
+      table_name: 'discount'
+  - name: invoices
+    dataset_parameters:
+      table_name: 'invoices'
+  - name: invoices_items
+    dataset_parameters:
+      table_name: 'invoices_items'
+  - name: orders
+    dataset_parameters:
+      table_name: 'orders'
+  - name: orders_items
+    dataset_parameters:
+      table_name: 'orders_items'
+  - name: payments
+    dataset_parameters:
+      table_name: 'payments'
+  - name: activity_bookings
+    dataset_parameters:
+      table_name: 'activity_bookings'
+  - name: activity_vouchers
+    dataset_parameters:
+      table_name: 'activity_vouchers'
+  - name: bookings
+    dataset_parameters:
+      table_name: 'bookings'
+  - name: proflyer_packs
+    dataset_parameters:
+      table_name: 'proflyer_packs'
+  - name: vouchers
+    dataset_parameters:
+      table_name: 'vouchers'

@@ -1,0 +1,45 @@
+resources:
+  jobs:
+    sync_ingestion:
+      name: sync_ingestion
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN      
+      schedule:
+        quartz_cron_expression: 0 0 7 * * ?
+        timezone_id: Asia/Dubai
+        pause_status: ${var.pause_status_sync_ingestion}
+      tasks:
+        - task_key: sync_ingestion
+          notebook_task:
+            notebook_path: ../notebooks/ingestion/sync_ingestion.py
+            base_parameters:
+              environment: ${var.environment}
+            source: WORKSPACE
+          min_retry_interval_millis: 0
+          disable_auto_optimization: true
+        - task_key: send_failure_notification
+          depends_on:
+            - task_key: sync_ingestion
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_job_alerts.py
+            base_parameters:
+              job_run_id: "{{job.run_id}}"
+              alert_type: failure
+            source: WORKSPACE
+      tags:
+        use_case: ingestion
+      webhook_notifications:
+        on_failure:
+          - id: ${var.ingest_teams_webhook}
+      notification_settings:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: usecase
+          default: shared_ingest

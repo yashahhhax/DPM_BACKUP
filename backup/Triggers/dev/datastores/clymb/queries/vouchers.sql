@@ -1,0 +1,26 @@
+SELECT
+    id,
+    catalog_id,
+    product_code,
+    product_title,
+    customer_id_buy,
+    customer_id_use,
+    order_id,
+    order_item_id,
+    invoice_id,
+    invoice_item_id,
+    backlog_id,
+    backlog_item_id,
+    date_create,
+    date_valid,
+    code,
+    booking_date,
+    revoked,
+    gift,
+    minutes,
+    price_inc_tax,
+    price_exc_tax,
+    price_category,
+    last_update
+from
+    vouchers v

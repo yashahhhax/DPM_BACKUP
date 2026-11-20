@@ -1,0 +1,139 @@
+{
+	"name": "pl_ga_summary_to_raw_copy",
+	"properties": {
+		"activities": [
+			{
+				"name": "for_each_page",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@range(0,int(pipeline().parameters.total_pages))",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "ga4_api_to_json",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:05:00",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "POST",
+									"requestBody": {
+										"value": "{\n    \"dateRanges\": [\n        {\"startDate\": \"@{pipeline().parameters.start_date}\", \n        \"endDate\": \"@{pipeline().parameters.end_date}\"}\n    ],\n    \"metrics\": [\n        {\"name\": \"totalUsers\"},\n        {\"name\": \"newUsers\"},\n        {\"name\": \"sessions\"},\n        {\"name\": \"bounceRate\"},\n        {\"name\": \"screenPageViews\"},\n        {\"name\": \"userEngagementDuration\"},\n        {\"name\": \"transactions\"}\n    ],\n    \"dimensions\": [\n        {\"name\": \"country\"},\n        {\"name\": \"city\"},\n        {\"name\": \"sessionCampaignName\"},\n        {\"name\": \"browser\"},\n        {\"name\": \"sessionDefaultChannelGrouping\"},\n        {\"name\": \"language\"},\n        {\"name\": \"sessionMedium\"},\n        {\"name\": \"sessionSource\"},\n        {\"name\": \"deviceCategory\"}\n    ],\n    \"limit\": @{int(pipeline().parameters.page_size)},\n    \"offset\": @{mul(item(),int(pipeline().parameters.page_size))}\n}",
+										"type": "Expression"
+									},
+									"additionalHeaders": {
+										"Authorization": {
+											"value": "@concat('Bearer ',pipeline().parameters.jwt_token)",
+											"type": "Expression"
+										},
+										"Content-Type": "application/json"
+									},
+									"paginationRules": {
+										"supportRFC5988": "true"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_rest_api",
+									"type": "DatasetReference",
+									"parameters": {
+										"base_url": {
+											"value": "@pipeline().parameters.base_url",
+											"type": "Expression"
+										},
+										"relative_url": {
+											"value": "@concat(pipeline().parameters.schema_name,':runReport')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_adls_json",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": "@pipeline().globalParameters.storage_account_datalake_uri",
+										"container_name": "@pipeline().globalParameters.storage_container_datalake",
+										"directory": {
+											"value": "@toLower(concat('raw_', pipeline().parameters.datastore_name,'/',pipeline().parameters.schema_name,'_',pipeline().parameters.table_name,'/',pipeline().parameters.adf_load_time))",
+											"type": "Expression"
+										},
+										"file_name": {
+											"value": "@toLower(concat(pipeline().parameters.table_name,'_', item(), '_', pipeline().parameters.start_date,'.json'))",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://analyticsdata.googleapis.com/v1beta/properties/"
+			},
+			"jwt_token": {
+				"type": "string"
+			},
+			"total_pages": {
+				"type": "string"
+			},
+			"start_date": {
+				"type": "string"
+			},
+			"end_date": {
+				"type": "string"
+			},
+			"page_size": {
+				"type": "string",
+				"defaultValue": "1000"
+			},
+			"datastore_name": {
+				"type": "string"
+			},
+			"schema_name": {
+				"type": "string"
+			},
+			"table_name": {
+				"type": "string"
+			},
+			"adf_load_time": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "GoogleAnalytics"
+		},
+		"annotations": []
+	}
+}

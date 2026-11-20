@@ -1,0 +1,111 @@
+pipeline_name: pl_sql_server_to_parquet_cdc
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [00]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'omni'
+  server_name: 'cdc-mx-data.privatelink.database.windows.net,1433'
+  user_name: 'SVCBISharePoint'
+  secret_name: 'onprem-sqlserver-sql-svc-prd-password'
+  database_name: 'BOS_FPK'
+  schema_name: 'dbo'
+  use_case: 'drr'
+  checkpoint_version: '14'
+  # skip_orchestration: true
+
+datasets:
+  - name: data_account_cdc
+    dataset_parameters:
+      table_name: 'data_account'
+      pk: AccountId
+      use_case: 'drr, facepassreporting'
+  - name: data_dmgdata_cdc
+    dataset_parameters:
+      table_name: 'data_dmgdata'
+      pk: DmgDataId
+      use_case: 'drr, facepassreporting'
+  - name: data_media_cdc
+    dataset_parameters:
+      table_name: 'data_media'
+      pk: MediaId
+      use_case: 'drr, facepassreporting'
+  - name: data_mediaidentifier_cdc
+    dataset_parameters:
+      table_name: 'data_mediaidentifier'
+      pk: MediaIdentifierId
+      use_case: 'drr, facepassreporting'
+  - name: data_ticket2media_cdc
+    dataset_parameters:
+      table_name: 'data_ticket2media'
+      pk: Ticket2MediaId
+      use_case: 'drr, facepassreporting'
+  - name: cnf_envelopecapacity_cdc
+    dataset_parameters:
+      table_name: 'cnf_envelopecapacity'
+      pk: EnvelopeCapacityId
+  - name: data_payment_cdc
+    dataset_parameters:
+      table_name: 'data_payment'
+      pk: PaymentId
+  - name: data_paymentcard_cdc
+    dataset_parameters:
+      table_name: 'data_paymentcard'
+      pk: PaymentId
+  - name: data_paymentcredit_cdc
+    dataset_parameters:
+      table_name: 'data_paymentcredit'
+      pk: PaymentId,SettleTransactionId
+  - name: data_reservation_cdc
+    dataset_parameters:
+      table_name: 'data_reservation'
+      pk: SaleId
+  - name: data_sale_cdc
+    dataset_parameters:
+      table_name: 'data_sale'
+      pk: SaleId
+  - name: data_saleitem_cdc
+    dataset_parameters:
+      table_name: 'data_saleitem'
+      pk: SaleItemId
+  - name: data_saleitem2costcenter_cdc
+    dataset_parameters:
+      table_name: 'data_saleitem2costcenter'
+      pk: SaleItem2CostCenterId
+  - name: data_saleitem2performance_cdc
+    dataset_parameters:
+      table_name: 'data_saleitem2performance'
+      pk: SaleItem2PerformanceId
+  - name: data_saleitem2ticket_cdc
+    dataset_parameters:
+      table_name: 'data_saleitem2ticket'
+      pk: SaleItem2TicketId
+  - name: data_saleitemrule_cdc
+    dataset_parameters:
+      table_name: 'data_saleitemrule'
+      pk: SaleItemRuleId
+  - name: data_ticketusage_cdc
+    dataset_parameters:
+      table_name: 'data_ticketusage'
+      pk: UsageId
+  - name: data_transaction_cdc
+    dataset_parameters:
+      table_name: 'data_transaction'
+      pk: TransactionId
+  - name: data_transaction2media_cdc
+    dataset_parameters:
+      table_name: 'data_transaction2media'
+      pk: Transaction2MediaId
+  - name: data_transaction2ticket_cdc
+    dataset_parameters:
+      table_name: 'data_transaction2ticket'
+      pk: Transaction2TicketId
+  - name: data_transactionitem_cdc
+    dataset_parameters:
+      table_name: 'data_transactionitem'
+      pk: ItemId

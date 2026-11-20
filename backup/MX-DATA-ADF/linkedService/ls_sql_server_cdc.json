@@ -1,0 +1,53 @@
+{
+	"name": "ls_sql_server_cdc",
+	"properties": {
+		"parameters": {
+			"server_name": {
+				"type": "String",
+				"defaultValue": "cdc-mx-data.privatelink.database.windows.net,1433"
+			},
+			"database_name": {
+				"type": "String",
+				"defaultValue": "BOS_FPK"
+			},
+			"user_name": {
+				"type": "String",
+				"defaultValue": "SVCBISharePoint"
+			},
+			"secret_name": {
+				"type": "String",
+				"defaultValue": "onprem-sqlserver-sql-svc-prd-password"
+			},
+			"key_vault_uri": {
+				"type": "String",
+				"defaultValue": "https://kv-mx-data-adf-inges-dev.vault.azure.net/"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Data Source=@{linkedService().server_name};Initial Catalog=@{linkedService().database_name};User ID=@{linkedService().user_name};trustServerCertificate=true",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": {
+					"value": "@linkedService().secret_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "cdc-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

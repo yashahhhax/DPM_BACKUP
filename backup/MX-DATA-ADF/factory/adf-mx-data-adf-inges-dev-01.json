@@ -1,0 +1,101 @@
+{
+	"name": "adf-mx-data-adf-inges-dev-01",
+	"properties": {
+		"globalParameters": {
+			"databricks_ingestion_sql_serverless_id": {
+				"type": "String",
+				"value": "5bb0f4a530d1109c"
+			},
+			"databricks_ingestion_workspace_url": {
+				"type": "String",
+				"value": "https://adb-2766497291955675.15.azuredatabricks.net"
+			},
+			"databricks_transformation_sql_serverless_id": {
+				"type": "String",
+				"value": "0e2d6d8d848d06f6"
+			},
+			"databricks_transformation_workspace_url": {
+				"type": "String",
+				"value": "https://adb-485279261696768.8.azuredatabricks.net"
+			},
+			"environment": {
+				"type": "String",
+				"value": "dev"
+			},
+			"key_vault_uri": {
+				"type": "String",
+				"value": "https://kv-mx-data-adf-inges-dev.vault.azure.net/"
+			},
+			"sqldb_database_name": {
+				"type": "String",
+				"value": "watermarks"
+			},
+			"sqldb_fqdn": {
+				"type": "String",
+				"value": "sql-mx-data-adf-inges-dev-01.database.windows.net"
+			},
+			"storage_account_backup_uri": {
+				"type": "String",
+				"value": "https://stmxdatabackupdev01.dfs.core.windows.net/"
+			},
+			"storage_account_data_factory_uri": {
+				"type": "String",
+				"value": "https://stmxdataadfingesdev01.blob.core.windows.net/"
+			},
+			"storage_account_datalake_uri": {
+				"type": "String",
+				"value": "https://stmxdatadatalakedev01.dfs.core.windows.net/"
+			},
+			"storage_container_data_factory": {
+				"type": "String",
+				"value": "internal"
+			},
+			"storage_container_datalake": {
+				"type": "String",
+				"value": "ingestion"
+			},
+			"subscription": {
+				"type": "string",
+				"value": "312989a6-ad5b-42b5-b553-4bb71ea31df6"
+			},
+			"default_webhook_url": {
+				"type": "string",
+				"value": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f7e6cb0b5f4f42f2a44b979e40bbf9b1/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-SRjIzaSJD25I1Up99KilTlyZ8eRMB4cUaEpdW24qbc"
+			},
+			"databricks_ingest_incremental_job_id": {
+				"type": "string",
+				"value": "1089301520151585"
+			},
+			"databricks_sync_ingestion_job_id": {
+				"type": "string",
+				"value": "240117391127016"
+			},
+			"databricks_sync_transformation_job_id": {
+				"type": "string",
+				"value": "1043208723587927"
+			},
+			"databricks_table_specific_backup_job_id": {
+				"type": "string",
+				"value": "735506176318158"
+			},
+			"databricks_workflow_orchestration_job_id": {
+				"type": "string",
+				"value": "284203154482420"
+			},
+			"databricks_wf_ingest_fusion_bip_fusion_job_id": {
+				"type": "string",
+				"value": "717956607476350"
+			},
+			"databricks_wf_ingest_fusion_bip_inventory_job_id": {
+				"type": "string",
+				"value": "656239600761281"
+			}
+		}
+	},
+	"location": "uaenorth",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "f17482db-435c-4291-b268-9c56a150a985",
+		"tenantId": "0b0b76ba-8e32-4c41-8130-65ed5ca4353c"
+	}
+}

@@ -1,0 +1,165 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "ID_Order",
+                "type": "String"
+            },
+            "sink": {
+                "name": "id_order",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Group_Category",
+                "type": "String"
+            },
+            "sink": {
+                "name": "group_category",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Product_Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "product_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Discount_Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "discount_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Line_Price",
+                "type": "String"
+            },
+            "sink": {
+                "name": "line_price",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Nb_Of_Products",
+                "type": "String"
+            },
+            "sink": {
+                "name": "nb_of_products",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "No_of_Ticket",
+                "type": "String"
+            },
+            "sink": {
+                "name": "no_of_ticket",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "unit_price",
+                "type": "String"
+            },
+            "sink": {
+                "name": "unit_price",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Product_Date",
+                "type": "String"
+            },
+            "sink": {
+                "name": "product_date",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Timing",
+                "type": "String"
+            },
+            "sink": {
+                "name": "timing",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Sales_Channel",
+                "type": "String"
+            },
+            "sink": {
+                "name": "sales_channel",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Employee",
+                "type": "String"
+            },
+            "sink": {
+                "name": "employee",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "FinancialDate",
+                "type": "String"
+            },
+            "sink": {
+                "name": "financial_date",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "PaymentMethod",
+                "type": "String"
+            },
+            "sink": {
+                "name": "payment_method",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "source_file_name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_file_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

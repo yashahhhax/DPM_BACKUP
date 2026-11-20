@@ -1,0 +1,218 @@
+bundle:
+  name: shared_transformation
+
+workspace:
+  root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+
+# the current_user requires Service Principal User on the run_as_sp
+# see https://learn.microsoft.com/en-us/azure/databricks/security/auth/access-control/service-principal-acl#grant-roles-on-a-service-principal
+
+permissions:
+  - group_name: ${var.can_view_group}
+    level: CAN_VIEW
+  - group_name: ${var.can_manage_group}
+    level: CAN_MANAGE    
+  - service_principal_name: ${workspace.current_user.userName}
+    level: CAN_MANAGE
+
+include:
+  - workflows/*.yml
+
+variables:
+  environment:
+    description: Environment
+    default: dev
+  on_failure_email:
+    description: email_id for failure alerts
+    default: c73cc8ca.farahleisure.com@ae.teams.ms
+  trans_teams_webhook:
+    description: webhook for failure alerts
+    default: 6d547456-5776-4c3f-b008-8d7254409e6c
+
+  can_view_group:
+    description: Group which can view the job
+    default: dp_workflow_nonprd
+
+  can_manage_run_group:
+    description: Group which can run the job
+    default: dp_workflow_manage_run_nonprd
+
+  can_manage_group:
+    description: Group which can run the job
+    default: dp_workflow_manage_nonprd
+
+  databricks_cluster_id:
+    description: Databricks cluster id used to run jobs
+    type: string
+
+  databricks_cluster_id_prd:
+    description: Databricks cluster id used to run jobs in production
+    type: string
+    default: '1211-082508-kla4p419'
+
+  backup_location:
+    description: ABFSS location for backups
+    default: abfss://daily@stmxdatabackupdev01.dfs.core.windows.net
+
+  backup_monthly_location:
+    description: ABFSS location for backups
+    default: abfss://monthly@stmxdatabackupdev01.dfs.core.windows.net
+
+  databricks_secret_scope:
+    description: Databricks secret scope for sending executive summary email
+    default: kv-mx-data-adf-inges-dev
+    
+  powerbi_refresh_azure_key_vault:
+    description: Azure key vault name used for Power BI refresh
+    default: kv-mx-data-adf-inges-dev
+  
+  powerbi_refresh_client_id:
+    description: Client id used for Power BI refresh
+    default: f17474d3-0383-4eae-a8f0-ec459ae8009e
+        
+  powerbi_refresh_secret_name:
+    description: Secret name used for Power BI refresh
+    default: sp-mx-data-power-bi-service-principal-client-secret
+        
+  powerbi_refresh_tenant_name:
+    description: Tenant Id that Power BI refresh datasets are created
+    default: 0b0b76ba-8e32-4c41-8130-65ed5ca4353c
+        
+  powerbi_refresh_modules:
+    description: To filter which module datasets in a use case to refresh in powerbi
+    default: ""
+
+  subscription:
+    description: Azure subscription id
+    default: 312989A6-AD5B-42B5-B553-4BB71EA31DF6
+      
+  service_principal_name:
+    description: Service principal name used to run the job
+    default: 0b2873d0-ff7e-4521-9afb-159983ed213e
+  pause_status_sync_ingestion:
+    description: paused or unpaused of sync_ingestion workflow
+    default: PAUSED
+  pause_status_wf_send_executive_summary:
+    description: paused or unpaused of wf_send_executive_summary
+    default: PAUSED
+  backup_activated:
+    description: If the backup workflow should be paused or not (PAUSED/UNPAUSED)
+    default: PAUSED
+  schema_prefix_for_backup_tables:
+    description: schema prefix to take the backup
+    default: "brz_"
+  exclude_schemas_for_backup_tables:
+    description: schemas to exlude to ignore the backup
+    default: "brz_fusion_bicc_proc,brz_fusion_bicc_hr,brz_fusion_bicc_fin"
+  exclude_tables_for_backup_tables:
+    description: tables to ignore for taking backup
+    default: ""
+  adhoc_backup_date:
+    description: Business Date for bip backup 
+    default: 2026-06-27
+
+targets:
+  dev:
+    mode: production
+    default: true
+    workspace:
+      host: https://adb-485279261696768.8.azuredatabricks.net/
+    variables:
+      environment: ${bundle.target}
+      databricks_secret_scope: kv-mx-data-adf-inges-dev
+      backup_location: abfss://daily@stmxdatabackupdev01.dfs.core.windows.net
+      backup_monthly_location: abfss://monthly@stmxdatabackupdev01.dfs.core.windows.net
+      subscription: 312989A6-AD5B-42B5-B553-4BB71EA31DF6
+      databricks_cluster_id:
+        lookup:
+          cluster: job_cluster_01
+      service_principal_name: 0b2873d0-ff7e-4521-9afb-159983ed213e
+      on_failure_email: c73cc8ca.farahleisure.com@ae.teams.ms
+      trans_teams_webhook: 6d547456-5776-4c3f-b008-8d7254409e6c
+      pause_status_sync_ingestion: PAUSED
+      pause_status_wf_send_executive_summary: PAUSED
+      backup_activated: PAUSED
+      schema_prefix_for_backup_tables: "brz_fusion_bip_"
+      exclude_schemas_for_backup_tables: "brz_fusion_bicc_proc,brz_fusion_bicc_hr,brz_fusion_bicc_fin,brz_fusion_bip_proc_bkup,brz_fusion_bip_hr_bkup,brz_fusion_bip_fin_bkup,brz_fusion_bip_inv,brz_fusion_bip"
+      adhoc_backup_date: 2026-07-01
+    run_as:
+      service_principal_name: 0b2873d0-ff7e-4521-9afb-159983ed213e
+
+  uat:
+    mode: production
+    workspace:
+      host: https://adb-125701397626662.2.azuredatabricks.net/
+    variables:
+      environment: ${bundle.target}
+      databricks_secret_scope: kv-mx-data-adf-inges-uat
+      backup_location: abfss://daily@stmxdatabackupuat01.dfs.core.windows.net
+      backup_monthly_location: abfss://monthly@stmxdatabackupuat01.dfs.core.windows.net
+      subscription: 312989A6-AD5B-42B5-B553-4BB71EA31DF6
+      databricks_cluster_id:
+        lookup:
+          cluster: job_cluster_01
+      service_principal_name: b09074c2-d6b5-466f-b5a5-f0b931b04d0b
+      on_failure_email: c73cc8ca.farahleisure.com@ae.teams.ms
+      trans_teams_webhook: 965ade13-12f0-4e0f-9e2c-727377657bda
+      pause_status_sync_ingestion: PAUSED
+      pause_status_wf_send_executive_summary: PAUSED
+      backup_activated: PAUSED
+      schema_prefix_for_backup_tables: "brz_fusion_bip_"
+      exclude_schemas_for_backup_tables: "brz_fusion_bicc_proc,brz_fusion_bicc_hr,brz_fusion_bicc_fin,brz_fusion_bip_proc_bkup,brz_fusion_bip_hr_bkup,brz_fusion_bip_fin_bkup,brz_fusion_bip_inv,brz_fusion_bip"
+      adhoc_backup_date: 2026-07-01
+    run_as:
+      service_principal_name: b09074c2-d6b5-466f-b5a5-f0b931b04d0b
+
+  preprd:
+    mode: production
+    workspace:
+      host: https://adb-635866415826582.2.azuredatabricks.net/
+    variables:
+      environment: ${bundle.target}
+      databricks_secret_scope: kv-mx-data-adf-inges-preprd      
+      can_view_group: dp_workflow_prd
+      can_manage_run_group: dp_workflow_manage_run_prd
+      can_manage_group: dp_workflow_manage_prd          
+      backup_location: abfss://daily@stmxdatabackuppreprd01.dfs.core.windows.net
+      backup_monthly_location: abfss://monthly@stmxdatabackuppreprd01.dfs.core.windows.net
+      subscription: 480FBAA2-345F-4572-8D98-C355469CE691
+      databricks_cluster_id:
+        lookup:
+          cluster: job_cluster_01
+      service_principal_name: aeace192-2874-4f02-adac-c4ffca6ecaf9
+      on_failure_email: c73cc8ca.farahleisure.com@ae.teams.ms
+      trans_teams_webhook: 9cf6a35e-949f-4509-8653-d578ff617d7b
+      pause_status_sync_ingestion: PAUSED
+      pause_status_wf_send_executive_summary: PAUSED
+      backup_activated: PAUSED
+      schema_prefix_for_backup_tables: "brz_"
+      exclude_schemas_for_backup_tables: "brz_fusion_bicc_proc,brz_fusion_bicc_hr,brz_fusion_bicc_fin"
+      adhoc_backup_date: 2026-07-01
+    run_as:
+      service_principal_name: aeace192-2874-4f02-adac-c4ffca6ecaf9
+
+  prd:
+    mode: production
+    workspace:
+      host: https://adb-1645531006591813.13.azuredatabricks.net/
+    variables:
+      environment: ${bundle.target}
+      databricks_secret_scope: kv-mx-data-adf-inges-prd
+      can_view_group: dp_workflow_prd
+      can_manage_run_group: dp_workflow_manage_run_prd
+      can_manage_group: dp_workflow_manage_prd          
+      backup_location: abfss://daily@stmxdatabackupprd01.dfs.core.windows.net
+      backup_monthly_location: abfss://monthly@stmxdatabackupprd01.dfs.core.windows.net
+      subscription: 480FBAA2-345F-4572-8D98-C355469CE691
+      databricks_cluster_id: '1211-082508-kla4p419'
+      service_principal_name: 24211de7-3c5f-46d8-a5a0-97ecbc80eaa9
+      on_failure_email: ee8c5002.farahleisure.com@ae.teams.ms
+      trans_teams_webhook: 233ea39c-d73e-4471-8cf7-6c757dfef068
+      pause_status_sync_ingestion: UNPAUSED
+      pause_status_wf_send_executive_summary: UNPAUSED
+      backup_activated: PAUSED
+      schema_prefix_for_backup_tables: "brz_"
+      exclude_schemas_for_backup_tables: "brz_fusion_bicc_proc,brz_fusion_bicc_hr,brz_fusion_bicc_fin"
+      adhoc_backup_date: 2026-07-01
+    run_as:
+      service_principal_name: 24211de7-3c5f-46d8-a5a0-97ecbc80eaa9

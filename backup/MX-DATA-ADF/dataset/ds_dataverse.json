@@ -1,0 +1,53 @@
+{
+	"name": "ds_dataverse",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_dataverse",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"key_vault_uri": {
+					"value": "@dataset().key_vault_uri",
+					"type": "Expression"
+				},
+				"service_principal_id": {
+					"value": "@dataset().service_principal_id",
+					"type": "Expression"
+				},
+				"secret_name": {
+					"value": "@dataset().secret_name",
+					"type": "Expression"
+				},
+				"server_name": {
+					"value": "@dataset().server_name\n",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"table_name": {
+				"type": "String"
+			},
+			"key_vault_uri": {
+				"type": "String"
+			},
+			"service_principal_id": {
+				"type": "String"
+			},
+			"secret_name": {
+				"type": "String"
+			},
+			"server_name": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "CommonDataServiceForAppsEntity",
+		"schema": [],
+		"typeProperties": {
+			"entityName": {
+				"value": "@dataset().table_name",
+				"type": "Expression"
+			}
+		}
+	}
+}

@@ -1,0 +1,120 @@
+bundle:
+  name: shared_transformation
+
+workspace:
+  root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+
+# the current_user requires Service Principal User on the run_as_sp
+# see https://learn.microsoft.com/en-us/azure/databricks/security/auth/access-control/service-principal-acl#grant-roles-on-a-service-principal
+run_as:
+  service_principal_name: ${var.run_as_sp} 
+
+permissions:
+  - group_name: ${var.can_view_group}
+    level: CAN_VIEW
+  - group_name: ${var.can_manage_group}
+    level: CAN_MANAGE    
+  - service_principal_name: ${workspace.current_user.userName}
+    level: CAN_MANAGE
+
+include:
+  - workflows/*.yml
+
+variables:
+  environment:
+    description: Environment
+    default: dev
+    type: string
+
+
+  can_view_group:
+    description: Group which can view the job
+    default: dp_workflow_nonprd
+
+  can_manage_run_group:
+    description: Group which can run the job
+    default: dp_workflow_manage_run_nonprd
+
+  can_manage_group:
+    description: Group which can run the job
+    default: dp_workflow_manage_nonprd
+
+  databricks_cluster_id:
+    description: Databricks cluster id used to run jobs
+    lookup:
+      cluster: 'job_cluster_01'
+
+  databricks_secret_scope:
+    description: Databricks secret scope used to connect with snowflake
+    default: kv-mx-data-adf-inges-dev
+    
+  powerbi_refresh_azure_key_vault:
+    description: Azure key vault name used for Power BI refresh
+    default: kv-mx-data-adf-inges-dev
+  
+  powerbi_refresh_client_id:
+    description: Client id used for Power BI refresh
+    default: f17474d3-0383-4eae-a8f0-ec459ae8009e
+        
+  powerbi_refresh_secret_name:
+    description: Secret name used for Power BI refresh
+    default: sp-mx-data-power-bi-service-principal-client-secret
+        
+  powerbi_refresh_tenant_name:
+    description: Tenant Id that Power BI refresh datasets are created
+    default: 0b0b76ba-8e32-4c41-8130-65ed5ca4353c
+        
+  powerbi_refresh_modules:
+    description: To filter which module datasets in a use case to refresh in powerbi
+    default: ""
+
+  subscription:
+      description: Azure subscription id
+      default: 312989A6-AD5B-42B5-B553-4BB71EA31DF6
+
+  secret_scope:
+    description: secret scope used to send email
+    default: kv-mx-data-adf-inges-dev
+    type: string
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-485279261696768.8.azuredatabricks.net
+    variables:
+      environment: ${bundle.target}
+      secret_scope: kv-mx-data-adf-inges-dev
+    run_as:
+      service_principal_name: 0b2873d0-ff7e-4521-9afb-159983ed213e
+
+  uat:
+    mode: production
+    workspace:
+      host: https://adb-125701397626662.2.azuredatabricks.net/
+    variables:
+      environment: ${bundle.target}
+      secret_scope: kv-mx-data-adf-inges-uat
+    run_as:
+      service_principal_name: b09074c2-d6b5-466f-b5a5-f0b931b04d0b
+
+  preprd:
+    mode: production
+    workspace:
+      host: https://adb-635866415826582.2.azuredatabricks.net/
+    variables:
+      environment: ${bundle.target}
+      secret_scope: kv-mx-data-adf-inges-preprd
+    run_as:
+      service_principal_name: aeace192-2874-4f02-adac-c4ffca6ecaf9
+
+  prd:
+    mode: production
+    workspace:
+      host: https://adb-1645531006591813.13.azuredatabricks.net/
+    variables:
+      environment: ${bundle.target}
+      secret_scope: kv-mx-data-adf-inges-prd
+    run_as:
+      service_principal_name: 24211de7-3c5f-46d8-a5a0-97ecbc80eaa9

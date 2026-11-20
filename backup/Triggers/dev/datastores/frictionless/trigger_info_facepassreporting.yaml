@@ -1,0 +1,33 @@
+pipeline_name: pl_sql_server_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [06]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'frictionless'
+  server_name: '10.140.9.21'
+  user_name: 'farah\svc_mx_data_prd'
+  secret_name: 'onprem-sqlserver-wdws-svc-prd-password'
+  database_name: 'Frictionless_Prod'
+  schema_name: 'dbo'
+  use_case: 'facepassreporting'
+  # skip_orchestration: true
+
+datasets:
+  - name: data_accounts
+    dataset_parameters:
+      table_name: 'data_accounts'
+  - name: data_tickets
+    dataset_parameters:
+      table_name: 'data_tickets'
+  - name: cnf_devices
+    dataset_parameters:
+      table_name: 'cnf_devices'
+  - name: data_cardonfiles
+    dataset_parameters:
+      table_name: 'data_cardonfiles'

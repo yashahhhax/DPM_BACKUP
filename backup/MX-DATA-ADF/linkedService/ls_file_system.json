@@ -1,0 +1,47 @@
+{
+	"name": "ls_file_system",
+	"properties": {
+		"parameters": {
+			"host_path": {
+				"type": "string",
+				"defaultValue": "\\\\10.140.7.98\\IG-FPogs"
+			},
+			"user_name": {
+				"type": "string"
+			},
+			"secret_name": {
+				"type": "string"
+			},
+			"key_vault_uri": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "FileServer",
+		"typeProperties": {
+			"host": "@{linkedService().host_path}",
+			"userId": "@{linkedService().user_name}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": {
+					"value": "@linkedService().secret_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

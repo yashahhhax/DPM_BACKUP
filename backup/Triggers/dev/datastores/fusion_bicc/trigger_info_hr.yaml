@@ -1,0 +1,213 @@
+pipeline_name: pl_oracle_fusion_bicc_hr_incremental
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [06]
+  minutes: [00]
+
+activated: true
+
+datastore_parameters:
+  datastore_name: 'fusion_bicc_hr'
+  user_name: '31ac1113068e838df99a52edcedccef40a8ed157'
+  secret_name: 'cloud-fusion-oci-hcm-svc-prd-password'
+  base_url: 'https://axzjleyzf4ti.compat.objectstorage.me-dubai-1.oraclecloud.com'
+  source_path: 'FusionHCM_Azure_ADF'
+  use_case: 'hr'
+  # skip_backup: true
+  # skip_exec_adb: true
+  # full_load: true
+  # full_load_date: '2026-05-16'
+  # load_days: 1
+  # skip_orchestration: true
+
+datasets:
+  - name: hcmtopmodelanalyticsglobalam_actionam_actionreasonspvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_actionam_actionreasonspvo'
+      pk: 'ActionReasonId,ActionReasonsTranslationPEOLanguage'
+      load_time_column: 'ActionReasonsPEOLastUpdateDate,ActionReasonsTranslationPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_assignmentam_workrelationshippvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_assignmentam_workrelationshippvo'
+      pk: 'PeriodOfServiceId'
+      load_time_column: 'WorkRelationshipPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_documentofrecordsam_documenttypespvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_documentofrecordsam_documenttypespvo'
+      pk: 'DocumentTypeId'
+      load_time_column: 'DocumentTypesPEOLastUpdateDate, DocumentTypesTranslationPEOLastUpdateDate1'
+  - name: hcmtopmodelanalyticsglobalam_gradeam_gradepvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_gradeam_gradepvo'
+      pk: 'EffectiveStartDate, GradeId'
+      load_time_column: 'GradePEOLastUpdateDate, GradeTranslationPEOLastUpdateDate, SetIdSetPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmbalancessetupam_balancedimensionspvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmbalancessetupam_balancedimensionspvo'
+      pk: 'BalanceDimensionsPEOBalanceDimensionId'
+      load_time_column: 'BalanceDimensionsPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmbalancessetupam_balancetypespvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmbalancessetupam_balancetypespvo'
+      pk: 'BalanceTypesPEOBalanceTypeId'
+      load_time_column: 'BalanceTypesPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmbatchprocesscoream_payrollactionpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmbatchprocesscoream_payrollactionpvo'
+      pk: 'PayrollActionPEOPayrollActionId'
+      load_time_column: 'PayrollActionPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmelementsetupam_elemententry
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmelementsetupam_elemententry'
+      pk: 'EffectiveEndDate, EffectiveStartDate, ElementEntryId'
+      load_time_column: 'LastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmelementsetupam_elemententryvalue
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmelementsetupam_elemententryvalue'
+      pk: 'EffectiveEndDate, EffectiveStartDate, ElementEntryValueId'
+      load_time_column: 'ElementEntryValueDPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmelementsetupam_inputvalue
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmelementsetupam_inputvalue'
+      pk: 'EffectiveEndDate, EffectiveStartDate, InputValueId'
+      load_time_column: 'InputValueDPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmelementsetupam_originatingelement
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmelementsetupam_originatingelement'
+      pk: 'EffectiveEndDate, EffectiveStartDate, ElementTypeId'
+      load_time_column: 'ElementTypeLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmpaycoream_payrolldpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmpaycoream_payrolldpvo'
+      pk: 'EffectiveStartDate, PayrollId'
+      load_time_column: 'PayrollDPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmpaycoream_timeperiodpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmpaycoream_timeperiodpvo'
+      pk: 'TimePeriodId'
+      load_time_column: 'TimePeriodPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmpayregsam_payrollrelationshipdpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmpayregsam_payrollrelationshipdpvo'
+      pk: 'PayrollRelationshipPEOPayrollRelationshipId'
+      load_time_column: 'PayrollRelationshipDPEOLastUpdateDate, PayrollRelationshipPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmperformancedocsam_evaluationparticipantratingpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmperformancedocsam_evaluationparticipantratingpvo'
+      pk: 'EvalParticipantId, EvalRatingId, EvaluationId'
+      load_time_column: 'EvalRatingPEOLastUpdateDate, EvalSectionPEOLastUpdateDate, LastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmperformancedocsam_performancedocumentdetailspvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmperformancedocsam_performancedocumentdetailspvo'
+      pk: 'EvaluationId'
+      load_time_column: 'LastUpdateDate, LastUpdateDate1, LastUpdateDate2'
+  - name: hcmtopmodelanalyticsglobalam_hcmperformancedocsam_performancesectionratingpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmperformancedocsam_performancesectionratingpvo'
+      pk: 'EvalRatingId, EvalSectionId, EvaluationId, TemplatePeriodBPEOBusinessGroupId, TemplatePeriodBPEOTmplPeriodId'
+      load_time_column: 'EvalParticipantPEOLastUpdateDate, EvalRatingPEOLastUpdateDate, EvalSectionPEOLastUpdateDate, LastUpdateDate, RatingLevelBPEOLastUpdateDate, TemplateDefnBPEOLastUpdateDate, TemplatePeriodBPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmperformancesetupam_performancedocsectionpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmperformancesetupam_performancedocsectionpvo'
+      pk: 'BusinessGroupId, EvalSectionPEOEvalSectionId, Language, SectionDefId, SectionDefnBPEOBusinessGroupId, SectionDefnTlPEOSectionDefId, SectionId'
+      load_time_column: 'EvalSectionPEOLastUpdateDate, LastUpdateDate, ProfileTypeSectionPEOLastUpdateDate, SectionDefnBPEOLastUpdateDate, SectionDefnTlPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmprofilecoream_reviewperiodpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmprofilecoream_reviewperiodpvo'
+      pk: 'ReviewPeriodId'
+      load_time_column: 'LastUpdateDate,LastUpdateDate1'
+  - name: hcmtopmodelanalyticsglobalam_jobam_jobpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_jobam_jobpvo'
+      pk: 'EffectiveStartDate, JobId'
+      load_time_column: 'BenchmarkJobTranslationPEOLastUpdateDate, JobEvaluationPEOLastUpdateDate, JobPEOLastUpdateDate, JobTranslationPEOLastUpdateDate, ProgressionJobTranslationPEOLastUpdateDate, SetIdSetPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_personam_persondetailspvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_personam_persondetailspvo'
+      pk: 'PersonId'
+      load_time_column: 'PersonDetailsPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_personam_personnamebasicpvoglobalname
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_personam_personnamebasicpvoglobalname'
+      pk: 'EffectiveEndDate, EffectiveStartDate, PersonNameId'
+      load_time_column: 'LastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_positionam_positionpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_positionam_positionpvo'
+      pk: 'EffectiveStartDate, PositionId'
+      load_time_column: 'ActionOccurrencesPEOLastUpdateDate, ActionReasonsPEOLastUpdateDate, ActionReasonsTranslationPEOLastUpdateDate, DelegatePositionOrgUnitPEOLastUpdateDate, DelegatePositionOrgUnitTlPEOLastUpdateDate, DelegatePositionPEOLastUpdateDate, DelegatePositionTranslationPEOLastUpdateDate, JobEvaluationPEOLastUpdateDate, ParentPositionOrgUnitPEOLastUpdateDate, ParentPositionOrgUnitTlPEOLastUpdateDate, ParentPositionPEOLastUpdateDate, ParentPositionTranslationPEOLastUpdateDate, PositionHierarchyPEOLastUpdateDate, PositionPEOLastUpdateDate, PositionTranslationPEOLastUpdateDate, RequisitionBPEOLastUpdateDate, RequisitionTranslatePEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_usertablesam_usercolumninstancedpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_usertablesam_usercolumninstancedpvo'
+      pk: 'UserColumnInstanceDPEOEffectiveEndDate, UserColumnInstanceDPEOEffectiveStartDate, UserColumnInstanceDPEOUserColumnInstanceId'
+      load_time_column: 'UserColumnInstanceDPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_usertablesam_usercolumnpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_usertablesam_usercolumnpvo'
+      pk: 'UserColumnPEOUserColumnId'
+      load_time_column: 'UserColumnPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_usertablesam_userrowdpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_usertablesam_userrowdpvo'
+      pk: 'Language, UserRowDPEOEffectiveEndDate, UserRowDPEOEffectiveStartDate, UserRowDPEOUserRowId, UserRowId'
+      load_time_column: 'UserRowDPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_usertablesam_usertablepvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_usertablesam_usertablepvo'
+      pk: 'UserTablePEOUserTableId'
+      load_time_column: 'UserTablePEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_analyticsserviceam_lookupvaluestlpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_analyticsserviceam_lookupvaluestlpvo'
+      pk: 'Language, LookupCode, LookupType, SetId, ViewApplicationId'
+      load_time_column: 'LastUpdateDate'
+      use_case: 'hr, procurement'
+  - name: hcmtopmodelanalyticsglobalam_hcmelementsetupam_elemententrypvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmelementsetupam_elemententrypvo'
+      pk: 'ElementEntryId'
+      load_time_column: 'LastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmpaycoream_payrollpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmpaycoream_payrollpvo'
+      pk: 'PayrollId'
+      load_time_column: 'PayrollPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_organizationam_businessunitpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_organizationam_businessunitpvo'
+      pk: 'EffectiveEndDate, EffectiveStartDate, OrgUnitClassificationId'
+      load_time_column: 'ActionOccurrencesPEOLastUpdateDate, ActionReasonsPEOLastUpdateDate, ActionReasonsTranslationPEOLastUpdateDate, OrgUnitClassificationPEOLastUpdateDate, OrganizationUnitPEOLastUpdateDate, OrganizationUnitTranslationPEOLastUpdateDate, SetIdSetPEOLastUpdateDate'
+      use_case: 'hr, procurement'
+  - name: hcmtopmodelanalyticsglobalam_organizationam_departmentpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_organizationam_departmentpvo'
+      pk: 'EffectiveEndDate, EffectiveStartDate, OrgUnitClassificationId'
+      load_time_column: 'ActionOccurrencesPEOLastUpdateDate, ActionReasonsPEOLastUpdateDate, ActionReasonsTranslationPEOLastUpdateDate, OrgUnitClassificationPEOLastUpdateDate, OrganizationUnitPEOLastUpdateDate, OrganizationUnitTranslationPEOLastUpdateDate, SetIdSetPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_personam_citizenshippvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_personam_citizenshippvo'
+      pk: 'CitizenshipId'
+      load_time_column: 'CitizenshipPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_personam_globalpersonpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_personam_globalpersonpvo'
+      pk: 'PersonId'
+      load_time_column: 'AddressesPEOLastUpdateDate, AssignmentMgrPEOLastUpdateDate, AssignmentPEOLastUpdateDate, AssignmentSupervisorPEOLastUpdateDate, DepartmentWorkDayInfoPEOLastUpdateDate, EmailAddressesPEOLastUpdateDate, EnterpriseWorkDayInfoPEOLastUpdateDate, GradeLadderPEOLastUpdateDate, GradeLadderTranslationPEOLastUpdateDate, JobMgrPEOLastUpdateDate, JobMgrTranslationPEOLastUpdateDate, JobPEOLastUpdateDate, LegalEntityWorkDayInfoPEOLastUpdateDate, LocationDetailsMgrPEOLastUpdateDate, NationalIdentifierPEOLastUpdateDate, OrgUnitTranslationMgrPEOLastUpdateDate, OrganizationUnitMgrPEOLastUpdateDate, OrganizationUnitPEOLastUpdateDate, PeriodOfServicePEOLastUpdateDate, PersonDetailsPEO1LastUpdateDate, PersonDetailsPEOLastUpdateDate, PersonNamePEOLastUpdateDate, PersonPEOLastUpdateDate, PersonTypesTranslationPEOLastUpdateDate, PhonesEOLastUpdateDate, PositionMgrPEOLastUpdateDate, PositionPEOLastUpdateDate, PositionTranslationMgrPEOLastUpdateDate, SupervisorEmailAddressPEOLastUpdateDate, SupervisorNamePEOLastUpdateDate, SupervisorUserPEOLastUpdateDate, UserPEOLastUpdateDate, WorkingHourPatternsPEOLastUpdateDate'
+      use_case: 'hr, procurement'
+  - name: hcmtopmodelanalyticsglobalam_personam_personlegislativeinfopvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_personam_personlegislativeinfopvo'
+      pk: 'EffectiveStartDate, PersonLegislativeId'
+      load_time_column: 'PersonLegislativeInfoDPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_personam_personnationalidentifierpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_personam_personnationalidentifierpvo'
+      pk: 'NationalIdentifierId'
+      load_time_column: 'NationalIdentifierPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_personam_religionpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_personam_religionpvo'
+      pk: 'ReligionId'
+      load_time_column: 'ReligionPEOLastUpdateDate'

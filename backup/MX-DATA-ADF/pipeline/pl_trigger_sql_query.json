@@ -1,0 +1,189 @@
+{
+	"name": "pl_trigger_sql_query",
+	"properties": {
+		"description": "wait for sql query to success or fail",
+		"activities": [
+			{
+				"name": "until_result",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "exec_sql_query",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(\n  equals(activity('get_sql_status').output.status.state, 'SUCCEEDED'),\n  or(\n    equals(activity('get_sql_status').output.status.state, 'FAILED'),\n    equals(activity('get_sql_status').output.status.state, 'CANCELED')\n    )\n)\n",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "get_sql_status",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:30:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"url": {
+									"value": "@concat(\n  pipeline().parameters.workspace_url,\n  '/api/2.0/sql/statements/',\n  activity('exec_sql_query').output.statement_id\n)",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "on-prem-self-hosted-runtime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"authentication": {
+									"type": "MSI",
+									"resource": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+								}
+							}
+						},
+						{
+							"name": "wait_before_retry",
+							"type": "Wait",
+							"dependsOn": [
+								{
+									"activity": "get_sql_status",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": {
+									"value": "@if(\n  or(\n    equals(activity('get_sql_status').output.status.state, 'SUCCEEDED'),\n    or(\n        equals(activity('get_sql_status').output.status.state, 'FAILED'),\n        equals(activity('get_sql_status').output.status.state, 'CANCELED')\n    )\n  ),\n  1,\n  int(pipeline().parameters.wait_time_in_second)\n)",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "0.00:30:00"
+				}
+			},
+			{
+				"name": "if_sql_status_success",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "until_result",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(or(\n  equals(activity('get_sql_status').output.status.state, 'FAILED'),\n  equals(activity('get_sql_status').output.status.state, 'CANCELED')\n))\n",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "fail_pipeline",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": {
+									"value": "Databricks SQL execution failed or was canceled",
+									"type": "Expression"
+								},
+								"errorCode": "1"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "return_output_value",
+							"description": "Return Output from web activity",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "pipelineReturnValue",
+								"value": [
+									{
+										"key": "query_output",
+										"value": {
+											"type": "Expression",
+											"content": "@activity('get_sql_status').output.result.data_array[0][0]"
+										}
+									}
+								],
+								"setSystemVariable": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "exec_sql_query",
+				"description": "",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"httpRequestTimeout": "",
+					"url": {
+						"value": "@concat(\n    pipeline().parameters.workspace_url,\n    '/api/2.0/sql/statements/?warehouse_id=',\n    pipeline().parameters.sql_serverless_id,\n    '&statement=',pipeline().parameters.sql_statement\n)",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "on-prem-self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"cause": "Kicked off from ADF"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"workspace_url": {
+				"type": "string"
+			},
+			"sql_serverless_id": {
+				"type": "string"
+			},
+			"sql_statement": {
+				"type": "string"
+			},
+			"wait_time_in_second": {
+				"type": "string",
+				"defaultValue": "30"
+			}
+		},
+		"folder": {
+			"name": "Databricks"
+		},
+		"annotations": []
+	}
+}

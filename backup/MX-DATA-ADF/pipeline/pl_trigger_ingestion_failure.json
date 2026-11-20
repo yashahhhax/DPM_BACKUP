@@ -1,0 +1,191 @@
+{
+	"name": "pl_trigger_ingestion_failure",
+	"properties": {
+		"activities": [
+			{
+				"name": "teams_notification",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_sent_notification_teams",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"subscription": {
+							"value": "@pipeline().globalParameters.subscription",
+							"type": "Expression"
+						},
+						"resourceGroup": {
+							"value": "@concat('rg-mx-data-adf-inges-', pipeline().globalParameters.environment)",
+							"type": "Expression"
+						},
+						"runId": {
+							"value": "@pipeline().parameters.run_id",
+							"type": "Expression"
+						},
+						"name": {
+							"value": "@pipeline().parameters.pipeline_name",
+							"type": "Expression"
+						},
+						"triggerTime": {
+							"value": "@pipeline().parameters.trigger_time",
+							"type": "Expression"
+						},
+						"status": {
+							"value": "@concat('<b style=background-color:orange;>','Failed','</b>')",
+							"type": "Expression"
+						},
+						"message": {
+							"value": "@concat(\n    'The pipeline <b>', pipeline().parameters.pipeline_name, \n    '</b> failed at ', pipeline().parameters.trigger_time,\n    ' with runId ', pipeline().parameters.run_id,\n    '<br><br>'\n)\n",
+							"type": "Expression"
+						},
+						"DataFactory": {
+							"value": "@concat('adf-mx-data-adf-inges-', pipeline().globalParameters.environment, '-01')",
+							"type": "Expression"
+						},
+						"useCase": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"tableName": {
+							"value": "@toLower(pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore": {
+							"value": "@toLower(pipeline().parameters.datastore_name)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Update table tags",
+				"description": "Will update the last_updated tag of a table. Will fail if it's a new table. Therefore retry timer has been set to wait  so the sync job has run. ",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": {
+						"value": "@concat(\n        pipeline().globalParameters.databricks_transformation_workspace_url,\n        '/api/2.0/sql/statements/?warehouse_id=',\n        pipeline().globalParameters.databricks_transformation_sql_serverless_id,\n        '&statement=alter%20table%20transformation_',\n        pipeline().globalParameters.environment,\n        '.brz_',\n        toLower(replace(pipeline().parameters.datastore_name, '-', '_')),\n        '.vw_',\n        toLower(replace(pipeline().parameters.table_name, '-', '_')),\n        '%20set%20tags%20(%27last_failure%27%20%3D%20%27',\n        convertTimeZone(utcnow(), 'UTC', 'Arabian Standard Time'),\n        '%27)'\n    )",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "on-prem-self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"cause": "Kicked off from ADF"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+					}
+				}
+			},
+			{
+				"name": "fail_pipeline",
+				"type": "Fail",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"message": "1",
+					"errorCode": {
+						"value": "@concat('Pipeline ',pipeline().parameters.pipeline_name,' Failed')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "if_run_wf_orchestration",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Update table tags",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(bool(pipeline().parameters.skip_orchestration))",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Trigger Orchestration Job",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_conditionally_trigger_workflow",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"job_id": {
+										"value": "@pipeline().globalParameters.databricks_workflow_orchestration_job_id",
+										"type": "Expression"
+									},
+									"job_parameters": "{}",
+									"databricks_workspace_url": {
+										"value": "@pipeline().globalParameters.databricks_transformation_workspace_url",
+										"type": "Expression"
+									},
+									"wait_for_completion": false
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"table_name": {
+				"type": "string"
+			},
+			"datastore_name": {
+				"type": "string"
+			},
+			"use_case": {
+				"type": "string"
+			},
+			"pipeline_name": {
+				"type": "string"
+			},
+			"run_id": {
+				"type": "string"
+			},
+			"trigger_time": {
+				"type": "string"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"folder": {
+			"name": "Databricks"
+		},
+		"annotations": []
+	}
+}

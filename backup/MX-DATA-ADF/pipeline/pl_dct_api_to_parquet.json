@@ -1,0 +1,707 @@
+{
+	"name": "pl_dct_api_to_parquet",
+	"properties": {
+		"activities": [
+			{
+				"name": "LookupOldWaterMarkActivity",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat(\n    'SELECT * FROM watermarktable WHERE TableName = ''', \n    toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)), \n    ''' ORDER BY watermarkvalue DESC'\n)",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql_managed_identity",
+						"type": "DatasetReference",
+						"parameters": {
+							"server_name": {
+								"value": "@pipeline().globalParameters.sqldb_fqdn",
+								"type": "Expression"
+							},
+							"database_name": "watermarks",
+							"table_name": "watermarktable"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Set end_year",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "end_year",
+					"value": {
+						"value": "@if(and(not(bool(pipeline().parameters.full_load)),not(empty(pipeline().parameters.Month))),pipeline().parameters.Year,formatDateTime(addToTime(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1,'Month'),'yyyy'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set end_month",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "end_month",
+					"value": {
+						"value": "@if(and(not(bool(pipeline().parameters.full_load)),not(empty(pipeline().parameters.Month))),pipeline().parameters.Month,formatDateTime(addToTime(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1,'Month'),'%M'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set start_year",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "LookupOldWaterMarkActivity",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "start_year",
+					"value": {
+						"value": "@if(not(empty(pipeline().parameters.Year)),pipeline().parameters.Year,if(greater(activity('LookupOldWaterMarkActivity').output.count,0),formatDateTime(addToTime(activity('LookupOldWaterMarkActivity').output.value[0].WatermarkValue,1,'Month'),'yyyy'),'2024'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set start_month",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "LookupOldWaterMarkActivity",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "start_month",
+					"value": {
+						"value": "@if(not(empty(pipeline().parameters.Month)),pipeline().parameters.Month,if(greater(activity('LookupOldWaterMarkActivity').output.count,0),formatDateTime(addToTime(activity('LookupOldWaterMarkActivity').output.value[0].WatermarkValue,1,'Month'),'%M'),'1'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "If full_load delete files",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@bool(pipeline().parameters.full_load)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "fullload_delete_old_files",
+							"description": "In the case of a full load, delete all old table files in the storage account folder.",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_adls_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": "@pipeline().globalParameters.storage_account_datalake_uri",
+										"container_name": "@pipeline().globalParameters.storage_container_datalake",
+										"datastore": {
+											"value": "@pipeline().parameters.datastore_name",
+											"type": "Expression"
+										},
+										"dataset": {
+											"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+											"type": "Expression"
+										},
+										"tablename": " "
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "GenerateMonthEndpointList",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Set start_year",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set start_month",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set end_year",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set end_month",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "If full_load delete files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat('DECLARE @ep NVARCHAR(MAX)=N''',replace(string(pipeline().parameters.api_endpoints),'''',''''''),''',@sy INT=',variables('start_year'),',@sm INT=',variables('start_month'),',@ey INT=',variables('end_year'),',@em INT=',variables('end_month'),';WITH m AS (SELECT @sy [Year],@sm [Month] UNION ALL SELECT CASE WHEN [Month]=12 THEN [Year]+1 ELSE [Year] END,CASE WHEN [Month]=12 THEN 1 ELSE [Month]+1 END FROM m WHERE [Year]*100+[Month]<@ey*100+@em) SELECT CAST(m.[Year] AS VARCHAR)[Year],CAST(m.[Month] AS VARCHAR)[Month],e.name,e.url,e.query_type FROM m CROSS JOIN OPENJSON(@ep) WITH(name NVARCHAR(200),url NVARCHAR(200),query_type NVARCHAR(200))e OPTION(MAXRECURSION 500)')",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql_managed_identity",
+						"type": "DatasetReference",
+						"parameters": {
+							"server_name": {
+								"value": "@pipeline().globalParameters.sqldb_fqdn",
+								"type": "Expression"
+							},
+							"database_name": "watermarks",
+							"table_name": "watermarktable"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "for_each_batch",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GenerateMonthEndpointList",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GenerateMonthEndpointList').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 1,
+					"activities": [
+						{
+							"name": "copy_dct_api_to_parquet",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 60,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"additionalColumns": [
+										{
+											"name": "adf_load_time",
+											"value": {
+												"value": "@utcNow()",
+												"type": "Expression"
+											}
+										}
+									],
+									"httpRequestTimeout": "00:10:00",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"additionalHeaders": {
+										"Miral-Subscription-Key": {
+											"value": "@pipeline().parameters.subscription_key",
+											"type": "Expression"
+										}
+									}
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"value": "@pipeline().parameters.translator",
+									"type": "Expression"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_rest_api",
+									"type": "DatasetReference",
+									"parameters": {
+										"base_url": {
+											"value": "@pipeline().parameters.base_url",
+											"type": "Expression"
+										},
+										"relative_url": {
+											"value": "@{item().url}?Year=@{item().Year}&Month=@{item().Month}&QueryType=@{item().query_type}",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_adls_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": {
+											"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+											"type": "Expression"
+										},
+										"container_name": {
+											"value": "@pipeline().globalParameters.storage_container_datalake",
+											"type": "Expression"
+										},
+										"datastore": {
+											"value": "@toLower(pipeline().parameters.datastore_name)",
+											"type": "Expression"
+										},
+										"dataset": {
+											"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+											"type": "Expression"
+										},
+										"tablename": {
+											"value": "@concat(\n  toLower(item().name),\n  '_', item().Year,\n  '_', item().Month\n)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "for_each_batch",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						},
+						"is_fullload": {
+							"value": "@string(pipeline().parameters.full_load)",
+							"type": "Expression"
+						},
+						"total_rows": {
+							"value": "@length(pipeline().parameters.api_endpoints)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "refresh_ingestion_table",
+				"description": "Refresh external table to pick up new/overwritten Parquet files",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": {
+						"value": "@concat(pipeline().globalParameters.databricks_transformation_workspace_url, '/api/2.0/sql/statements/?warehouse_id=', pipeline().globalParameters.databricks_transformation_sql_serverless_id, '&statement=REFRESH%20TABLE%20ingestion_', pipeline().globalParameters.environment, '.lnd_', toLower(replace(pipeline().parameters.datastore_name, '-', '_')), '.', toLower(replace(pipeline().parameters.schema_name, '-', '_')), '_', toLower(replace(pipeline().parameters.table_name, '-', '_')))",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "on-prem-self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"cause": "Refresh table from ADF"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+					}
+				}
+			},
+			{
+				"name": "exec_pl_trigger_sql_query",
+				"description": "Get new_watermark from the ingested data",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "refresh_ingestion_table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_sql_query",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"workspace_url": {
+							"value": "@pipeline().globalParameters.databricks_transformation_workspace_url",
+							"type": "Expression"
+						},
+						"sql_serverless_id": {
+							"value": "@pipeline().globalParameters.databricks_transformation_sql_serverless_id",
+							"type": "Expression"
+						},
+						"sql_statement": {
+							"value": "@concat(\n\t'select max(last_day(make_date(cast(YEAR as int), cast(MONTH as int), 1))) as max_date from transformation_',\n\tpipeline().globalParameters.environment,\n\t'.brz_',\n\ttoLower(replace(pipeline().parameters.datastore_name, '-', '_')),\n\t'.vw_',\n\ttoLower(replace(pipeline().parameters.schema_name, '-', '_')), '_',\n\ttoLower(replace(pipeline().parameters.table_name, '-', '_'))\n)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "update_watermark",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "exec_pl_trigger_sql_query",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_managed_identity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"server_name": "@pipeline().globalParameters.sqldb_fqdn",
+						"database_name": "watermarks"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": {
+								"value": "UPDATE watermarktable SET [WatermarkValue] = '@{activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output}' WHERE [TableName] = '@{toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))}';\n\nIF @@ROWCOUNT = 0\n\nINSERT INTO watermarktable ([WatermarkValue], [TableName])\nVALUES (\n'@{activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output}',\n'@{toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))}'\n);",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "00:10:00"
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "update_watermark",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 20,
+		"parameters": {
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://apim.dct.gov.ae/Miral/"
+			},
+			"Year": {
+				"type": "string",
+				"defaultValue": "2025"
+			},
+			"Month": {
+				"type": "string",
+				"defaultValue": "01"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "dct"
+			},
+			"schema_name": {
+				"type": "string",
+				"defaultValue": "dct"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "performance_by_zone_test"
+			},
+			"full_load": {
+				"type": "bool",
+				"defaultValue": true
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "dct"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"translator": {
+				"type": "object",
+				"defaultValue": {
+					"type": "TabularTranslator",
+					"collectionReference": "$['Out_APi_Result'][0]['dataAccessResponse']['result']['row']",
+					"mappings": [
+						{
+							"source": {
+								"path": "['MONTH']"
+							},
+							"sink": {
+								"name": "MONTH",
+								"type": "String"
+							}
+						},
+						{
+							"source": {
+								"path": "['TOTAL_FOOTFALL']"
+							},
+							"sink": {
+								"name": "TOTAL_FOOTFALL",
+								"type": "String"
+							}
+						},
+						{
+							"source": {
+								"path": "['ASSET']"
+							},
+							"sink": {
+								"name": "ASSET",
+								"type": "String"
+							}
+						},
+						{
+							"source": {
+								"path": "['YEAR']"
+							},
+							"sink": {
+								"name": "YEAR",
+								"type": "String"
+							}
+						},
+						{
+							"source": {
+								"path": "$['adf_load_time']"
+							},
+							"sink": {
+								"name": "adf_load_time",
+								"type": "String"
+							}
+						}
+					]
+				}
+			},
+			"subscription_key": {
+				"type": "string",
+				"defaultValue": "dd8880e7b2d84598b26ef2a93af31bf1"
+			},
+			"api_endpoints": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"name": "PERFORMANCE_BY_ZONE",
+						"url": "PerformanceByZone",
+						"query_type": "PERFORMANCE_BY_ZONE"
+					}
+				]
+			}
+		},
+		"variables": {
+			"start_year": {
+				"type": "String"
+			},
+			"start_month": {
+				"type": "String"
+			},
+			"end_year": {
+				"type": "String"
+			},
+			"end_month": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "DCT"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

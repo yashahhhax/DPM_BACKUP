@@ -1,0 +1,24 @@
+pipeline_name: pl_emarsys_contacts_in_segment_list
+ 
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [03]
+  minutes: [30]
+ 
+activated: false
+ 
+datastore_parameters:
+  datastore_name: 'emarsys_api'  
+  schema_name: 'emarsys_api'        
+  workflow_name: 'wf_ingest_emarsys_contacts_in_segment_list'
+  secret_name: 'cloud-emarsys-api-prd-apikey'
+  username: 'miral_b2c007'
+  use_case: 'emarsys'
+   # skip_orchestration: true
+
+datasets:
+  - name: emarsys_contacts_in_segment_list
+    dataset_parameters:
+      table_name: 'contacts_in_segment_list'
+      segment_id: '759125'

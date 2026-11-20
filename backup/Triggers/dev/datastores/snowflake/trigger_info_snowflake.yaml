@@ -1,0 +1,32 @@
+pipeline_name: pl_snowflake_backup
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [08]
+  minutes: [30]
+   
+activated: false
+
+datastore_parameters:
+  datastore_name: 'snowflake'
+  use_case: 'snowflake_backup'
+  workflow_name: 'wf_snowflake_backup'
+  # skip_orchestration: true
+
+datasets:
+  - name: feedwprod_public_dwh_fact_revenue_budget
+    dataset_parameters:
+      table_name: 'feedwprod.public.dwh_fact_revenue_budget'
+  - name: feedwprod_public_tbvw__daily_revenue_data_ss
+    dataset_parameters:
+      table_name: 'feedwprod.public.tbvw__daily_revenue_data_ss'
+  - name: feedwprod_public_tbvw_attendance
+    dataset_parameters:
+      table_name: 'feedwprod.public.tbvw_attendance'
+  - name: feedwprod_public_tbvw_sales_transactions_raw
+    dataset_parameters:
+      table_name: 'feedwprod.public.tbvw_sales_transactions_raw'
+  - name: feedwprod_public_tbvw_sales_transactions
+    dataset_parameters:
+      table_name: 'feedwprod.public.tbvw_sales_transactions'

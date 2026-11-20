@@ -1,0 +1,41 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "PERCENTAGE_OF_TARGET_ACHIVED"
+            },
+            "sink": {
+                "name": "percentage_of_target_achived"
+            }
+        },
+        {
+            "source": {
+                "name": "CAP"
+            },
+            "sink": {
+                "name": "cap"
+            }
+        },
+        {
+            "source": {
+                "name": "source_file_name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_file_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

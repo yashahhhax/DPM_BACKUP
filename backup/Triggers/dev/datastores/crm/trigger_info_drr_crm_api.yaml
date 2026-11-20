@@ -1,0 +1,27 @@
+pipeline_name: pl_drr_crm_api_to_parquet
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [10]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  from_date: "@string(formatDateTime(addDays(convertTimeZone(utcNow(),'UTC','Arabian Standard Time'),-15),'yyyy-MM-dd'))"
+  to_date: "@string(formatDateTime(addDays(convertTimeZone(utcNow(),'UTC','Arabian Standard Time'),-1),'yyyy-MM-dd'))"
+  datastore_name: 'crm_api'
+  dataset_name: 'drr'
+  base_url: 'https://yascrm.crm4.dynamics.com'
+  client_id: '7f071879-cdae-4cf7-9ec8-2c7d258ab415'
+  client_secret: 'cloud-crm-invoices-api-prd-apikey'
+  workflow_name: 'wf_ingest_drr_crm_api'
+  # skip_orchestration: true
+
+datasets:
+  - name: lkp_crm_sub_segment
+    dataset_parameters:
+      table_name: 'lkp_crm_sub_segment'
+      use_case: 'drr'
+  

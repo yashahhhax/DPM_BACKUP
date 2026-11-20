@@ -1,0 +1,118 @@
+resources:
+  jobs:
+    wf_dwh_dim_employee:
+      name: wf_dwh_dim_employee
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN
+      tasks:
+        - task_key: brz_employee_dqc
+          timeout_seconds: 2700
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          retry_on_timeout: true
+          notebook_task:
+            notebook_path: ../shared_code/dqc/dqc_checks.py
+            base_parameters:
+              layer: brz
+              obj_type: dims
+              task_run_id: "{{task.run_id}}"
+              tablename: employee
+            source: WORKSPACE
+          
+        - task_key: slv_dim_employee
+          depends_on:
+            - task_key: brz_employee_dqc
+          run_if: ALL_DONE
+          timeout_seconds: 2700
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          retry_on_timeout: true
+          notebook_task:
+            notebook_path: ../notebooks/silver/slv_employee.py
+            source: WORKSPACE
+          
+        - task_key: slv_employee_dqc
+          depends_on:
+            - task_key: slv_dim_employee
+          timeout_seconds: 2700
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          retry_on_timeout: true
+          notebook_task:
+            notebook_path: ../shared_code/dqc/dqc_checks.py
+            base_parameters:
+              layer: slv
+              tablename: prep_dim_employee
+              task_run_id: "{{task.run_id}}"
+            source: WORKSPACE
+          
+        - task_key: gld_dwh_dim_employee
+          depends_on:
+            - task_key: slv_employee_dqc
+          run_if: ALL_DONE
+          timeout_seconds: 2700
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          retry_on_timeout: true
+          notebook_task:
+            notebook_path: ../notebooks/gold/gld_scd_type2.py
+            base_parameters:
+              tablename: employee
+              current_job_run_id: "{{job.run_id}}"
+            source: WORKSPACE
+          
+        - task_key: gld_dwh_dim_employee_dqc
+          depends_on:
+            - task_key: gld_dwh_dim_employee
+          timeout_seconds: 2700
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          retry_on_timeout: true
+          notebook_task:
+            notebook_path: ../shared_code/dqc/dqc_checks.py
+            base_parameters:
+              layer: gld
+              tablename: dwh_dim_employee
+              task_run_id: "{{task.run_id}}"
+            source: WORKSPACE
+          
+        - task_key: updatetag_run_orch_workflow
+          depends_on:
+            - task_key: gld_dwh_dim_employee
+          run_if: ALL_DONE
+          timeout_seconds: 2700
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          retry_on_timeout: true
+          notebook_task:
+            notebook_path: ../notebooks/gold/update_tag_workflow.py
+            base_parameters:
+              table_name: dwh_dim_employee
+            source: WORKSPACE
+          
+        - task_key: failure_teams_notification
+          depends_on:
+            - task_key: gld_dwh_dim_employee_dqc
+            - task_key: updatetag_run_orch_workflow
+          run_if: ALL_DONE
+          timeout_seconds: 2700
+          max_retries: 1
+          min_retry_interval_millis: 60000
+          retry_on_timeout: true
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_job_alerts.py
+            base_parameters:
+              alert_type: failure
+              job_run_id: "{{job.run_id}}"
+            source: WORKSPACE
+          
+      tags:
+        use_case: shared_maintenance, shared_ea_drr
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: usecase
+          default: shared

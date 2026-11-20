@@ -1,0 +1,143 @@
+{
+	"name": "pl_sent_notification_teams",
+	"properties": {
+		"activities": [
+			{
+				"name": "For each use_case",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@split(pipeline().parameters.useCase, ',')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Message Body",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "messageCard",
+								"value": {
+									"value": "{\n    \"@type\": \"MessageCard\",\n    \"@context\": \"http://schema.org/extensions\",\n    \"themeColor\": \"0076D7\",\n    \"summary\": \"Pipeline status alert message​​​​\",\n    \"sections\": [\n        {\n            \"activityTitle\": \"Pipeline execution alert​​​​\",\n            \"facts\": [\n                {\n                    \"name\": \"Subscription Id:\",\n                    \"value\": \"@{pipeline().parameters.subscription}\"\n                },\n                {\n                    \"name\": \"Resource Group:\",\n                    \"value\": \"@{pipeline().parameters.resourceGroup}\"\n                },\n                {\n                    \"name\": \"Data Factory Name:\",\n                    \"value\": \"@{pipeline().DataFactory}\"\n                },\n                {\n                    \"name\": \"Pipeline RunId:\",\n                    \"value\": \"@{pipeline().parameters.runId}\"\n                },\n                {\n                    \"name\": \"Pipline Name:\",\n                    \"value\": \"@{pipeline().parameters.name}\"\n                },\n                {\n                    \"name\": \"Use case:\",\n                    \"value\": \"@{pipeline().parameters.useCase}\"\n                },\n                {\n                    \"name\": \"Data source:\",\n                    \"value\": \"@{pipeline().parameters.datastore}\"\n                },\n                {\n                    \"name\": \"Table name:\",\n                    \"value\": \"@{pipeline().parameters.tableName}\"\n                },\n                {\n                    \"name\": \"Pipeline Status:\",\n                    \"value\": \"@{pipeline().parameters.status}\"\n                },\n                {\n                    \"name\": \"Execution Start Time (UTC):\",\n                    \"value\": \"@{pipeline().parameters.triggerTime}\"\n                },\n                {\n                    \"name\": \"Message:\",\n                    \"value\": \"@{pipeline().parameters.message}\"\n                },\n                {\n                    \"name\": \"Notification Time (UTC):\",\n                    \"value\": \"@{utcnow()}\"\n                }\n            ],\n            \"markdown\": true\n        }\n    ],\n    \"potentialAction\": [\n        {\n            \"@type\": \"OpenUri\",\n            \"name\": \"View pipeline run\",\n            \"targets\": [\n                {\n                    \"os\": \"default\",\n                    \"uri\": \"@{concat('https://adf.azure.com/monitoring/pipelineruns/',pipeline().parameters.runId,'?factory=/subscriptions/',pipeline().parameters.subscription,'/resourceGroups/',pipeline().parameters.resourceGroup,'/providers/Microsoft.DataFactory/factories/',pipeline().DataFactory)}\"\n                }\n            ]\n        }\n    ]\n}",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Team Web Hook",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Message Body",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 300,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"url": {
+									"value": "@if(\n\tnot(equals(pipeline().globalParameters.environment, 'prd')),\n\tpipeline().globalParameters.default_webhook_url,\n\tcoalesce(\n\t\tif(contains(json(string(pipeline().parameters.teamWebhookUrlLookupDict)), item()), \n\t\t   json(string(pipeline().parameters.teamWebhookUrlLookupDict))[item()], \n\t\t   null),\n\t\tpipeline().globalParameters.default_webhook_url\n\t)\n)",
+									"type": "Expression"
+								},
+								"body": {
+									"value": "@json(variables('messageCard'))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"subscription": {
+				"type": "string"
+			},
+			"resourceGroup": {
+				"type": "string"
+			},
+			"runId": {
+				"type": "string"
+			},
+			"name": {
+				"type": "string"
+			},
+			"triggerTime": {
+				"type": "string"
+			},
+			"status": {
+				"type": "string"
+			},
+			"message": {
+				"type": "string"
+			},
+			"teamWebhookUrlLookupDict": {
+				"type": "object",
+				"defaultValue": {
+					"travelbox": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b562715883b5402a8d8258618c7f2547/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=LjBPGrrA9FSElSp2K6hP1BMXz8o6HEivhyy--kP5jaM",
+					"maintenance_maximo": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2fdedb13163c49d1a6129578ab645232/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Nes-8zqO8ngrE0p0gJcdYLti6fFHt7_d7ZR0miTYFUc",
+					"maintenance_ride": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/ca3c0851f10e43b1918b2aa4c4e6bd80/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=bSuA8jJxllBruev2BfMefvO-VRMUMyWmLlZ-a5MB0Tw",
+					"oracle_gl": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b52e9597b98a45f88b9d6fa50a9d6a69/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=H7w1qDEt5OOL_WNBcHAAXqvZ3MdZgpniMzPCfowT0kw",
+					"ea_drr": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/e032e31652cd40a886b25f4834b5d02d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=0JL3zVvcml5F73JzyboVroXaLCIBlfjOJZvv1iRQdrQ",
+					"clymb_drr": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/37f3b698e0d44891967049bf823ab049/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-PYszjeYPD9DXW6vDSiRC21jwvU4AjNkBCrBmfl3WeY",
+					"drr": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/37f3b698e0d44891967049bf823ab049/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=-PYszjeYPD9DXW6vDSiRC21jwvU4AjNkBCrBmfl3WeY",
+					"ridecollation": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b91b3d890ae5445ea364c0738834679b/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=r-KrLf4B9abvpU71HRTRmb2-PBmeTGcA02AArbVwcF0",
+					"google_analytics": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/5348cdb4ac33484dbf75ddb9a2b45a86/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=dI7cFVLtwL8Pu1m8Z9cJrcHJ5GuCuVps6ERGNNdnn5Y",
+					"ipera": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2dcd2eaf013a4c8f91eb6caffff6209e/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=EevSKjG86E277RGTCOLdc780r2LS38AQcPMW0fuaiKI",
+					"scv": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3df1628674394aa386b595b724f1f3af/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=MBiWNYqbF6nIT54mU97YHCn4d9TMinnmbUYHFKV4Cpg",
+					"facepassappslogs": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3222621e69644cb4ba1ab52b52f4195e/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xoRvj1StFLGPzJmY0mOQ8sl3tjEDmx94Ema-ZW-cHuY",
+					"facepassreporting": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/6a1cac6656554a9ca5c6a844a4ea69b6/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=01Az7pSQaUmZy_fqcYIEtcybiC-_RID5Y5-FO8wPi2U",
+					"emarsys": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/a4b69d68569a491fbdf52bbde24fa362/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=wpxf3VpurS4H3coB1weImDz5rP7yz0PmYRbhnRtIYPI",
+					"ycautomation": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/9a87fb3e8f734cc28a82098c3f3e931c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=NaIVo7dvtmSLZYmCia-Op2K5FWV_qhnxzU6J8VvLp68",
+					"gss": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2ad64afddf31461b936d73d8b8cda3bc/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=d4HCpvDuQmjHlAseCtw99K_RZ-2o6bg7v2ds3gPNZnM",
+					"fusion": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f34301bad47049d096ce0b429d9a4867/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6PAm331TmNOGAGbQL67i8Vf18Zk1oI32tVuoF3PYUmo",
+					"finance": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f34301bad47049d096ce0b429d9a4867/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6PAm331TmNOGAGbQL67i8Vf18Zk1oI32tVuoF3PYUmo",
+					"hr": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f34301bad47049d096ce0b429d9a4867/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6PAm331TmNOGAGbQL67i8Vf18Zk1oI32tVuoF3PYUmo",
+					"procurement": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f34301bad47049d096ce0b429d9a4867/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=6PAm331TmNOGAGbQL67i8Vf18Zk1oI32tVuoF3PYUmo",
+					"inventory": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/9a87fb3e8f734cc28a82098c3f3e931c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=NaIVo7dvtmSLZYmCia-Op2K5FWV_qhnxzU6J8VvLp68",
+					"customer360": "https://default0b0b76ba8e324c41813065ed5ca435.3c.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2ad64afddf31461b936d73d8b8cda3bc/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=d4HCpvDuQmjHlAseCtw99K_RZ-2o6bg7v2ds3gPNZnM"
+				}
+			},
+			"DataFactory": {
+				"type": "string"
+			},
+			"useCase": {
+				"type": "String"
+			},
+			"tableName": {
+				"type": "String"
+			},
+			"datastore": {
+				"type": "String"
+			}
+		},
+		"variables": {
+			"meassageCard": {
+				"type": "String"
+			},
+			"messageCard": {
+				"type": "String"
+			},
+			"teamWebhookUrl": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,324 @@
+dims:
+  - tablename: employee
+    tables:
+      - name: brz_fusion.vw_fusion_xxapps_xxflpm_bi_emp_mast_all
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: EMPLOYEE_ID
+          - criticality: warn
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: EMPLOYEE_ID
+      - name: brz_fusion.vw_fusion_xxapps_xxflpm_bi_emp_service_dtls_all
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: PERSON_ID
+      - name: brz_fusion.vw_fusion_xxapps_xxflpm_bi_people_dtls_all
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: PERSON_ID
+      - name: brz_fusion.vw_fusion_xxapps_xxflpm_bi_dept_master_all
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: DEPARTMENT_ID
+      - name: brz_fusion.vw_fusion_xxapps_xxflpm_bi_position_master_all
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: POSITION_ID
+
+  - tablename: country
+    tables:
+      - name: brz_crm.vw_crm_dot_country
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: dot_name
+
+  - tablename: gl_account
+    tables:
+      - name: brz_fusion.vw_fusion_xxapps_xxflpm_bi_coa_acct_master_all
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: ACCT_CODE
+
+  - tablename: department
+    tables:
+      - name: brz_fusion.vw_fusion_xxapps_xxflpm_bi_coa_dept_master_all
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: DEPT_CODE
+          - criticality: warn
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: DEPT_NAME               
+
+  - tablename: b2b_partner
+    tables:
+      - name: brz_crm.vw_crm_dot_country
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: dot_countryid
+      - name: brz_crm.vw_crm_dot_region
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: dot_regionid
+      - name: brz_crm.vw_crm_dot_segment
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: dot_segmentid
+      - name: brz_crm.vw_crm_account
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: accountid
+      - name: brz_crm.vw_crm_fe_omnidmgcategory
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: fe_omnidmgcategoryid
+      - name: brz_omni.vw_dbo_data_account
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: AccountId
+      - name: brz_omni.vw_dbo_cnf_dmgcategory
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: DmgCategoryId
+      - name: brz_omni.vw_dbo_data_dmgdata
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: DmgDataId
+
+  - tablename: b2c_account
+    tables:
+      - name: brz_omni.vw_dbo_vw_accounts
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: ACCOUNTID
+      - name: brz_scv.vw_dbo_t_mdm_guest
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: ID
+
+
+  - tablename: company
+    tables:
+      - name: brz_sharepoint_list.vw_farahflfin_companydimension
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: omni_site_id
+          - criticality: warn
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: omni_site_id
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: ig_site_id
+          - criticality: warn
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: ig_site_id
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: company_id
+          - criticality: warn
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: company_id
+      - name: brz_sharepoint_list.vw_farahflfin_coa_segment_mapping
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: new_code
+          - criticality: warn
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: new_code
+
+  - tablename: cnf_lookups
+    tables:
+      - name: brz_omni.vw_dbo_cnf_lookup
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: LookUpTableId
+          - criticality: warn
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: LookUpTableId
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: ItemId
+          - criticality: warn
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: ItemId
+      - name: brz_omni.vw_dbo_cnf_lookuptable
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: LookUpName
+
+  - tablename: source_system
+    tables:
+      - name: brz_sharepoint_list.vw_farahflfin_drr_source_systems
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: ID
+          - criticality: warn
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: ID
+
+  - tablename: sub_analysis
+    tables:
+      - name: brz_sharepoint_list.vw_farahflfin_outletmapping
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: Id
+          - criticality: warn
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: Id
+
+      - name: brz_fusion.vw_fusion_xxapps_xxflp_omni_dmg_cat_sa_map_all
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: UNIQUE_ID
+          - criticality: warn
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: UNIQUE_ID
+
+      - name: brz_fusion.vw_fusion_xxapps_xxflpm_bi_coa_sa_master_all
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null
+              arguments:
+                column: SA_CODE
+
+  - tablename: sales_account_manager
+    tables:
+      - name: brz_crm.vw_crm_account
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: accountid
+      - name: brz_crm.vw_crm_dot_segment
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: dot_segmentid
+      - name: brz_crm.vw_crm_yc_accountmanagerhistory
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: yc_accountmanagerid
+      - name: brz_crm.vw_crm_dot_accountbusinessunitprofile
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: dot_accountbusinessunitprofileid
+      - name: brz_crm.vw_crm_systemuser
+        checks:
+          - criticality: error
+            check:
+              function: is_not_null_and_not_empty
+              arguments:
+                column: employeeid
+      

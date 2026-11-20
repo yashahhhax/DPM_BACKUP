@@ -1,0 +1,215 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "#",
+                "type": "String"
+            },
+            "sink": {
+                "name": "num",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Queue Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "queue_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "offered till 4th feb",
+                "type": "String"
+            },
+            "sink": {
+                "name": "offered_till_4th_feb",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Service Gole",
+                "type": "String"
+            },
+            "sink": {
+                "name": "service_goal",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Owner",
+                "type": "String"
+            },
+            "sink": {
+                "name": "owner",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Channel",
+                "type": "String"
+            },
+            "sink": {
+                "name": "channel",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Sales Opportunity Queue",
+                "type": "String"
+            },
+            "sink": {
+                "name": "sales_opportunity_queue",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Planning Group Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "planning_group_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Skill Set Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "skill_set_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Assign / Do not Assign to Agent Queue (i.e. auto-response email)",
+                "type": "String"
+            },
+            "sink": {
+                "name": "Assign_or_do_not_assign_to_agent_queue",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Comment",
+                "type": "String"
+            },
+            "sink": {
+                "name": "comment",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Adviced to be used as an active Q by NCR Team",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adviced_to_be_used_as_an_active_q_by_ncr_team",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "IVR Number",
+                "type": "String"
+            },
+            "sink": {
+                "name": "ivr_number",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "New Queues",
+                "type": "String"
+            },
+            "sink": {
+                "name": "new_queues",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "New Skills",
+                "type": "String"
+            },
+            "sink": {
+                "name": "new_skills",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "External Tag",
+                "type": "String"
+            },
+            "sink": {
+                "name": "external_tag",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Assigned to",
+                "type": "String"
+            },
+            "sink": {
+                "name": "assigned_to",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Tenant",
+                "type": "String"
+            },
+            "sink": {
+                "name": "tenant",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Performace",
+                "type": "String"
+            },
+            "sink": {
+                "name": "performance",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "source_file_name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_file_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

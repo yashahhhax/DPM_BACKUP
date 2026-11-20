@@ -1,0 +1,27 @@
+pipeline_name: pl_sharepoint_csv_to_parquet
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [7]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sharepoint_file'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  secret_name: 'cloud-sharepoint-svc-prd-password'
+  schema_name: 'ea_drr'
+  drive_id: 'b!0SuTvDQmqEC-nZURiVe42rocL2Ese6NOuYaxKJKDJORnMg1bp5b3Tr2IqX5ZUemH'
+  # skip_orchestration: true
+
+datasets:
+  - name: budget_forecast_ea
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      path: ""
+      table_name: 'budget_forecast_ea'
+      input_file_name: "Budget_Forecast_EA.csv"
+      use_case: 'ea_drr'

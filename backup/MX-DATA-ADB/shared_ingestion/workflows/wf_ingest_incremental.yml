@@ -1,0 +1,48 @@
+resources:
+  jobs:
+    ingest_incremental:
+      name: ingest_incremental
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN      
+      max_concurrent_runs: 100
+      tasks:
+        - task_key: ingest_incremental
+          notebook_task:
+            notebook_path: ../notebooks/ingestion/ingest_incremental.py
+            source: WORKSPACE
+          min_retry_interval_millis: 0
+          disable_auto_optimization: true
+        - task_key: send_failure_notification
+          depends_on:
+            - task_key: ingest_incremental
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_job_alerts.py
+            base_parameters:
+              job_run_id: "{{job.run_id}}"
+              alert_type: failure
+            source: WORKSPACE
+      webhook_notifications:
+        on_failure:
+          - id: ${var.ingest_teams_webhook}
+      notification_settings:
+        no_alert_for_skipped_runs: true
+        no_alert_for_canceled_runs: true
+      tags:
+        use_case: ingestion
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: ingestion_schema
+          default: ""
+        - name: table_name
+          default: ""
+        - name: is_fullload
+          default: ""
+        - name: pk
+          default: ""
+        - name: timestamp_col
+          default: ""
+        - name: usecase
+          default: shared_ingest

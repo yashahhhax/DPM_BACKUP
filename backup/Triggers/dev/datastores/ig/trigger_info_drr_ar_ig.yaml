@@ -1,0 +1,27 @@
+pipeline_name: pl_sql_server_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [10]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'ig'
+  server_name: '10.140.9.17'
+  user_name: 'farah\svc_mx_data_prd'
+  secret_name: 'onprem-sqlserver-wdws-svc-prd-password'
+  database_name: 'IG_BUSINESS'
+  schema_name: 'dbo'
+  use_case: 'drr_ar_ig'
+  # skip_orchestration: true
+
+datasets:
+  - name: vw_export_payments_erp
+    dataset_parameters:
+      table_name: 'vw_export_payments_erp'
+  - name: vw_export_transactions_erp
+    dataset_parameters:
+      table_name: 'vw_export_transactions_erp'

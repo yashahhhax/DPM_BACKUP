@@ -1,0 +1,304 @@
+{
+	"name": "pl_sharepoint_list_to_parquet",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy SharePoint to parquet",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.03:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 180,
+					"secureOutput": false,
+					"secureInput": true
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SharePointOnlineListSource",
+						"additionalColumns": [
+							{
+								"name": "adf_load_time",
+								"value": {
+									"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+									"type": "Expression"
+								}
+							}
+						],
+						"httpRequestTimeout": "00:05:00"
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"value": "@json(replace(string(pipeline().parameters.column_mapping), '\\n', '\\r\\n'))",
+						"type": "Expression"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_sharepoint_list",
+						"type": "DatasetReference",
+						"parameters": {
+							"site_url": {
+								"value": "@concat(pipeline().parameters.base_url, '/', pipeline().parameters.site)",
+								"type": "Expression"
+							},
+							"tenant_id": {
+								"value": "@pipeline().parameters.tenant_id",
+								"type": "Expression"
+							},
+							"user_name": {
+								"value": "@pipeline().parameters.user_name",
+								"type": "Expression"
+							},
+							"key_vault_uri": {
+								"value": "@pipeline().globalParameters.key_vault_uri",
+								"type": "Expression"
+							},
+							"cert_secret_name": {
+								"value": "@pipeline().parameters.cert_secret_name",
+								"type": "Expression"
+							},
+							"pass_secret_name": {
+								"value": "@pipeline().parameters.pass_secret_name",
+								"type": "Expression"
+							},
+							"list_name": {
+								"value": "@pipeline().parameters.list_name",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_adls_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"storage_account_uri": {
+								"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+								"type": "Expression"
+							},
+							"container_name": {
+								"value": "@pipeline().globalParameters.storage_container_datalake",
+								"type": "Expression"
+							},
+							"datastore": {
+								"value": "@toLower(pipeline().parameters.datastore_name)\n",
+								"type": "Expression"
+							},
+							"dataset": {
+								"value": "@toLower(replace(replace(replace(replace(concat(pipeline().parameters.site, '_', pipeline().parameters.list_name), '/', '_'), '-', '_'),' ', '_'), '__', '_'))",
+								"type": "Expression"
+							},
+							"tablename": {
+								"value": "@toLower(replace(replace(replace(pipeline().parameters.list_name, '-', '_'), ' ', '_'), '__', '_'))",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Delete incremental files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(replace(replace(replace(replace(concat(pipeline().parameters.site, '_', pipeline().parameters.list_name), '/', '_'), '-', '_'),' ', '_'), '__', '_'))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"total_rows": {
+							"value": "@activity('Copy SharePoint to parquet').output.rowsRead",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Delete incremental files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Copy SharePoint to parquet",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_adls_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"storage_account_uri": "@pipeline().globalParameters.storage_account_datalake_uri",
+							"container_name": "@pipeline().globalParameters.storage_container_datalake",
+							"datastore": "@toLower(pipeline().parameters.datastore_name)",
+							"dataset": {
+								"value": "@toLower(replace(replace(replace(replace(concat(pipeline().parameters.site, '_', pipeline().parameters.list_name), '/', '_'), '-', '_'),' ', '_'), '__', '_'))",
+								"type": "Expression"
+							},
+							"tablename": {
+								"value": " ",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": false,
+						"wildcardFileName": "20*",
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(replace(replace(replace(replace(concat(pipeline().parameters.site, '_', pipeline().parameters.list_name), '/', '_'), '-', '_'),' ', '_'), '__', '_'))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 20,
+		"parameters": {
+			"cert_secret_name": {
+				"type": "String",
+				"defaultValue": "cloud-sharepoint-svc-prd-certificate-txt-01"
+			},
+			"pass_secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-sharepoint-svc-prd-certificate-password-01"
+			},
+			"user_name": {
+				"type": "String",
+				"defaultValue": "23548861-9379-4ee8-9b2f-680f630b2020"
+			},
+			"datastore_name": {
+				"type": "String",
+				"defaultValue": "sharepoint_list"
+			},
+			"tenant_id": {
+				"type": "String",
+				"defaultValue": "0b0b76ba-8e32-4c41-8130-65ed5ca4353c"
+			},
+			"column_mapping": {
+				"type": "Object"
+			},
+			"use_case": {
+				"type": "string"
+			},
+			"base_url": {
+				"type": "String",
+				"defaultValue": "https://miralgroup.sharepoint.com/sites"
+			},
+			"list_name": {
+				"type": "String",
+				"defaultValue": "TLPRevenueCommission"
+			},
+			"site": {
+				"type": "string",
+				"defaultValue": "FARAHFLFIN/TLPFinance"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.list_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

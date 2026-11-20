@@ -1,0 +1,143 @@
+{
+	"name": "pl_ycautomation_genesys",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute_adb_ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@pipeline().parameters.table_name",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.dataset_name",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"start_date\": \"@{pipeline().parameters.start_date}\",\n  \"end_date\": \"@{pipeline().parameters.end_date}\",\n  \"secret_name\": \"@{pipeline().parameters.secret_name}\",\n  \"datastore_name\": \"@{pipeline().parameters.datastore_name}\",\n  \"dataset_name\": \"@{pipeline().parameters.dataset_name}\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute_adb_ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@pipeline().parameters.table_name",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"start_date": {
+				"type": "string"
+			},
+			"end_date": {
+				"type": "string"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "ycautomation"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_ycautomation_genesys"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "genesys"
+			},
+			"dataset_name": {
+				"type": "string",
+				"defaultValue": "ycautomation"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "genesys_chat_user_details"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-genesys-api-prd-apikey"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"folder": {
+			"name": "YCAUTOMATION"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

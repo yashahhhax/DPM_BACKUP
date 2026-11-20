@@ -1,0 +1,27 @@
+{
+	"name": "ls_azure_sql_managed_identity",
+	"properties": {
+		"parameters": {
+			"server_name": {
+				"type": "String"
+			},
+			"database_name": {
+				"type": "String",
+				"defaultValue": "watermarks"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "@{linkedService().server_name}",
+			"database": "@{linkedService().database_name}",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

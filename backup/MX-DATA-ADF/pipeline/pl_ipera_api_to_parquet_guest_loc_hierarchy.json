@@ -1,0 +1,182 @@
+{
+	"name": "pl_ipera_api_to_parquet_guest_loc_hierarchy",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set relative URL",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "relative_filter_url",
+					"value": {
+						"value": "@concat(pipeline().parameters.relative_url,'?per_page=',variables('per_page'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Set relative URL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(concat(pipeline().parameters.dataset_name,'_',pipeline().parameters.table_name))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"base_url\" : \"@{pipeline().parameters.base_url}\",\n  \"relative_url\":\"@{variables('relative_filter_url')}\",\n  \"secret_key\":\"@{pipeline().parameters.secret_name}\",\n  \"datastore_name\": \"@{toLower(pipeline().parameters.datastore_name)}\",\n  \"dataset_name\": \"@{toLower(pipeline().parameters.dataset_name)}\",\n  \"table_name\": \"@{toLower(pipeline().parameters.table_name)}\",\n  \"write_mode\": \"overwrite\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure_ingest",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.dataset_name,'_',pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 1,
+		"parameters": {
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-iperawifi-api-prd-swad-apikey"
+			},
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://api.iperawifi.com/api/v1/"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "ipera"
+			},
+			"dataset_name": {
+				"type": "string",
+				"defaultValue": "guest_loc_hierarchy"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "swad"
+			},
+			"relative_url": {
+				"type": "string",
+				"defaultValue": "locations/hierarchy"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_ipera_api_to_parquet"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "ipera"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"filter_date": {
+				"type": "String"
+			},
+			"relative_filter_url": {
+				"type": "String"
+			},
+			"per_page": {
+				"type": "String",
+				"defaultValue": "100"
+			}
+		},
+		"folder": {
+			"name": "Ipera"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(concat(pipeline().parameters.dataset_name,'_',pipeline().parameters.table_name))",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

@@ -1,0 +1,25 @@
+pipeline_name: pl_ycautomation_genesys
+ 
+schedule:
+  frequency: Month
+  interval: 1
+  monthDays: [29]
+  hours: [16]
+  minutes: [45]
+
+activated: false
+ 
+datastore_parameters:
+  datastore_name: 'genesys'          
+  dataset_name: 'ycautomation'
+  workflow_name: 'wf_ingest_ycautomation_genesys'
+  start_date: "2025-07-01"
+  end_date: "2025-07-31"
+  secret_name: "cloud-genesys-api-prd-apikey"
+  use_case: 'ycautomation'
+  # skip_orchestration: true
+
+datasets:
+  - name: genesys_chat_user_agg_details
+    dataset_parameters:
+      table_name: 'genesys_chat_user_agg_details'

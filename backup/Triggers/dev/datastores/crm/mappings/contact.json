@@ -1,0 +1,305 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "contactid",
+                "type": "Guid"
+            },
+            "sink": {
+                "name": "contactid",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "emailaddress1",
+                "type": "String"
+            },
+            "sink": {
+                "name": "emailaddress1",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "emailaddress3",
+                "type": "String"
+            },
+            "sink": {
+                "name": "emailaddress3",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "lastname",
+                "type": "String"
+            },
+            "sink": {
+                "name": "lastname",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "firstname",
+                "type": "String"
+            },
+            "sink": {
+                "name": "firstname",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "yc_omniaccountid",
+                "type": "String"
+            },
+            "sink": {
+                "name": "yc_omniaccountid",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "address1_postofficebox",
+                "type": "String"
+            },
+            "sink": {
+                "name": "address1_postofficebox",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "birthdate",
+                "type": "DateTime"
+            },
+            "sink": {
+                "name": "birthdate",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "fullname",
+                "type": "String"
+            },
+            "sink": {
+                "name": "fullname",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "dot_primaryaddresscity",
+                "type": "Guid"
+            },
+            "sink": {
+                "name": "dot_primaryaddresscity",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "address1_composite",
+                "type": "String"
+            },
+            "sink": {
+                "name": "address1_composite",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "dot_primaryaddresscountry",
+                "type": "Guid"
+            },
+            "sink": {
+                "name": "dot_primaryaddresscountry",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "dot_contacttravelboxid",
+                "type": "String"
+            },
+            "sink": {
+                "name": "dot_contacttravelboxid",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "mobilephone",
+                "type": "String"
+            },
+            "sink": {
+                "name": "mobilephone",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "gendercode",
+                "type": "Int32"
+            },
+            "sink": {
+                "name": "gendercode",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "yc_yasid",
+                "type": "String"
+            },
+            "sink": {
+                "name": "yc_yasid",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "fax",
+                "type": "String"
+            },
+            "sink": {
+                "name": "fax",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "emailaddress2",
+                "type": "String"
+            },
+            "sink": {
+                "name": "emailaddress2",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "telephone1",
+                "type": "String"
+            },
+            "sink": {
+                "name": "telephone1",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "parentcustomerid",
+                "type": "Guid"
+            },
+            "sink": {
+                "name": "parentcustomerid",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "dot_nationalityid",
+                "type": "Guid"
+            },
+            "sink": {
+                "name": "dot_nationalityid",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "customertypecode",
+                "type": "Int32"
+            },
+            "sink": {
+                "name": "customertypecode",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "dot_preferredlanguage",
+                "type": "Int32"
+            },
+            "sink": {
+                "name": "dot_preferredlanguage",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "statuscode",
+                "type": "Int32"
+            },
+            "sink": {
+                "name": "statuscode",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "jobtitle",
+                "type": "String"
+            },
+            "sink": {
+                "name": "jobtitle",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "yc_customermdmid",
+                "type": "String"
+            },
+            "sink": {
+                "name": "yc_customermdmid",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "salutation",
+                "type": "String"
+            },
+            "sink": {
+                "name": "salutation",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "createdon",
+                "type": "DateTime"
+            },
+            "sink": {
+                "name": "createdon",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "modifiedon",
+                "type": "DateTime"
+            },
+            "sink": {
+                "name": "modifiedon",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

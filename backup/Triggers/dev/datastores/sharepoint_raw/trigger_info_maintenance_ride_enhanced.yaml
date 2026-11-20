@@ -1,0 +1,153 @@
+pipeline_name: pl_sharepoint_binary_to_binary_enhanced
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [20]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sharepoint_file'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  secret_name: 'cloud-sharepoint-svc-prd-password'
+  use_case: 'maintenance_ride'
+  schema_name: 'maintenance_ride'
+  workflow_name: 'wf_ingest_maintenance_ride_sharepoint'
+  # skip_orchestration: true
+
+datasets:
+  # dynamic datasets (uses current date)
+  - name: wbw_cleaned
+    dataset_parameters:
+      site: 'FARAHWBW'
+      path: "@concat('FARAHWBW/WBWET/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -1), 'yyyy'), '/')"
+      table_name: 'wbw_cleaned'
+      input_file_name: "@concat(formatDateTime(addDays(utcnow(), -1), 'MM'), '. WBW Ride Performance Report - ', formatDateTime(addDays(utcnow(), -1), 'MMMM yyyy'), '.xlsx')"
+      directory: "@concat('maintenance/wbw/', formatDateTime(addDays(utcnow(), -1), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -1), 'MM'))))"
+      workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -1), 'MM'), '. WBW Ride Performance Report - ', formatDateTime(addDays(utcnow(), -1), 'MMMM yyyy'), '.xlsx\", \"park\": \"wbw\"}')"
+  # - name: wbw_cleaned_prev1
+  #   dataset_parameters:
+  #     site: 'FARAHWBW'
+  #     path: "@concat('FARAHWBW/WBWET/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -32), 'yyyy'), '/')"
+  #     table_name: 'wbw_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -32), 'MM'), '. WBW Ride Performance Report - ', formatDateTime(addDays(utcnow(), -32), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/wbw/', formatDateTime(addDays(utcnow(), -32), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -32), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -32), 'MM'), '. WBW Ride Performance Report - ', formatDateTime(addDays(utcnow(), -32), 'MMMM yyyy'), '.xlsx\", \"park\": \"wbw\"}')"
+  # - name: wbw_cleaned_prev2
+  #   dataset_parameters:
+  #     site: 'FARAHWBW'
+  #     path: "@concat('FARAHWBW/WBWET/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -63), 'yyyy'), '/')"
+  #     table_name: 'wbw_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -63), 'MM'), '. WBW Ride Performance Report - ', formatDateTime(addDays(utcnow(), -63), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/wbw/', formatDateTime(addDays(utcnow(), -63), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -63), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -63), 'MM'), '. WBW Ride Performance Report - ', formatDateTime(addDays(utcnow(), -63), 'MMMM yyyy'), '.xlsx\", \"park\": \"wbw\"}')"
+  # - name: wbw_cleaned_prev3
+  #   dataset_parameters:
+  #     site: 'FARAHWBW'
+  #     path: "@concat('FARAHWBW/WBWET/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -94), 'yyyy'), '/')"
+  #     table_name: 'wbw_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -94), 'MM'), '. WBW Ride Performance Report - ', formatDateTime(addDays(utcnow(), -94), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/wbw/', formatDateTime(addDays(utcnow(), -94), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -94), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -94), 'MM'), '. WBW Ride Performance Report - ', formatDateTime(addDays(utcnow(), -94), 'MMMM yyyy'), '.xlsx\", \"park\": \"wbw\"}')"
+
+  - name: yww_cleaned
+    dataset_parameters:
+      site: 'FARAHFLEO/YWWET'
+      path: "@concat('FARAHFLEO/YWWET/Public/Daily Reports/Operations and Maintenance Uptime, Downtime and Throughput Report/', formatDateTime(addDays(utcnow(), -1), 'yyyy'), '/')"
+      table_name: 'yww_cleaned'
+      input_file_name: "@concat(formatDateTime(addDays(utcnow(), -1), 'MM'), ' ', formatDateTime(addDays(utcnow(), -1), 'MMMM yyyy'), '.xlsx')"
+      directory: "@concat('maintenance/ywwet/', formatDateTime(addDays(utcnow(), -1), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -1), 'MM'))))"
+      workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -1), 'MM'), ' ', formatDateTime(addDays(utcnow(), -1), 'MMMM yyyy'), '.xlsx\", \"park\": \"yww\"}')"
+  # - name: yww_cleaned_prev1
+  #   dataset_parameters:
+  #     site: 'FARAHYWWET'
+  #     path: "@concat('FARAHFLEO/YWWET/Public/Daily Reports/Operations and Maintenance Uptime, Downtime and Throughput Report/', formatDateTime(addDays(utcnow(), -32), 'yyyy'), '/')"
+  #     table_name: 'yww_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -32), 'MM'), ' ', formatDateTime(addDays(utcnow(), -32), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/ywwet/', formatDateTime(addDays(utcnow(), -32), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -32), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -32), 'MM'), ' ', formatDateTime(addDays(utcnow(), -32), 'MMMM yyyy'), '.xlsx\", \"park\": \"yww\"}')"
+  # - name: yww_cleaned_prev2
+  #   dataset_parameters:
+  #     site: 'FARAHYWWET'
+  #     path: "@concat('FARAHFLEO/YWWET/Public/Daily Reports/Operations and Maintenance Uptime, Downtime and Throughput Report/', formatDateTime(addDays(utcnow(), -63), 'yyyy'), '/')"
+  #     table_name: 'yww_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -63), 'MM'), ' ', formatDateTime(addDays(utcnow(), -63), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/ywwet/', formatDateTime(addDays(utcnow(), -63), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -63), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -63), 'MM'), ' ', formatDateTime(addDays(utcnow(), -63), 'MMMM yyyy'), '.xlsx\", \"park\": \"yww\"}')"
+  # - name: yww_cleaned_prev3
+  #   dataset_parameters:
+  #     site: 'FARAHYWWET'
+  #     path: "@concat('FARAHFLEO/YWWET/Public/Daily Reports/Operations and Maintenance Uptime, Downtime and Throughput Report/', formatDateTime(addDays(utcnow(), -94), 'yyyy'), '/')"
+  #     table_name: 'yww_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -94), 'MM'), ' ', formatDateTime(addDays(utcnow(), -94), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/ywwet/', formatDateTime(addDays(utcnow(), -94), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -94), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -94), 'MM'), ' ', formatDateTime(addDays(utcnow(), -94), 'MMMM yyyy'), '.xlsx\", \"park\": \"yww\"}')"
+
+  - name: fwad_cleaned
+    dataset_parameters:
+      site: 'FARAHFLEO/FWADET'
+      path: "@concat('FARAHFLEO/FWADET/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -1), 'yyyy'), '/')"
+      table_name: 'fwad_cleaned'
+      input_file_name: "@concat(formatDateTime(addDays(utcnow(), -1), 'MM'), '. FWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -1), 'MMMM yyyy'), '.xlsx')"
+      directory: "@concat('maintenance/fwad/', formatDateTime(addDays(utcnow(), -1), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -1), 'MM'))))"
+      workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -1), 'MM'), '. FWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -1), 'MMMM yyyy'), '.xlsx\", \"park\": \"fwad\"}')"
+  # - name: fwad_cleaned_prev1
+  #   dataset_parameters:
+  #     site: 'FARAHFLEO/FWADET'
+  #     path: "@concat('FARAHFLEO/FWADET/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -32), 'yyyy'), '/')"
+  #     table_name: 'fwad_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -32), 'MM'), '. FWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -32), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/fwad/', formatDateTime(addDays(utcnow(), -32), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -32), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -32), 'MM'), '. FWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -32), 'MMMM yyyy'), '.xlsx\", \"park\": \"fwad\"}')"
+  # - name: fwad_cleaned_prev2
+  #   dataset_parameters:
+  #     site: 'FARAHFLEO/FWADET'
+  #     path: "@concat('FARAHFLEO/FWADET/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -63), 'yyyy'), '/')"
+  #     table_name: 'fwad_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -63), 'MM'), '. FWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -63), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/fwad/', formatDateTime(addDays(utcnow(), -63), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -63), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -63), 'MM'), '. FWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -63), 'MMMM yyyy'), '.xlsx\", \"park\": \"fwad\"}')"
+  # - name: fwad_cleaned_prev3
+  #   dataset_parameters:
+  #     site: 'FARAHFLEO/FWADET'
+  #     path: "@concat('FARAHFLEO/FWADET/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -94), 'yyyy'), '/')"
+  #     table_name: 'fwad_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -94), 'MM'), '. FWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -94), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/fwad/', formatDateTime(addDays(utcnow(), -94), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -94), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -94), 'MM'), '. FWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -94), 'MMMM yyyy'), '.xlsx\", \"park\": \"fwad\"}')"
+
+  - name: swad_cleaned
+    dataset_parameters:
+      site: 'FARAHSWAD/EO'
+      path: "@concat('FARAHSWAD/EO/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -1), 'yyyy'), '/')"
+      table_name: 'swad_cleaned'
+      input_file_name: "@concat(formatDateTime(addDays(utcnow(), -1), 'MM'), '. SWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -1), 'MMMM yyyy'), '.xlsx')"
+      directory: "@concat('maintenance/swad/', formatDateTime(addDays(utcnow(), -1), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -1), 'MM'))))"
+      workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -1), 'MM'), '. SWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -1), 'MMMM yyyy'), '.xlsx\", \"park\": \"swad\"}')"
+  # - name: swad_cleaned_prev1
+  #   dataset_parameters:
+  #     site: 'FARAHSWAD/EO'
+  #     path: "@concat('FARAHSWAD/EO/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -32), 'yyyy'), '/')"
+  #     table_name: 'swad_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -32), 'MM'), '. SWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -32), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/swad/', formatDateTime(addDays(utcnow(), -32), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -32), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -32), 'MM'), '. SWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -32), 'MMMM yyyy'), '.xlsx\", \"park\": \"swad\"}')"
+  # - name: swad_cleaned_prev2
+  #   dataset_parameters:
+  #     site: 'FARAHSWAD/EO'
+  #     path: "@concat('FARAHSWAD/EO/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -63), 'yyyy'), '/')"
+  #     table_name: 'swad_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -63), 'MM'), '. SWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -63), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/swad/', formatDateTime(addDays(utcnow(), -63), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -63), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -63), 'MM'), '. SWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -63), 'MMMM yyyy'), '.xlsx\", \"park\": \"swad\"}')"
+  # - name: swad_cleaned_prev3
+  #   dataset_parameters:
+  #     site: 'FARAHSWAD/EO'
+  #     path: "@concat('FARAHSWAD/EO/Ride Downtime Report/', formatDateTime(addDays(utcnow(), -94), 'yyyy'), '/')"
+  #     table_name: 'swad_cleaned'
+  #     input_file_name: "@concat(formatDateTime(addDays(utcnow(), -94), 'MM'), '. SWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -94), 'MMMM yyyy'), '.xlsx')"
+  #     directory: "@concat('maintenance/swad/', formatDateTime(addDays(utcnow(), -94), 'yyyy'), '/', string(int(formatDateTime(addDays(utcnow(), -94), 'MM'))))"
+  #     workflow_parameters: "@concat('{\"input_file_name\": \"', formatDateTime(addDays(utcnow(), -94), 'MM'), '. SWAD Ride Performance Report - ', formatDateTime(addDays(utcnow(), -94), 'MMMM yyyy'), '.xlsx\", \"park\": \"swad\"}')"

@@ -1,0 +1,65 @@
+pipeline_name: pl_sharepoint_excel_to_parquet
+
+schedule:
+  frequency: Month
+  interval: 1
+  monthDays: [25]
+  hours: [17]
+  minutes: [00]
+
+activated: false
+
+datastore_parameters:          
+  secret_name: 'cloud-sharepoint-svc-prd-password'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  datastore_name: 'sharepoint_file'
+  schema_name: 'ycautomation'
+  site: 'VOGTeam'
+  use_case: 'ycautomation'
+  first_row_header: 'true'
+  path: 'VOGTeam/Shared Documents/Reports and WFM/YC Incentives Automation/Payfort Revenue/'
+  sheet_name: 'ethara'
+  # skip_orchestration: true
+
+datasets:
+  - name: payfort_revenue_20240630           
+    dataset_parameters:
+      input_file_name: "Payfort_Revenue_20240630.xlsx"
+      table_name: 'payfort_revenue_ethara'
+  - name: payfort_revenue_20240831            
+    dataset_parameters:
+      input_file_name: "Payfort_Revenue_20240831.xlsx"
+      table_name: 'payfort_revenue_ethara'
+  - name: payfort_revenue_20240930            
+    dataset_parameters:
+      input_file_name: "Payfort_Revenue_20240930.xlsx"
+      table_name: 'payfort_revenue_ethara'
+  - name: payfort_revenue_20241031           
+    dataset_parameters:
+      input_file_name: "Payfort_Revenue_20241031.xlsx"
+      table_name: 'payfort_revenue_ethara'
+  - name: payfort_revenue_20241130           
+    dataset_parameters:
+      input_file_name: "Payfort_Revenue_20241130.xlsx"
+      table_name: 'payfort_revenue_ethara'
+  - name: payfort_revenue_20241231           
+    dataset_parameters:
+      input_file_name: "Payfort_Revenue_20241231.xlsx"
+      table_name: 'payfort_revenue_ethara'
+  - name: payfort_revenue_20250131            
+    dataset_parameters:
+      input_file_name: "Payfort_Revenue_20250131.xlsx"
+      table_name: 'payfort_revenue_ethara'
+  - name: payfort_revenue_20250228           
+    dataset_parameters:
+      input_file_name: "Payfort_Revenue_20250228.xlsx"
+      table_name: 'payfort_revenue_ethara'
+  - name: payfort_revenue_20250331           
+    dataset_parameters:
+      input_file_name: "Payfort_Revenue_20250331.xlsx"
+      table_name: 'payfort_revenue_ethara'
+  - name: payfort_revenue_20250430            
+    dataset_parameters:
+      input_file_name: "Payfort_Revenue_20250430.xlsx"
+      table_name: 'payfort_revenue_ethara'

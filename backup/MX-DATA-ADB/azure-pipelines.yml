@@ -1,0 +1,47 @@
+name: DEV
+
+resources:
+  repositories:
+    - repository: templateRepo
+      type: git
+      name: MX-DATA-DEVOPS-TEMPLATES
+      ref: refs/heads/main
+    - repository: sharedRepo
+      type: git
+      name: MX-DATA-ADB 
+      ref: $(Build.SourceBranch)
+
+pr:
+  autoCancel: false
+
+trigger:
+  branches:
+    include:
+    - development
+
+parameters:
+- name: skipApply
+  displayName: Skip Apply?
+  type: boolean
+  default: false
+
+stages:
+# Dev validate
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: 'Transformation Dev'
+    service_connection: 'sp-mx-data-cicd-dev-01'
+    agent_pool_name: 'data-platform'
+    environment: 'dev'
+    folder_name: 'shared_transformation'
+    skip_apply: true
+    job_to_run: wf_workflow_orchestration_config
+
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: 'Ingestion Dev'
+    service_connection: 'sp-mx-data-cicd-dev-01'
+    agent_pool_name: 'data-platform'
+    environment: 'dev'
+    folder_name: 'shared_ingestion'
+    skip_apply: ${{ parameters.skipApply }}

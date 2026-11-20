@@ -1,0 +1,104 @@
+pipeline_name: pl_oracle_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [03]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'ebs'
+  server_name: '10.19.10.5'
+  service_name: 'ERPPROD'
+  user_name: 'XXAPPS_RO'
+  secret_name: 'onprem-ebs-oracle-svc-prd-password'
+  port: '1531'
+  use_case: 'inventory'
+  # skip_orchestration: true
+
+datasets:
+  - name: ap_suppliers
+    dataset_parameters:
+      schema_name: 'AP'
+      table_name: 'AP_SUPPLIERS'
+  - name: cst_item_costs
+    dataset_parameters:
+      schema_name: 'BOM'
+      table_name: 'CST_ITEM_COSTS'
+  - name: mtl_categories_b
+    dataset_parameters:
+      schema_name: 'INV'
+      table_name: 'MTL_CATEGORIES_B'
+  - name: mtl_category_sets_b
+    dataset_parameters:
+      schema_name: 'INV'
+      table_name: 'MTL_CATEGORY_SETS_B'
+  - name: mtl_item_categories
+    dataset_parameters:
+      schema_name: 'INV'
+      table_name: 'MTL_ITEM_CATEGORIES'
+  - name: mtl_item_locations
+    dataset_parameters:
+      schema_name: 'INV'
+      table_name: 'MTL_ITEM_LOCATIONS'
+  - name: mtl_item_sub_inventories
+    dataset_parameters:
+      schema_name: 'INV'
+      table_name: 'MTL_ITEM_SUB_INVENTORIES'
+  - name: mtl_material_transactions
+    dataset_parameters:
+      schema_name: 'INV'
+      table_name: 'MTL_MATERIAL_TRANSACTIONS'
+  - name: mtl_onhand_quantities_detail
+    dataset_parameters:
+      schema_name: 'INV'
+      table_name: 'MTL_ONHAND_QUANTITIES_DETAIL'
+  - name: mtl_physical_adjustments
+    dataset_parameters:
+      schema_name: 'INV'
+      table_name: 'MTL_PHYSICAL_ADJUSTMENTS'
+  - name: mtl_secondary_inventories
+    dataset_parameters:
+      schema_name: 'INV'
+      table_name: 'MTL_SECONDARY_INVENTORIES'
+  - name: mtl_system_items_b
+    dataset_parameters:
+      schema_name: 'INV'
+      table_name: 'MTL_SYSTEM_ITEMS_B'
+  - name: mtl_transaction_types
+    dataset_parameters:
+      schema_name: 'INV'
+      table_name: 'MTL_TRANSACTION_TYPES'
+  - name: po_headers_all
+    dataset_parameters:
+      schema_name: 'PO'
+      table_name: 'PO_HEADERS_ALL'
+  - name: po_line_locations_all
+    dataset_parameters:
+      schema_name: 'PO'
+      table_name: 'PO_LINE_LOCATIONS_ALL'
+  - name: po_lines_all
+    dataset_parameters:
+      schema_name: 'PO'
+      table_name: 'PO_LINES_ALL'
+  - name: po_requisition_headers_all
+    dataset_parameters:
+      schema_name: 'PO'
+      table_name: 'PO_REQUISITION_HEADERS_ALL'
+  - name: po_requisition_lines_all
+    dataset_parameters:
+      schema_name: 'PO'
+      table_name: 'PO_REQUISITION_LINES_ALL'
+  - name: rcv_shipment_headers
+    dataset_parameters:
+      schema_name: 'PO'
+      table_name: 'RCV_SHIPMENT_HEADERS'
+  - name: rcv_supply
+    dataset_parameters:
+      schema_name: 'PO'
+      table_name: 'RCV_SUPPLY'
+  - name: rcv_transactions
+    dataset_parameters:
+      schema_name: 'PO'
+      table_name: 'RCV_TRANSACTIONS'

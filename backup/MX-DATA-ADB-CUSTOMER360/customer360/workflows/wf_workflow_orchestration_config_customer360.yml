@@ -1,0 +1,32 @@
+resources:
+  jobs:
+    wf_workflow_orchestration_config_customer360:
+      name: wf_workflow_orchestration_config_customer360
+      tasks:
+        - task_key: register_dependencies
+          notebook_task:
+            notebook_path: ../notebooks/orchestration/register_dependencies.py
+            base_parameters:
+              environment: ${var.environment}
+            source: WORKSPACE
+          min_retry_interval_millis: 0
+          disable_auto_optimization: true
+        - task_key: send_failure_notification
+          depends_on:
+            - task_key: register_dependencies
+          run_if: AT_LEAST_ONE_FAILED
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_job_alerts.py
+            base_parameters:
+              job_run_id: "{{job.run_id}}"
+              alert_type: failure
+            source: WORKSPACE          
+      tags:
+        use_case: ingestion
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: usecase
+          default: customer360

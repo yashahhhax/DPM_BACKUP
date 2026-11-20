@@ -1,0 +1,67 @@
+{
+	"name": "ds_azure_sql",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_sql",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"server_name": {
+					"value": "@dataset().server_name",
+					"type": "Expression"
+				},
+				"user_name": {
+					"value": "@dataset().user_name",
+					"type": "Expression"
+				},
+				"secret_name": {
+					"value": "@dataset().secret_name",
+					"type": "Expression"
+				},
+				"database_name": {
+					"value": "@dataset().database_name",
+					"type": "Expression"
+				},
+				"key_vault_uri": {
+					"value": "@dataset().key_vault_uri",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"server_name": {
+				"type": "String"
+			},
+			"user_name": {
+				"type": "String"
+			},
+			"secret_name": {
+				"type": "String"
+			},
+			"database_name": {
+				"type": "String"
+			},
+			"key_vault_uri": {
+				"type": "String"
+			},
+			"schema_name": {
+				"type": "String"
+			},
+			"table_name": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schema_name",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().table_name",
+				"type": "Expression"
+			}
+		}
+	}
+}

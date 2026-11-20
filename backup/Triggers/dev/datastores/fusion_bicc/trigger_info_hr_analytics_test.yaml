@@ -1,0 +1,183 @@
+pipeline_name: pl_oracle_fusion_bicc_hr_incremental
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [21]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'fusion_bicc_hr'
+  user_name: 'a807424c924ac446d01719e15e2519d1ec752527'
+  secret_name: 'cloud-fusion-oci-svc-uat-password'
+  base_url: 'https://axzjleyzf4ti.compat.objectstorage.me-dubai-1.oraclecloud.com'
+  source_path: 'Fusion_To_HCMAzure_SIT'
+  use_case: 'hr_analytics'
+  skip_backup: false
+  skip_exec_adb: false
+  full_load: true
+  full_load_date: '2026-02-01'
+  # skip_orchestration: true
+
+datasets:
+  - name: hcmtopmodelanalyticsglobalam_contentam_coursepvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_coursepvo'
+      pk: 'CourseDEOCourseId, CourseDEOEffectiveEndDate, CourseDEOEffectiveStartDate'
+      load_time_column: 'CourseDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_learningitempvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_learningitempvo'
+      pk: 'LearningItemDEOLearningItemId,LearningItemDEOEffectiveStartDate,LearningItemDEOEffectiveEndDate'
+      load_time_column: 'LearningItemDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_learningrelatedcontentpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_learningrelatedcontentpvo'
+      pk: 'RelatedContentDEOContentId, RelatedContentDEOEffectiveEndDate, RelatedContentDEOEffectiveStartDate'
+      load_time_column: 'RelatedContentDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_contentrootpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_contentrootpvo'
+      pk: 'ContentRootDEOLearningItemId, ContentRootDEOEffectiveStartDate , ContentRootDEOEffectiveEndDatee'
+      load_time_column: 'ContentRootDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_sectionhierarchypvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_sectionhierarchypvo'
+      pk: 'ELearningDEOEffectiveEndDate, ELearningDEOEffectiveStartDate, ELearningDEOElearningId, LearningItemHierarchyDEOEffectiveEndDate, LearningItemHierarchyDEOEffectiveStartDate, LearningItemHierarchyDEOHierarchyId'
+      load_time_column: 'ContentDEOLastUpdateDate, ELearningDEOLastUpdateDate, LearningItemHierarchyDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_eventassignmentpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_eventassignmentpvo'
+      pk: 'EventAssignmentDEOEventAssignmentId, EventAssignmentDEOEffectiveStartDate, EventAssignmentDEOEffectiveEndDate'
+      load_time_column: 'EventAssignmentDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_eventassignmentrecordpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_eventassignmentrecordpvo'
+      pk: 'AssignmentRecordDEOAssignmentRecordId, AssignmentRecordDEOEffectiveEndDate, AssignmentRecordDEOEffectiveStartDate'
+      load_time_column: 'AssignmentRecordDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_eventassignmenttranslationpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_eventassignmenttranslationpvo'
+      pk: 'EventAssignmentTranslationDEOEventAssignmentId, EventAssignmentTranslationDEOLanguage, EventAssignmentTranslationDEOEffectiveStartDate, EventAssignmentTranslationDEOEffectiveEndDate'
+      load_time_column: 'EventAssignmentTranslationDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_eventattemptpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_eventattemptpvo'
+      pk: 'EventAttemptPEOEventAttemptId'
+      load_time_column: 'EventAttemptPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_eventincidentpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_eventincidentpvo'
+      pk: 'EventIncidentPEOEventIncidentId'
+      load_time_column: 'EventIncidentPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_eventsocialpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_eventsocialpvo'
+      pk: 'EventSocialPEOEventSocialId'
+      load_time_column: 'EventSocialPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_learningplanspvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_learningplanspvo'
+      pk: 'LearningPlanDEOLearningPlanId, LearningPlanDEOEffectiveEndDate, LearningPlanDEOEffectiveStartDate'
+      load_time_column: 'LearningPlanDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_learningplanrecordspvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_learningplanrecordspvo'
+      pk: 'PlanRecordsDEOPlanRecordId, PlanRecordsDEOEffectiveEndDate, PlanRecordsDEOEffectiveStartDate'
+      load_time_column: 'PlanRecordsDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_learningplanprofilespvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_learningplanprofilespvo'
+      pk: 'PlanProfileDEOPlanProfileId, PlanProfileDEOEffectiveStartDate, PlanProfileDEOEffectiveEndDate'
+      load_time_column: 'PlanProfileDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_learningpricingcomponentspvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_learningpricingcomponentspvo'
+      pk: 'LearningPricingComponentsDEOPricingComponentId, LearningPricingComponentsDEOEffectiveStartDate, LearningPricingComponentsDEOEffectiveEndDate'
+      load_time_column: 'LearningPricingComponentsDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_learningpricingrulespvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_learningpricingrulespvo'
+      pk: 'LearningPricingRulesDEOPricingRuleId, LearningPricingRulesDEOEffectiveStartDate, LearningPricingRulesDEOEffectiveEndDate'
+      load_time_column: 'LearningPricingRulesDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_trainingsupplierresourcepvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_trainingsupplierresourcepvo'
+      pk: 'TrainingSupplierResourcePEOResourceId'
+      load_time_column: 'TrainingSupplierResourcePEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_activitiespvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_activitiespvo'
+      pk: 'ActivitiesDEOActivityId, ActivitiesDEOEffectiveEndDate, ActivitiesDEOEffectiveStartDate'
+      load_time_column: 'ActivitiesDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_assignmentrulespvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_assignmentrulespvo'
+      pk: 'AssignmentRulePEOAssignmentRuleId'
+      load_time_column: 'AssignmentRulePEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_assignmenttaskspvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_assignmenttaskspvo'
+      pk: 'AssignmentTasksDEOAssignmentTaskId, AssignmentTasksDEOEffectiveEndDate, AssignmentTasksDEOEffectiveStartDate'
+      load_time_column: 'AssignmentTasksDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_resourcepvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_resourcepvo'
+      pk: 'ResourcePEOResourceId'
+      load_time_column: 'ResourcePEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_contentam_eventassignmentdestinationpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_contentam_eventassignmentdestinationpvo'
+      pk: 'EventAssignmentDestinationDEOAssignmentDestinationId, EventAssignmentDestinationDEOEffectiveStartDate, EventAssignmentDestinationDEOEffectiveEndDate'
+      load_time_column: 'EventAssignmentDestinationDEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmgoalcoream_careerdevgoalpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmgoalcoream_careerdevgoalpvo'
+      pk: 'GoalId'
+      load_time_column: 'AssignedByPEOLastUpdateDate, GoalAlignmentPEOLastUpdateDate, GoalPEOLastUpdateDate, GoalPlanGoalPEOLastUpdateDate, LastModifiedByPEOLastUpdateDate, MeasurementPEOLastUpdateDate2_1, RequesterPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmgoalcoream_developmentgoalpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmgoalcoream_developmentgoalpvo'
+      pk: 'GoalId'
+      load_time_column: 'AssignedByPEOLastUpdateDate, GoalAlignmentPEOLastUpdateDate, GoalPEOLastUpdateDate, GoalPlanGoalPEOLastUpdateDate, LastModifiedByPEOLastUpdateDate, LastUpdateDate, LastUpdateDate1, LastUpdateDate3, MeasurementPEOLastUpdateDate2_1, RequesterPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmgoalcoream_developmentgoalplanpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmgoalcoream_developmentgoalplanpvo'
+      pk: 'GoalPlanId'
+      load_time_column: 'GoalPlanBPEOLastUpdateDate, GoalPlanTranslationPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmgoalcoream_goalplangoalpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmgoalcoream_goalplangoalpvo'
+      pk: 'GoalPlanGoalId'
+      load_time_column: 'GoalPlanAssgPEOLastUpdateDate1, GoalPlanGoalPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmgoalcoream_personalgoalpvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmgoalcoream_personalgoalpvo'
+      pk: 'GoalId'
+      load_time_column: 'AssignedByPEOLastUpdateDate, GoalAlignmentPEOLastUpdateDate, GoalPEOLastUpdateDate, GoalPlanGoalPEOLastUpdateDate, LastModifiedByPEOLastUpdateDate, MeasurementPEOLastUpdateDate2_1, RequesterPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_hcmgoalcoream_contentitemvaluepvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_hcmgoalcoream_contentitemvaluepvo'
+      pk: 'BusinessGroupId, ContentItemId, GoalTargetOutcomeId, Language'
+      load_time_column: 'ContentItemBPEOLastUpdateDate, ContentItemTranslationPEOLastUpdateDate, GoalPEOLastUpdateDate, GoalTargetOutcomePEOLastUpdateDate, RatingLevelBPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_checklistam_checklisttemplatepvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_checklistam_checklisttemplatepvo'
+      pk: 'ChecklistId'
+      load_time_column: 'ChecklistTemplatePEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_checklistam_checklisttasktemplatepvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_checklistam_checklisttasktemplatepvo'
+      pk: 'TaskInChecklistId'
+      load_time_column: 'ChecklistTaskTemplatePEOLastUpdateDate, ChecklistTaskTemplateTranslationPEOLastUpdateDate, ChecklistTemplatePEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_checklistam_allocatedchecklistspvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_checklistam_allocatedchecklistspvo'
+      pk: 'AllocatedChecklistId'
+      load_time_column: 'AllocatedChecklistsPEOLastUpdateDate'
+  - name: hcmtopmodelanalyticsglobalam_checklistam_allocatedchecklisttaskspvo
+    dataset_parameters:
+      table_name: 'hcmtopmodelanalyticsglobalam_checklistam_allocatedchecklisttaskspvo'
+      pk: 'AllocatedTaskId'
+      load_time_column: 'AllocatedChecklistTasksPEOLastUpdateDate, AllocatedChecklistsPEOLastUpdateDate'

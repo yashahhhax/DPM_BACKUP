@@ -1,0 +1,30 @@
+pipeline_name: pl_sql_server_to_parquet_cdc
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [23]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'omni'
+  server_name: 'cdc-mx-data.privatelink.database.windows.net,1433'
+  user_name: 'SVCBISharePoint'
+  secret_name: 'onprem-sqlserver-sql-svc-prd-password'
+  database_name: 'BOS_FPK'
+  schema_name: 'dbo'
+  use_case: 'travelbox'
+  checkpoint_version: '14'
+  # skip_orchestration: true
+
+datasets:
+  - name: data_account_cdc
+    dataset_parameters:
+      table_name: 'data_account'
+      pk: AccountId
+  - name: data_dmgdata_cdc
+    dataset_parameters:
+      table_name: 'data_dmgdata'
+      pk: DmgDataId

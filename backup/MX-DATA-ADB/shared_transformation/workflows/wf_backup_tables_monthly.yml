@@ -1,0 +1,37 @@
+resources:
+  jobs:
+    wf_backup_tables_monthly:
+      name: wf_backup_tables_monthly
+
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN
+      schedule:
+        quartz_cron_expression: 0 0 1 1 * ?
+        timezone_id: Asia/Dubai
+        pause_status: ${var.backup_activated}
+      tasks:
+        - task_key: backup_tables_monthly
+          notebook_task:
+            notebook_path: ../notebooks/backup/backup_tables.py
+            source: WORKSPACE
+          min_retry_interval_millis: 0
+          disable_auto_optimization: true
+      tags:
+        use_case: backup_tables
+      webhook_notifications:
+        on_failure:
+          - id: ${var.trans_teams_webhook}
+      queue:
+        enabled: true
+      parameters:
+        - name: backup_location
+          default: ${var.backup_location}
+        - name: catalog_name
+          default: transformation_${var.environment}
+        - name: schema_prefix
+          default: brz_
+        - name: exclude_schemas
+          default: ""
+        - name: exclude_tables
+          default: ""

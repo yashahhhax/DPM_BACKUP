@@ -1,0 +1,41 @@
+resources:
+  jobs:
+    wf_adhoc_backup_tables:
+      name: wf_adhoc_backup_tables
+      webhook_notifications:
+        on_failure:
+          - id: ${var.trans_teams_webhook}
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN
+      schedule:
+        quartz_cron_expression: 0 0 12 * * ?
+        timezone_id: Asia/Dubai
+        pause_status: PAUSED          
+      tasks:
+        - task_key: bip_adhoc_backup_tables
+          notebook_task:
+            notebook_path: ../notebooks/backup/adhoc_backup_tables.py
+            source: WORKSPACE
+          min_retry_interval_millis: 0
+          disable_auto_optimization: true
+      tags:
+        use_case: backup_tables
+      queue:
+        enabled: true
+      parameters:
+        - name: backup_location
+          default: ${var.backup_location}
+        - name: catalog_name
+          default: transformation_${var.environment}
+        - name: exclude_schemas
+          default:  ${var.exclude_schemas_for_backup_tables}
+        - name: exclude_tables
+          default: ${var.exclude_tables_for_backup_tables}
+        - name: schema_prefix
+          default: ${var.schema_prefix_for_backup_tables}
+        - name: adhoc_backup_date
+          default: ${var.adhoc_backup_date}
+      run_as:
+        service_principal_name: ${var.service_principal_name}
+      performance_target: PERFORMANCE_OPTIMIZED

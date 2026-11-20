@@ -1,0 +1,43 @@
+pipeline_name: pl_sharepoint_csv_to_parquet
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [7]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sharepoint_file'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  secret_name: 'cloud-sharepoint-svc-prd-password'
+  site: 'FARAHFLFIN'
+  path: ""
+  schema_name: 'questionpro'
+  use_case: 'gss'
+  drive_id: 'b!0SuTvDQmqEC-nZURiVe42rocL2Ese6NOuYaxKJKDJOTIn_s2wp99QKMxOLrtABqu'
+  # skip_orchestration: true
+
+datasets:
+  - name: answers_code_mapping
+    dataset_parameters:
+      table_name: 'answers_code_mapping'
+      input_file_name: "answers_code_mapping.csv"
+  - name: customer_segment_master
+    dataset_parameters:
+      table_name: 'customer_segment_master'
+      input_file_name: "customer_segment_master.csv"
+  - name: customer_segment_score_qpro
+    dataset_parameters:
+      table_name: 'customer_segment_score_qpro'
+      input_file_name: "customer_segment_score_qpro.csv"
+  - name: facility
+    dataset_parameters:
+      table_name: 'facility'
+      input_file_name: "facility.csv"
+  - name: questions_code_mapping
+    dataset_parameters:
+      table_name: 'questions_code_mapping'
+      input_file_name: "questions_code_mapping.csv"

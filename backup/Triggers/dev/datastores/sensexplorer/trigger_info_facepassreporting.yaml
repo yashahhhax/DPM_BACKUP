@@ -1,0 +1,34 @@
+pipeline_name: pl_azure_mysql_server_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [06]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sensetime'
+  server_name: '10.110.49.138'
+  user_name: 'sensetime_readonly'
+  secret_name: 'cloud-mysql-sql-svc-prd-password'
+  port: '30398'
+  database_name: 'sensexplorer'
+  use_case: 'facepassreporting'
+  # skip_orchestration: true
+
+datasets:
+  - name: portrait_info
+    pipeline_name: pl_azure_mysql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'portrait_info'
+      pk: 'portrait_id'
+      load_time_column: 'update_time'
+      load_days: 3
+  - name: portrait_lib
+    dataset_parameters:
+      table_name: 'portrait_lib'
+  - name: portrait_relation
+    dataset_parameters:
+      table_name: 'portrait_relation'

@@ -1,0 +1,467 @@
+{
+	"name": "pl_facepass_ig_logs",
+	"properties": {
+		"activities": [
+			{
+				"name": "pl_trigger_ingestion_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_trigger_adb_ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_trigger_adb_ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "for_each_day",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"datastore_name\": \"@{toLower(pipeline().parameters.datastore_name)}\",\n  \"dataset_name\": \"@{toLower(pipeline().parameters.schema_name)}\",\n  \"table_name\": \"@{toLower(pipeline().parameters.table_name)}\",\n  \"write_mode\": \"overwrite\",\n  \"input_file_name\": \"@{concat(variables('adf_load_time'), '/')}\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set_from_date",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "from_date",
+					"value": {
+						"value": "@if(\n    empty(pipeline().parameters.from_date),\n    formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Arabian Standard Time'), 'yyyy-MM-dd'),\n    formatDateTime(pipeline().parameters.from_date, 'yyyy-MM-dd')\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_to_date",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "to_date",
+					"value": {
+						"value": "@formatDateTime(convertTimeZone(pipeline().TriggerTime,'UTC','Arabian Standard Time'),'yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get_number_of_days",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "set_from_date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_to_date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "no_of_days",
+					"value": {
+						"value": "@string(div(sub(ticks(variables('to_date')), ticks(variables('from_date'))),864000000000))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "for_each_day",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get_number_of_days",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set adf_load_time",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@range(0,add(int(variables('no_of_days')),1))",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "if_current_day",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(formatDateTime(addDays(variables('from_date'),int(item())),'yyyy-MM-dd'), formatDateTime(variables('to_date'), 'yyyy-MM-dd'))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Ig_log_onprem_to_adls_copy_files",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.00:30:00",
+											"retry": 2,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "BinarySource",
+												"storeSettings": {
+													"type": "FileServerReadSettings",
+													"recursive": true
+												},
+												"formatSettings": {
+													"type": "BinaryReadSettings"
+												}
+											},
+											"sink": {
+												"type": "BinarySink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												}
+											},
+											"enableStaging": false
+										},
+										"inputs": [
+											{
+												"referenceName": "ds_file_system_binary",
+												"type": "DatasetReference",
+												"parameters": {
+													"host_path": {
+														"value": "@pipeline().parameters.host_path",
+														"type": "Expression"
+													},
+													"user_name": {
+														"value": "@pipeline().parameters.user_name",
+														"type": "Expression"
+													},
+													"secret_name": {
+														"value": "@pipeline().parameters.secret_name",
+														"type": "Expression"
+													},
+													"key_vault_uri": {
+														"value": "@pipeline().globalParameters.key_vault_uri",
+														"type": "Expression"
+													},
+													"file_name": {
+														"value": "@concat(pipeline().parameters.file_name,'.',formatDateTime(addDays(variables('from_date'),int(item())),'yyyy-MM-dd'))",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ds_adls_binary",
+												"type": "DatasetReference",
+												"parameters": {
+													"container_name": {
+														"value": "@pipeline().globalParameters.storage_container_datalake",
+														"type": "Expression"
+													},
+													"directory": {
+														"value": "@concat('raw_',pipeline().parameters.datastore_name, '/', pipeline().parameters.schema_name,'_',pipeline().parameters.table_name, '/', variables('adf_load_time'))",
+														"type": "Expression"
+													},
+													"file_name": {
+														"value": "@concat(pipeline().parameters.file_name,'.',formatDateTime(addDays(variables('from_date'),int(item())),'yyyy-MM-dd'))",
+														"type": "Expression"
+													},
+													"storage_account_uri": {
+														"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "Ig_log_onprem_to_adls",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.00:30:00",
+											"retry": 2,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "BinarySource",
+												"storeSettings": {
+													"type": "FileServerReadSettings",
+													"recursive": true
+												},
+												"formatSettings": {
+													"type": "BinaryReadSettings"
+												}
+											},
+											"sink": {
+												"type": "BinarySink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												}
+											},
+											"enableStaging": false
+										},
+										"inputs": [
+											{
+												"referenceName": "ds_file_system_binary",
+												"type": "DatasetReference",
+												"parameters": {
+													"host_path": {
+														"value": "@pipeline().parameters.host_path",
+														"type": "Expression"
+													},
+													"user_name": {
+														"value": "@pipeline().parameters.user_name",
+														"type": "Expression"
+													},
+													"secret_name": {
+														"value": "@pipeline().parameters.secret_name",
+														"type": "Expression"
+													},
+													"key_vault_uri": {
+														"value": "@pipeline().globalParameters.key_vault_uri",
+														"type": "Expression"
+													},
+													"file_name": {
+														"value": "@pipeline().parameters.file_name",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ds_adls_binary",
+												"type": "DatasetReference",
+												"parameters": {
+													"container_name": {
+														"value": "@pipeline().globalParameters.storage_container_datalake",
+														"type": "Expression"
+													},
+													"directory": {
+														"value": "@concat('raw_',pipeline().parameters.datastore_name, '/', pipeline().parameters.schema_name,'_',pipeline().parameters.table_name, '/', variables('adf_load_time'))",
+														"type": "Expression"
+													},
+													"file_name": {
+														"value": "@pipeline().parameters.file_name",
+														"type": "Expression"
+													},
+													"storage_account_uri": {
+														"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Set adf_load_time",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "adf_load_time",
+					"value": {
+						"value": "@formatDateTime(convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time'), 'yyyyMMddHHmmss')",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"concurrency": 20,
+		"parameters": {
+			"host_path": {
+				"type": "string",
+				"defaultValue": "\\\\10.140.7.98\\IG-FPogs"
+			},
+			"user_name": {
+				"type": "string",
+				"defaultValue": "farah\\svc_mx_data_prd"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "onprem-sqlserver-wdws-svc-password-prd"
+			},
+			"file_name": {
+				"type": "string",
+				"defaultValue": "ServiceManager-Context-default.log"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "ig_logs"
+			},
+			"schema_name": {
+				"type": "string",
+				"defaultValue": "facepass"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "ig_logs"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "facepassappslogs"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_facepass_ig_logs"
+			},
+			"from_date": {
+				"type": "string"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"from_date": {
+				"type": "String"
+			},
+			"to_date": {
+				"type": "String"
+			},
+			"adf_load_time": {
+				"type": "String"
+			},
+			"no_of_days": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Facepass"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

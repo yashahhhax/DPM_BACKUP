@@ -1,0 +1,48 @@
+{
+	"name": "ds_adls_binary",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_adls",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"storage_account_uri": {
+					"value": "@dataset().storage_account_uri",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"container_name": {
+				"type": "String"
+			},
+			"directory": {
+				"type": "String"
+			},
+			"file_name": {
+				"type": "String"
+			},
+			"storage_account_uri": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().file_name",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().directory",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().container_name",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

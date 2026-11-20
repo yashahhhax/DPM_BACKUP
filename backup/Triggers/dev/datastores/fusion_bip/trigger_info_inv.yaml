@@ -1,0 +1,133 @@
+pipeline_name: pl_oracle_fusion_bip_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [04]
+  minutes: [30]
+
+activated: true
+
+datastore_parameters:
+  datastore_name: 'fusion_bip_inv'
+  user_name: 'biacm.admin'
+  secret_name: 'cloud-fusion-bip-svc-prd-password'
+  base_url: 'https://enpk.fa.em8.oraclecloud.com:443/xmlpserver/services/v2/ReportService'
+  source_path: '/Custom/Data_Team/Fusion_AZ_Extract_INV_DE/'
+  workflow_name: 'wf_ingest_fusion_bip_inventory'
+  load_time_column_type: timestamp
+  use_case: 'inventory'
+  # full_load: true
+  # skip_orchestration: true
+
+datasets:
+  - name: gl_code_combinations
+    pipeline_name: pl_oracle_fusion_bip_incremental
+    dataset_parameters:
+      table_name: 'GL_CODE_COMBINATIONS'
+      pk: 'CODE_COMBINATION_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: po_line_locations_all
+    pipeline_name: pl_oracle_fusion_bip_incremental
+    dataset_parameters:
+      table_name: 'PO_LINE_LOCATIONS_ALL'
+      pk: 'LINE_LOCATION_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: rcv_transactions
+    pipeline_name: pl_oracle_fusion_bip_incremental
+    dataset_parameters:
+      table_name: 'RCV_TRANSACTIONS'
+      pk: 'TRANSACTION_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: inv_secondary_inventories
+    pipeline_name: pl_oracle_fusion_bip_incremental
+    dataset_parameters:
+      table_name: 'INV_SECONDARY_INVENTORIES'
+      pk: 'SECONDARY_INVENTORY_NAME, ORGANIZATION_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: inv_transaction_types_tl
+    pipeline_name: pl_oracle_fusion_bip_incremental
+    dataset_parameters:
+      table_name: 'INV_TRANSACTION_TYPES_TL'
+      pk: 'TRANSACTION_TYPE_ID, LANGUAGE'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: egp_category_sets_b
+    pipeline_name: pl_oracle_fusion_bip_incremental
+    dataset_parameters:
+      table_name: 'EGP_CATEGORY_SETS_B'
+      pk: 'CATEGORY_SET_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: cst_cost_inv_orgs
+    dataset_parameters:
+      table_name: 'CST_COST_INV_ORGS'
+  - name: por_requisition_headers_all
+    dataset_parameters:
+      table_name: 'POR_REQUISITION_HEADERS_ALL'
+  - name: cst_b_costed_vu_costs_v
+    dataset_parameters:
+      table_name: 'CST_B_COSTED_VU_COSTS_V'
+  - name: cst_cost_distribution_lines
+    dataset_parameters:
+      table_name: 'CST_COST_DISTRIBUTION_LINES'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: cst_cost_distributions
+    dataset_parameters:
+      table_name: 'CST_COST_DISTRIBUTIONS'
+  - name: cst_inv_transactions
+    dataset_parameters:
+      table_name: 'CST_INV_TRANSACTIONS'
+  - name: cst_layer_costs
+    dataset_parameters:
+      table_name: 'CST_LAYER_COSTS'
+  - name: cst_perpavg_cost
+    dataset_parameters:
+      table_name: 'CST_PERPAVG_COST'
+  - name: cst_transactions
+    dataset_parameters:
+      table_name: 'CST_TRANSACTIONS'
+  - name: egp_categories_tl
+    dataset_parameters:
+      table_name: 'EGP_CATEGORIES_TL'
+  - name: egp_item_cat_assignments
+    dataset_parameters:
+      table_name: 'EGP_ITEM_CAT_ASSIGNMENTS'
+  - name: egp_system_items_b
+    dataset_parameters:
+      table_name: 'EGP_SYSTEM_ITEMS_B'
+  - name: egp_system_items_tl
+    dataset_parameters:
+      table_name: 'EGP_SYSTEM_ITEMS_TL'
+  - name: fnd_lookup_values_vl
+    dataset_parameters:
+      table_name: 'FND_LOOKUP_VALUES_VL'
+  - name: inv_material_txns
+    dataset_parameters:
+      table_name: 'INV_MATERIAL_TXNS'
+  - name: inv_onhand_quantities_detail
+    dataset_parameters:
+      table_name: 'INV_ONHAND_QUANTITIES_DETAIL'
+  - name: inv_org_parameters
+    dataset_parameters:
+      table_name: 'INV_ORG_PARAMETERS'
+  - name: inv_physical_inventory_tags
+    dataset_parameters:
+      table_name: 'INV_PHYSICAL_INVENTORY_TAGS'
+  - name: inv_units_of_measure_b
+    dataset_parameters:
+      table_name: 'INV_UNITS_OF_MEASURE_B'
+  - name: inv_units_of_measure_tl
+    dataset_parameters:
+      table_name: 'INV_UNITS_OF_MEASURE_TL'
+  - name: rcv_shipment_lines
+    dataset_parameters:
+      table_name: 'RCV_SHIPMENT_LINES'
+      from_date: '2022-01-01'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000

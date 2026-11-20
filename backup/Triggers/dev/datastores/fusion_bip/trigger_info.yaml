@@ -1,0 +1,24 @@
+pipeline_name: pl_oracle_fusion_bip_check_sum
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [04]
+  minutes: [25]
+
+activated: true
+
+datastore_parameters:
+  datastore_name: 'fusion_bip'
+  user_name: 'biacm.admin'
+  secret_name: 'cloud-fusion-bip-svc-prd-password'
+  base_url: 'https://enpk.fa.em8.oraclecloud.com:443/xmlpserver/services/v2/ReportService'
+  source_path: '/Custom/Data_Team/Fusion_AZ_Extract_DE/'
+  workflow_name: 'wf_ingest_fusion_bip_fusion'
+  use_case: 'fusion, inventory'
+  # skip_orchestration: true
+
+datasets:
+  - name: bip_check_sum
+    dataset_parameters:
+      table_name: 'BIP_CHECK_SUM'

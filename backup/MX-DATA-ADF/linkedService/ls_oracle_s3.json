@@ -1,0 +1,46 @@
+{
+	"name": "ls_oracle_s3",
+	"properties": {
+		"parameters": {
+			"service_url": {
+				"type": "string"
+			},
+			"access_key_id": {
+				"type": "string"
+			},
+			"key_vault_uri": {
+				"type": "string"
+			},
+			"secret_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "OracleCloudStorage",
+		"typeProperties": {
+			"serviceUrl": "@{linkedService().service_url}",
+			"accessKeyId": "@{linkedService().access_key_id}",
+			"secretAccessKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": {
+					"value": "@linkedService().secret_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

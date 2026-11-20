@@ -1,0 +1,25 @@
+pipeline_name: pl_ycautomation_sprinklr
+ 
+schedule:
+  frequency: Month
+  interval: 1
+  monthDays: [29]
+  hours: [16]
+  minutes: [45]
+
+activated: false
+ 
+datastore_parameters:
+  datastore_name: 'sprinklr'          
+  dataset_name: 'ycautomation'
+  workflow_name: 'wf_ingest_ycautomation_sprinklr'
+  secret_name: 'cloud-sprinklr-api-prd-json-apikey'
+  start_date: "@formatDateTime(startOfMonth(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1)),'yyyy-MM-dd')"
+  end_date: "@formatDateTime(addDays(startOfMonth(convertTimeZone(utcNow(),'UTC','Arabian Standard Time')),-1),'yyyy-MM-dd')"
+  use_case: 'ycautomation'
+  # skip_orchestration: true
+
+datasets:
+  - name: sprinklr_chat_agg
+    dataset_parameters:
+      table_name: 'sprinklr_chat_agg'

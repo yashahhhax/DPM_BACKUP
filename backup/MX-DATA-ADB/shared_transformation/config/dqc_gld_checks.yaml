@@ -1,0 +1,211 @@
+tables:
+  - name: dwh_dim_employee
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: EMPLOYEE_NUMBER
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: EMPLOYEE_ID
+  - name: dwh_dim_country
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: country_name
+  - name: dwh_dim_company
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: omni_siteid
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: ig_siteid
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: company_id
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: company_id_new
+  - name: dwh_dim_b2b_partner
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: PARTNER_CRM_ACCOUNT_ID
+  - name: dwh_dim_b2c_account
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: ACCOUNT_ID
+  - name: dwh_lkp_season
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: SEASON_NAME
+  - name: dwh_lkp_transaction_type
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: TRANSACTION_TYPE_CODE
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: TRANSACTION_TYPE_NAME
+  - name: dwh_dim_source_system
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: SOURCE_SYSTEM_KEY
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: SOURCE_SYSTEM_NAME
+  - name: dwh_dim_cnf_lookups
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: lookuptableid
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: itemid
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: lookuptableid
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: itemid
+  - name: dwh_dim_department
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null
+          arguments:
+            column: DEPARTMENT_CODE
+      - criticality: warn
+        check:
+          function: sql_expression
+          arguments:
+            expression: "CURRENT_FLAG != 'Y' OR EFF_END_DATETIME = '9999-12-30T20:00:00.000+00:00'"
+            msg: Hypothetical end date for active record
+  - name: dwh_dim_sales_account_manager
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: ACCOUNT_MANAGER_ID
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: SEGMENT_MANAGER_ID
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: PARTNER_CRM_ACCOUNT_ID
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: ACTIVE_FLAG
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: CRM_LAST_MODIFIED_DATE
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: CRM_ACTIVE_FROM
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: CRM_ACTIVE_TO
+
+  - name: dwh_dim_sub_analysis
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: SUB_ANALYSIS_CODE
+
+  - name: dwh_dim_gl_account
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: GL_ACCOUNT_CODE
+  - name: dwh_dim_market_segments
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: MKT_SEGMENT_CODE
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: MKT_SEGMENT_GROUP_CODE
+
+  - name: dwh_dim_master_hotel_name
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: SOURCE_HOTEL_NAME
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: BUSINESS_ALIAS
+      - criticality: warn
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: HOTEL_CODE
+      - criticality: warn
+        check:
+          function: sql_expression
+          arguments:
+            expression: "CURRENT_FLAG != 'Y' OR EFF_END_DATETIME = '9999-12-30T20:00:00.000+00:00'"
+            msg: Hypothetical end date for active record

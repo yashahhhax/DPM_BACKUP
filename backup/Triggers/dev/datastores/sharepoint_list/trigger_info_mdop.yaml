@@ -1,0 +1,83 @@
+pipeline_name: pl_sharepoint_list_to_parquet
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [06]
+  minutes: [00]
+
+activated: true
+
+datastore_parameters:
+  datastore_name: 'sharepoint_list'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  cert_secret_name: 'cloud-sharepoint-svc-prd-certificate-txt-01'
+  pass_secret_name: 'cloud-sharepoint-svc-prd-certificate-password-01'
+  base_url: 'https://miralgroup.sharepoint.com/sites'
+  use_case: 'finance'
+  # skip_orchestration: true
+
+datasets:
+  - name: bulist
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'BUList'
+  - name: llclist
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'LLCList'
+  - name: hr_bu_list
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'HR_BU_LIST'
+      use_case: 'hr'
+  - name: fsg_open_advance_balance
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'FSG_Open_Advance_Balance'
+      use_case: 'finance'
+  - name: fsg_budget_carry_forward
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'FSG_Budget_Carry_Forward'
+      use_case: 'finance'
+  - name: fsg_gl_dept_mapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'FSG_GL_DEPT_MAPPING'
+      use_case: 'finance'
+  - name: entity_gl_date
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'ENTITY_GL_DATE'
+      use_case: 'finance'
+  - name: glcoderange
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'GLCodeRange'
+      use_case: 'finance'
+  - name: glcodelisting
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'GLCodeListing'
+  - name: whatifanalysis
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'WhatIfAnalysis'
+      use_case: 'finance'
+  - name: profitcenterentitymapping
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'ProfitcenterEntityMapping'
+      use_case: 'finance'
+  - name: procurementscorecardtarget
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'ProcurementScorecardTarget'
+      use_case: 'procurement'
+  - name: procurementnegotiationsdataupdate
+    dataset_parameters:
+      site: 'FARAHFLFIN'
+      list_name: 'ProcurementNegotiationsDataUpdate'
+      use_case: 'procurement'

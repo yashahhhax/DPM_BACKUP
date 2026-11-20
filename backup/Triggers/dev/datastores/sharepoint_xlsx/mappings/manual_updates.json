@@ -1,0 +1,55 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "Sl No",
+                "type": "String"
+            },
+            "sink": {
+                "name": "sl_no",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Agent Genesys Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "agent_genesys_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Agent CSAT Score (%)",
+                "type": "String"
+            },
+            "sink": {
+                "name": "agent_csat_score_pct",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "source_file_name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_file_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

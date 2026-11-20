@@ -1,0 +1,79 @@
+pipeline_name: pl_sql_server_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [10]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'ig'
+  server_name: '10.140.9.17'
+  user_name: 'farah\svc_mx_data_prd'
+  secret_name: 'onprem-sqlserver-wdws-svc-prd-password'
+  use_case: 'drr'
+  # skip_orchestration: true
+
+datasets:
+  - name: dwh_vw_profit_center_grp_dim
+    dataset_parameters:
+      database_name: 'IG_BUSINESS'
+      schema_name: 'dbo'
+      table_name: 'dwh_vw_profit_center_grp_dim'
+  - name: dwh_vw_profit_center_dim
+    dataset_parameters:
+      database_name: 'IG_BUSINESS'
+      schema_name: 'dbo'
+      table_name: 'dwh_vw_profit_center_dim'
+  - name: dwh_vw_menu_item_dim
+    dataset_parameters:
+      database_name: 'IG_BUSINESS'
+      schema_name: 'dbo'
+      table_name: 'DWH_VW_MENU_ITEM_DIM'
+  - name: dwh_vw_discount_dim
+    dataset_parameters:
+      database_name: 'IG_BUSINESS'
+      schema_name: 'dbo'
+      table_name: 'DWH_VW_DISCOUNT_DIM'
+  - name: dwh_vw_tender_fact_ext
+    dataset_parameters:
+      database_name: 'IG_BUSINESS'
+      schema_name: 'dbo'
+      table_name: 'dwh_vw_tender_fact_ext'
+  - name: employee_dimension
+    dataset_parameters:
+      database_name: 'ig_dimension'
+      schema_name: 'dbo'
+      table_name: 'Employee_Dimension'
+  - name: emp_jobcode_join
+    dataset_parameters:
+      database_name: 'it_cfg'
+      schema_name: 'dbo'
+      table_name: 'Emp_Jobcode_Join'
+  - name: dwh_vw_menu_item_dim
+    dataset_parameters:
+      database_name: 'IG_BUSINESS'
+      schema_name: 'dbo'
+      table_name: 'dwh_vw_menu_item_dim'
+  - name: dwh_vw_trans_detail_fact_ext
+    dataset_parameters:
+      database_name: 'IG_BUSINESS'
+      schema_name: 'dbo'
+      table_name: 'DWH_VW_Trans_DETAIL_FACT_EXT'
+  # - name: vw_ig_transacion_details
+  #   dataset_parameters:
+  #     database_name: 'IG_BUSINESS'
+  #     schema_name: 'dbo'
+  #     table_name: 'Vw_IG_Transacion_Details'
+  # - name: check_loyalty_redeem_detail
+  #   dataset_parameters:
+  #     database_name: 'IG_BUSINESS'
+  #     schema_name: 'dbo'
+  #     table_name: 'Check_Loyalty_Redeem_Detail'
+  - name: emp_master
+    dataset_parameters:
+      database_name: 'it_cfg'
+      schema_name: 'dbo'
+      table_name: 'Emp_Master'

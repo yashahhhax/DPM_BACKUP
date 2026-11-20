@@ -1,0 +1,31 @@
+pipeline_name: pl_sensetime_face_payments_logs
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [18]
+  minutes: [30]
+  
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sensetime_api'
+  schema_name: 'sensetime'
+  user_name: 'sensetime_readonly'
+  secret_name: 'cloud-sensetime-api-prd-facepass-payment-logs-apikey'
+  base_url: 'http://10.110.49.133:30875/'
+  workflow_name: 'wf_ingest_sensetime_face_payments_logs'
+  from_date: "@formatDateTime(addDays(convertTimeZone(pipeline().TriggerTime,'UTC','Arabian Standard Time'), -15),'yyyy-MM-dd')"
+  # from_date: "2023-10-01"
+  use_case: 'facepassappslogs'
+  # skip_orchestration: true
+
+datasets:
+  - name: payments_logs_automation
+    dataset_parameters:
+      table_name: 'payments_logs_automation'
+      relative_url: 'business_payment_bill_index_4bbca277-7d7d-49af-96cc-687a4be9c1db'
+  - name: face_logs_automation
+    dataset_parameters:
+      table_name: 'face_logs_automation'
+      relative_url: 'business_face_comparison_index_4bbca277-7d7d-49af-96cc-687a4be9c1db'

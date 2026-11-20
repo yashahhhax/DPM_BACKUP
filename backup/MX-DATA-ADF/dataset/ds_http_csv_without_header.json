@@ -1,0 +1,32 @@
+{
+	"name": "ds_http_csv_without_header",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_http",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"base_url": {
+					"value": "@dataset().base_url",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"base_url": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": false,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

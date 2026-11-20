@@ -1,0 +1,37 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "QuestionType"
+            },
+            "sink": {
+                "name": "questiontype"
+            }
+        },
+        {
+            "source": {
+                "name": "Answer Column"
+            },
+            "sink": {
+                "name": "answer_column"
+            }
+        },
+        {
+            "source": {
+                "name": "Code"
+            },
+            "sink": {
+                "name": "code"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time"
+            },
+            "sink": {
+                "name": "adf_load_time"
+            }
+        }
+    ]
+}

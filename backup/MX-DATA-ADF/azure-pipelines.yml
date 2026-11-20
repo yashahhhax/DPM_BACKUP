@@ -1,0 +1,42 @@
+name: Ingestion Data Factory - Dev
+
+resources:
+  repositories:
+    - repository: templateRepo
+      type: git
+      name: MX-DATA-DEVOPS-TEMPLATES
+      ref: refs/heads/f-testrunner
+
+pr:
+  autoCancel: false
+
+trigger:
+  branches:
+    include:
+    - development   # Dev trigger
+
+# stages
+stages:
+- template: build_adf.yml@templateRepo
+  parameters:
+    name: 'Build'
+    service_connection: 'sp-mx-data-terraform-dev-01'
+    environment: 'dev'
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - template: release_adf.yml@templateRepo
+    parameters:
+      name: Dev
+      service_connection: 'sp-mx-data-terraform-dev-01'
+      agent_pool_name: 'data-platform'
+      environment: 'dev'
+      depends_on: 'Build'
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - template: release_adf.yml@templateRepo
+    parameters:
+      name: UAT
+      service_connection: 'sp-mx-data-terraform-uat-01'
+      agent_pool_name: 'data-platform'
+      environment: 'uat'
+      depends_on: 'Dev'

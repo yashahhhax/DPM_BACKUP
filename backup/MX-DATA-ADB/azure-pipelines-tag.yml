@@ -1,0 +1,22 @@
+name: Tag Release
+
+pr:
+  autoCancel: false
+
+trigger:
+  branches:
+    include:
+    - main
+
+resources:
+  repositories:
+    - repository: templateRepo
+      type: git
+      name: MX-DATA-DEVOPS-TEMPLATES
+
+extends:
+  template: tag.yml@templateRepo
+  parameters:
+    major: 1
+    minor: 1
+

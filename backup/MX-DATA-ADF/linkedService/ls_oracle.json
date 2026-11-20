@@ -1,0 +1,60 @@
+{
+	"name": "ls_oracle",
+	"properties": {
+		"parameters": {
+			"server_name": {
+				"type": "string",
+				"defaultValue": "132.145.143.154"
+			},
+			"user_name": {
+				"type": "string",
+				"defaultValue": "svc_mx_data_prd"
+			},
+			"key_vault_uri": {
+				"type": "string",
+				"defaultValue": "https://kv-mx-data-adf-inges-dev.vault.azure.net/"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "onprem-tbx-oracle-svc-password-prd"
+			},
+			"port": {
+				"type": "string",
+				"defaultValue": "1521"
+			},
+			"service_name": {
+				"type": "string",
+				"defaultValue": "yasprod.privatedbsn.yasprod.oraclevcn.com"
+			}
+		},
+		"annotations": [],
+		"type": "Oracle",
+		"version": "2.0",
+		"typeProperties": {
+			"server": "@{linkedService().server_name}:@{linkedService().port}/@{linkedService().service_name}",
+			"authenticationType": "Basic",
+			"username": "@{linkedService().user_name}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": {
+					"value": "@linkedService().secret_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

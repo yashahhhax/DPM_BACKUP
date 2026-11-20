@@ -1,0 +1,27 @@
+pipeline_name: pl_sql_server_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [00]
+  minutes: [15]
+  
+activated: false
+
+datastore_parameters:
+  datastore_name: 'omni'
+  server_name: '10.140.9.38'
+  user_name: 'farah\svc_mx_data_prd'
+  secret_name: 'onprem-sqlserver-wdws-svc-prd-password'
+  database_name: 'BOS_FPK'
+  schema_name: 'dbo'
+  use_case: 'travelbox'
+  # skip_orchestration: true
+
+datasets:
+  - name: vw_accounts
+    dataset_parameters:
+      table_name: 'Vw_Accounts'
+  - name: cnf_dmg_category
+    dataset_parameters:
+      table_name: 'CNF_DmgCategory'

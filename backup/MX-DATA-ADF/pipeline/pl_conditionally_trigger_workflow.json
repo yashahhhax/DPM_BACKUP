@@ -1,0 +1,242 @@
+{
+	"name": "pl_conditionally_trigger_workflow",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get active jobs",
+				"description": "",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": {
+						"value": "@concat(pipeline().parameters.databricks_workspace_url, '/api/2.1/jobs/runs/list?active_only=true&job_id=', pipeline().parameters.job_id)",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "on-prem-self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"cause": "Kicked off from ADF"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+					}
+				}
+			},
+			{
+				"name": "If less than X jobs active",
+				"description": "Only if < X jobs are active it will trigger/queue a new run.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Set jobs_running",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@less(variables('jobs_running'), pipeline().parameters.max_concurrent)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Set active job run_id",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "run_id",
+								"value": {
+									"value": "@first(activity('Get active jobs').output.runs).run_id",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Trigger table specific workflow",
+							"description": "Will trigger the workflo",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 300,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"url": {
+									"value": "@concat(pipeline().parameters.databricks_workspace_url, '/api/2.1/jobs/run-now')",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "on-prem-self-hosted-runtime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"body": {
+									"value": "@json(concat(\n  '{',\n    '\"cause\":\"Kicked off from ADF\",',\n    '\"job_id\":', pipeline().parameters.job_id, ',',\n    '\"job_parameters\":', string(pipeline().parameters.job_parameters),\n  '}'\n))",
+									"type": "Expression"
+								},
+								"authentication": {
+									"type": "MSI",
+									"resource": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+								}
+							}
+						},
+						{
+							"name": "Set run_id",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Trigger table specific workflow",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "run_id",
+								"value": {
+									"value": "@activity('Trigger table specific workflow').output.run_id",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Set jobs_running",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Get active jobs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "jobs_running",
+					"value": {
+						"value": "@if(contains(activity('Get active jobs').output, 'runs'),\n    length(activity('Get active jobs').output.runs), 0)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "If wait is true",
+				"description": "",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "If less than X jobs active",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@pipeline().parameters.wait_for_completion",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Wait",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_wait_for_workflow_runid",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"databricks_workspace_url": {
+										"value": "@pipeline().parameters.databricks_workspace_url",
+										"type": "Expression"
+									},
+									"run_id": {
+										"value": "@variables('run_id')",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"job_id": {
+				"type": "string",
+				"defaultValue": "sync_ingestion"
+			},
+			"job_parameters": {
+				"type": "object"
+			},
+			"max_concurrent": {
+				"type": "int",
+				"defaultValue": 2
+			},
+			"databricks_workspace_url": {
+				"type": "string",
+				"defaultValue": "https://adb-2766497291955675.15.azuredatabricks.net"
+			},
+			"wait_for_completion": {
+				"type": "bool",
+				"defaultValue": true
+			}
+		},
+		"variables": {
+			"jobs_running": {
+				"type": "Integer"
+			},
+			"run_id": {
+				"type": "Integer"
+			}
+		},
+		"folder": {
+			"name": "Databricks"
+		},
+		"annotations": []
+	}
+}

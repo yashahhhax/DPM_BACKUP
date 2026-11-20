@@ -1,0 +1,55 @@
+{
+	"name": "ds_file_system_binary",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_file_system",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"host_path": {
+					"value": "@dataset().host_path",
+					"type": "Expression"
+				},
+				"user_name": {
+					"value": "@dataset().user_name",
+					"type": "Expression"
+				},
+				"secret_name": {
+					"value": "@dataset().secret_name",
+					"type": "Expression"
+				},
+				"key_vault_uri": {
+					"value": "@dataset().key_vault_uri",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"host_path": {
+				"type": "string"
+			},
+			"user_name": {
+				"type": "string"
+			},
+			"secret_name": {
+				"type": "string"
+			},
+			"key_vault_uri": {
+				"type": "string"
+			},
+			"file_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "FileServerLocation",
+				"fileName": {
+					"value": "@dataset().file_name",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,19 @@
+{
+	"name": "ls_adls_onprem",
+	"properties": {
+		"parameters": {
+			"storage_account_uri": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "@{linkedService().storage_account_uri}"
+		},
+		"connectVia": {
+			"referenceName": "on-prem-self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

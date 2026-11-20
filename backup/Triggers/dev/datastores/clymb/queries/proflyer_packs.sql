@@ -1,0 +1,20 @@
+SELECT
+    id,
+    proflyer_pack_catalog_id,
+    from_customer_id,
+    invoice_id,
+    invoice_item_id,
+    order_id,
+    order_item_id,
+    backlog_id,
+    backlog_item_id,
+    date_create,
+    product_code,
+    price_exc_tax,
+    price_inc_tax,
+    minutes,
+    minutes_left,
+    validity,
+    last_update
+from
+    proflyer_packs pp

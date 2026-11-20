@@ -1,0 +1,33 @@
+resources:
+  jobs:
+    wf_table_specific_backup:
+      name: wf_table_specific_backup
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN
+      max_concurrent_runs: 1000
+      tasks:
+        - task_key: table_specific_backup
+          notebook_task:
+            notebook_path: ../notebooks/backup/table_specific_backup.py
+            source: WORKSPACE
+          min_retry_interval_millis: 0
+          disable_auto_optimization: true
+      tags:
+        use_case: backup_tables
+      webhook_notifications:
+        on_failure:
+          - id: ${var.trans_teams_webhook}
+      queue:
+        enabled: true
+      parameters:
+        - name: backup_location
+          default: ${var.backup_location}
+        - name: catalog_name
+          default: transformation_${var.environment}
+        - name: business_date
+          default: ""
+        - name: schema_name
+          default: ""
+        - name: table_name
+          default: ""

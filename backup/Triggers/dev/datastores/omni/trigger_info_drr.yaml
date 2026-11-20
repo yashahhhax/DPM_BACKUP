@@ -1,0 +1,147 @@
+pipeline_name: pl_sql_server_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [00]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'omni'
+  server_name: '10.140.9.38'
+  user_name: 'farah\svc_mx_data_prd'
+  secret_name: 'onprem-sqlserver-wdws-svc-prd-password'
+  database_name: 'BOS_FPK'
+  schema_name: 'dbo'
+  use_case: 'drr'
+  # skip_orchestration: true
+
+datasets:
+  - name: pl_sql_server_to_parquet_fullload
+    dataset_parameters:
+      table_name: 'vw_inpark_attendance_detail'
+  - name: vw_inpark_attendance_summary
+    dataset_parameters:
+      table_name: 'vw_inpark_attendance_summary'
+  - name: data_ticket
+    dataset_parameters:
+      table_name: 'DATA_Ticket'
+      use_case: 'drr, facepassreporting'
+  - name: cnf_dmgcategory
+    dataset_parameters:
+      table_name: 'CNF_DmgCategory'
+      use_case: 'drr, facepassreporting'
+  - name: cnf_statisticalgroupvalidity
+    dataset_parameters:
+      table_name: 'CNF_StatisticalGroupValidity'
+      use_case: 'drr, clymb_drr'
+  - name: cnf_statisticalgroup
+    dataset_parameters:
+      table_name: 'CNF_StatisticalGroup'
+      use_case: 'drr, clymb_drr'
+  - name: cnf_matrixsheet
+    dataset_parameters:
+      table_name: 'CNF_MatrixSheet'
+      use_case: 'drr, clymb_drr'
+  - name: cnf_lookup
+    dataset_parameters:
+      table_name: 'CNF_Lookup'
+      use_case: 'drr, clymb_drr'
+  - name: cnf_pricelist
+    dataset_parameters:
+      table_name: 'CNF_PriceList'
+      use_case: 'drr, clymb_drr'
+  - name: cnf_matrixcell
+    dataset_parameters:
+      table_name: 'CNF_MatrixCell'
+      use_case: 'drr, clymb_drr, facepassreporting'
+  - name: cnf_attributeset
+    dataset_parameters:
+      table_name: 'CNF_AttributeSet'
+      use_case: 'drr, clymb_drr'
+  # - name: hour_table
+  #   dataset_parameters:
+  #     table_name: 'hour_table'
+  - name: data_surveyitem
+    dataset_parameters:
+      table_name: 'DATA_SurveyItem'
+  # - name: vw_inpark_attendance
+  #   dataset_parameters:
+  #     table_name: 'Vw_InPark_Attendance'
+  - name: data_voucher
+    dataset_parameters:
+      table_name: 'DATA_Voucher'
+  - name: data_note
+    dataset_parameters:
+      table_name: 'DATA_Note'
+  - name: vw_accounts
+    dataset_parameters:
+      table_name: 'Vw_Accounts'
+  - name: cnf_promotion
+    dataset_parameters:
+      table_name: 'CNF_Promotion'
+  - name: cnf_promotionitemrule
+    dataset_parameters:
+      table_name: 'CNF_PromotionItemRule'
+  - name: cnf_promotionitem
+    dataset_parameters:
+      table_name: 'CNF_PromotionItem'
+  - name: cnf_promotionvalidity
+    dataset_parameters:
+      table_name: 'CNF_PromotionValidity'
+  - name: cnf_event
+    dataset_parameters:
+      table_name: 'CNF_Event'
+  - name: cnf_seatcategory
+    dataset_parameters:
+      table_name: 'CNF_SeatCategory'
+  - name: cnf_location
+    dataset_parameters:
+      table_name: 'CNF_Location'
+  - name: cnf_performance
+    dataset_parameters:
+      table_name: 'CNF_Performance'
+  - name: cnf_lookuptable
+    dataset_parameters:
+      table_name: 'CNF_LookupTable'
+  - name: adm_gate
+    dataset_parameters:
+      table_name: 'ADM_Gate'
+  - name: cnf_operatingarea
+    dataset_parameters:
+      table_name: 'CNF_OperatingArea'
+  - name: cnf_site
+    dataset_parameters:
+      table_name: 'CNF_Site'
+  - name: cnf_attribute
+    dataset_parameters:
+      table_name: 'CNF_Attribute'
+  - name: cnf_attributesetdetail
+    dataset_parameters:
+      table_name: 'CNF_AttributeSetDetail'
+  # - name: cnf_Promotionproduct
+  #   dataset_parameters:
+  #     table_name: 'cnf_Promotionproduct'
+  - name: data_ticketusageoption
+    dataset_parameters:
+      table_name: 'data_ticketusageoption'
+  - name: data_lock
+    dataset_parameters:
+      table_name: 'data_lock'
+  - name: cnf_paymentmethod
+    dataset_parameters:
+      table_name: 'cnf_paymentmethod'
+  - name: cnf_user
+    dataset_parameters:
+      table_name: 'cnf_user'
+  - name: cnf_workstation
+    dataset_parameters:
+      table_name: 'cnf_workstation'
+  - name: cnf_currency
+    dataset_parameters:
+      table_name: 'cnf_currency'
+  - name: cnf_paymentcard
+    dataset_parameters:
+      table_name: 'cnf_paymentcard'

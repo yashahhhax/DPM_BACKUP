@@ -1,0 +1,78 @@
+{
+	"name": "ls_sharepoint_list",
+	"properties": {
+		"parameters": {
+			"site_url": {
+				"type": "String",
+				"defaultValue": "https://miralgroup.sharepoint.com/sites/FARAHFLFIN"
+			},
+			"tenant_id": {
+				"type": "String",
+				"defaultValue": "0b0b76ba-8e32-4c41-8130-65ed5ca4353c"
+			},
+			"user_name": {
+				"type": "String",
+				"defaultValue": "23548861-9379-4ee8-9b2f-680f630b2020"
+			},
+			"key_vault_uri": {
+				"type": "String",
+				"defaultValue": "https://kv-mx-data-adf-inges-dev.vault.azure.net/"
+			},
+			"cert_secret_name": {
+				"type": "String",
+				"defaultValue": "cloud-sharepoint-svc-prd-certificate-txt-01"
+			},
+			"pass_secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-sharepoint-svc-prd-certificate-password-01"
+			}
+		},
+		"annotations": [],
+		"type": "SharePointOnlineList",
+		"typeProperties": {
+			"siteUrl": "@{linkedService().site_url}",
+			"tenantId": "@{linkedService().tenant_id}",
+			"servicePrincipalId": "@{linkedService().user_name}",
+			"servicePrincipalCredentialType": "ServicePrincipalCert",
+			"servicePrincipalEmbeddedCert": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": {
+					"value": "@linkedService().cert_secret_name",
+					"type": "Expression"
+				}
+			},
+			"servicePrincipalEmbeddedCertPassword": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": {
+					"value": "@linkedService().pass_secret_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}

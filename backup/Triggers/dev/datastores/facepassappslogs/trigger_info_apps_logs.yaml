@@ -1,0 +1,26 @@
+pipeline_name: pl_appinsights_api_to_parquet_master
+
+schedule:
+  frequency: Day
+  interval: 1
+  # hours: [09,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+  # minutes: [29]
+  hours: [18]
+  minutes: [30]
+  
+activated: false
+
+datastore_parameters:
+  datastore_name: 'appinsights'
+  secret_name: 'cloud-applogs-api-prd-apikey'
+  base_url: 'https://api.applicationinsights.io/v1/apps/c1467b98-8152-466f-ae0f-8e1d435a5b14/query'
+  schema_name: 'facepass'
+  workflow_name: 'wf_ingest_appinsights'
+  use_case: 'facepassappslogs'
+  # skip_orchestration: true
+
+datasets:
+  - name: apps_logs
+    dataset_parameters:
+      table_name: 'apps_logs'
+      from_date: "@formatDateTime(convertTimeZone(utcNow(), 'UTC', 'Arabian Standard Time'),'yyyy-MM-dd')"

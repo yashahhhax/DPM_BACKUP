@@ -1,0 +1,37 @@
+{
+	"name": "ds_google_bigquery",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_google_bigquery",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"project_id": {
+					"value": "@dataset().project_id",
+					"type": "Expression"
+				},
+				"secret_name": {
+					"value": "@dataset().secret_name",
+					"type": "Expression"
+				},
+				"key_vault_uri": {
+					"value": "@dataset().key_vault_uri",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"project_id": {
+				"type": "string"
+			},
+			"secret_name": {
+				"type": "string"
+			},
+			"key_vault_uri": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "GoogleBigQueryV2Object",
+		"schema": []
+	}
+}

@@ -1,0 +1,315 @@
+{
+	"name": "pl_oracle_to_parquet_fullload",
+	"properties": {
+		"activities": [
+			{
+				"name": "oracle_to_parquet",
+				"description": "Copy the data",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.03:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"additionalColumns": [
+							{
+								"name": "adf_load_time",
+								"value": {
+									"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+									"type": "Expression"
+								}
+							}
+						],
+						"oracleReaderQuery": {
+							"value": "@if(\n    equals(empty(pipeline().parameters.query), false), \n    replace(pipeline().parameters.query, '\\n', '\\r\\n'), \n    concat('SELECT * FROM ', pipeline().parameters.schema_name, '.', pipeline().parameters.table_name)\n)\n",
+							"type": "Expression"
+						},
+						"partitionOption": "None",
+						"convertDecimalToInteger": false,
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"value": "@json(replace(string(pipeline().parameters.column_mapping), '\\n', '\\r\\n'))",
+						"type": "Expression"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_oracle",
+						"type": "DatasetReference",
+						"parameters": {
+							"server_name": {
+								"value": "@pipeline().parameters.server_name",
+								"type": "Expression"
+							},
+							"user_name": {
+								"value": "@pipeline().parameters.user_name",
+								"type": "Expression"
+							},
+							"key_vault_uri": {
+								"value": "@pipeline().globalParameters.key_vault_uri",
+								"type": "Expression"
+							},
+							"secret_name": {
+								"value": "@pipeline().parameters.secret_name",
+								"type": "Expression"
+							},
+							"schema_name": {
+								"value": "@pipeline().parameters.schema_name",
+								"type": "Expression"
+							},
+							"table_name": {
+								"value": "@pipeline().parameters.table_name",
+								"type": "Expression"
+							},
+							"port": {
+								"value": "@pipeline().parameters.port",
+								"type": "Expression"
+							},
+							"service_name": {
+								"value": "@pipeline().parameters.service_name",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_adls_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"storage_account_uri": {
+								"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+								"type": "Expression"
+							},
+							"container_name": {
+								"value": "@pipeline().globalParameters.storage_container_datalake",
+								"type": "Expression"
+							},
+							"datastore": {
+								"value": "@toLower(pipeline().parameters.datastore_name)\n",
+								"type": "Expression"
+							},
+							"dataset": {
+								"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+								"type": "Expression"
+							},
+							"tablename": {
+								"value": "@pipeline().parameters.table_name",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Delete incremental files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"total_rows": {
+							"value": "@activity('oracle_to_parquet').output.rowsRead",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Delete incremental files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "oracle_to_parquet",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_adls_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"storage_account_uri": "@pipeline().globalParameters.storage_account_datalake_uri",
+							"container_name": "@pipeline().globalParameters.storage_container_datalake",
+							"datastore": "@toLower(pipeline().parameters.datastore_name)",
+							"dataset": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"tablename": {
+								"value": " ",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": false,
+						"wildcardFileName": "20*",
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 20,
+		"parameters": {
+			"schema_name": {
+				"type": "String",
+				"defaultValue": "TBX"
+			},
+			"table_name": {
+				"type": "String",
+				"defaultValue": "VW_BOOKING_CNX"
+			},
+			"server_name": {
+				"type": "String",
+				"defaultValue": "150.136.44.145"
+			},
+			"user_name": {
+				"type": "String",
+				"defaultValue": "svc_mx_data_uat"
+			},
+			"secret_name": {
+				"type": "String",
+				"defaultValue": "onprem-tbx-oracle-svc-password-uat"
+			},
+			"column_mapping": {
+				"type": "Object"
+			},
+			"port": {
+				"type": "String",
+				"defaultValue": "1521"
+			},
+			"service_name": {
+				"type": "String",
+				"defaultValue": "uatdb_pdb1.stgpvtdbsn.yasuat.oraclevcn.com"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "Travelbox"
+			},
+			"query": {
+				"type": "String"
+			},
+			"use_case": {
+				"type": "string"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

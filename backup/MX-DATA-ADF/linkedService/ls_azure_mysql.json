@@ -1,0 +1,57 @@
+{
+	"name": "ls_azure_mysql",
+	"properties": {
+		"parameters": {
+			"server_name": {
+				"type": "string",
+				"defaultValue": "10.110.49.138"
+			},
+			"user_name": {
+				"type": "string",
+				"defaultValue": "sensetime_readonly"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-mysql-sql-svc-prd-password"
+			},
+			"database_name": {
+				"type": "string",
+				"defaultValue": "sensexplorer"
+			},
+			"key_vault_uri": {
+				"type": "string",
+				"defaultValue": "https://kv-mx-data-adf-inges-dev.vault.azure.net/"
+			},
+			"port": {
+				"type": "string",
+				"defaultValue": "30398"
+			}
+		},
+		"annotations": [],
+		"type": "AzureMySql",
+		"typeProperties": {
+			"connectionString": "Server=@{linkedService().server_name};Port=@{linkedService().port};Database=@{linkedService().database_name};UID=@{linkedService().user_name};SSLMode=1;UseSystemTrustStore=0",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": {
+					"value": "@linkedService().secret_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

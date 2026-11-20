@@ -1,0 +1,309 @@
+tables:
+#-----------------------omni_account_master----------------------
+  - name: omni_account_master
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: omni_account_sk
+      - criticality: error
+        check:
+            function: is_not_null_and_not_empty
+            arguments:
+              column: account_id
+      - criticality: error
+        check:
+          function: is_in_list
+          arguments:
+            column: source_name
+            allowed:
+              - "'dwh_lkp_vw_account'"
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+#--------------------------End-------------------------------------
+#-----------------------scv_account_master----------------------
+  - name: scv_account_master
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: scv_account_sk
+      - criticality: error
+        check:
+          function: is_in_list
+          arguments:
+            column: source_name
+            allowed:
+              - "'t_mdm_guest'"
+              - "'frictionless_face_tag'"
+              - "'t_mdm_rel'"
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+#--------------------------End-------------------------------------
+#-----------------------scv_omni_link----------------------
+  - name: scv_omni_link
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: scv_omni_sk
+      - criticality: error
+        check:
+            function: is_not_null_and_not_empty
+            arguments:
+              column: source_name
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+#--------------------------End-------------------------------------
+#-----------------------annual_pass----------------------
+  - name: annual_pass
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: Owner_omni_sk
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: ticket_id
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+#--------------------------End-------------------------------------
+#-----------------------touchpoints----------------------
+  - name: touchpoints
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: CONVERSATION_ID
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+#--------------------------End-------------------------------------
+#-----------------------location_intelligence----------------------
+  - name: location_intelligence
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: category
+      - criticality: error
+        check:
+            function: is_not_null_and_not_empty
+            arguments:
+              column: source_name
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+#--------------------------End-------------------------------------
+#-----------------------transactions----------------------
+  - name: transactions
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: sale_source_system
+      - criticality: error
+        check:
+            function: is_not_null_and_not_empty
+            arguments:
+              column: source_name
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+#--------------------------End-------------------------------------
+##-----------------------customer_interests----------------------
+  - name: customer_interests
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: email
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: f_pref_key
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+#--------------------------End-------------------------------------
+#-----------------------customer_preference----------------------
+  - name: customer_preference
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: email
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: f_comm_pref_key
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+#--------------------------End-------------------------------------
+#-----------------------marketing----------------------
+  - name: marketing
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: fact_key
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: campaign_source
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+#--------------------------End-------------------------------------
+#-----------------------complaints_and_refunds----------------------
+  - name: complaints_and_refunds 
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: incident_id       
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: customer_id
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+#--------------------------End-------------------------------------
+#-------------------Account_contact_rfp----------------------
+  - name: crm_account_contacts_rfp
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: account_id
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+# ---------------------End-------------------------------------
+# ------------------customer_survey----------------------
+  - name: customer_survey
+    checks:
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: response_id
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_created_datetime
+      - criticality: error
+        check:
+          function: is_not_null_and_not_empty
+          arguments:
+            column: etl_updated_datetime
+# ---------------------End-------------------------------------

@@ -1,0 +1,185 @@
+pipeline_name: pl_oracle_fusion_bip_incremental
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [04]
+  minutes: [30]
+
+activated: true
+
+datastore_parameters:
+  datastore_name: 'fusion_bip_proc'
+  user_name: 'biacm.admin'
+  secret_name: 'cloud-fusion-bip-svc-prd-password'
+  base_url: 'https://enpk.fa.em8.oraclecloud.com:443/xmlpserver/services/v2/ReportService'
+  source_path: '/Custom/Data_Team/Fusion_AZ_Extract_DE/'
+  workflow_name: 'wf_ingest_fusion_bip_fusion'
+  load_time_column_type: timestamp
+  use_case: 'procurement'
+  # full_load: true
+  # skip_orchestration: true
+
+datasets:
+  - name: fa_fusion_soainfra_wftask
+    pipeline_name: pl_oracle_fusion_bip_fullload
+    dataset_parameters:
+      table_name: 'FA_FUSION_SOAINFRA_WFTASK'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+      use_case: 'procurement,hr'
+  - name: per_person_names_f
+    dataset_parameters:
+      table_name: 'PER_PERSON_NAMES_F'
+      pk: 'LAST_UPDATE_DATE, LAST_UPDATED_BY, PERSON_NAME_ID, EFFECTIVE_START_DATE'
+      load_time_column: 'LAST_UPDATE_DATE'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+      use_case: 'finance, procurement, hr'
+  - name: po_headers_all
+    dataset_parameters:
+      table_name: 'PO_HEADERS_ALL'
+      pk: 'PO_HEADER_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      use_case: 'procurement, inventory'
+  - name: po_lines_all
+    dataset_parameters:
+      table_name: 'PO_LINES_ALL'
+      pk: 'PO_LINE_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      use_case: 'procurement, inventory'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: por_requisition_lines_all
+    dataset_parameters:
+      table_name: 'POR_REQUISITION_LINES_ALL'
+      pk: 'REQUISITION_LINE_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      use_case: 'procurement, inventory'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: poz_suppliers_v
+    dataset_parameters:
+      table_name: 'POZ_SUPPLIERS_V'
+      pk: 'VENDOR_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      use_case: 'procurement, inventory'
+  - name: ap_terms_vl
+    dataset_parameters:
+      table_name: 'AP_TERMS_VL'
+      pk: 'TERM_ID'
+      load_time_column: 'last_update_date'
+  - name: fnd_flex_values_tl
+    dataset_parameters:
+      table_name: 'FND_FLEX_VALUES_TL'
+      pk: 'FLEX_VALUE_ID, LANGUAGE'
+      load_time_column: 'last_update_date'
+  - name: gl_sets_of_books
+    dataset_parameters:
+      table_name: 'GL_SETS_OF_BOOKS'
+      pk: 'SET_OF_BOOKS_ID'
+      load_time_column: 'last_update_date'
+  - name: pon_action_history
+    dataset_parameters:
+      table_name: 'PON_ACTION_HISTORY'
+      pk: 'OBJECT_ID, OBJECT_ID2, SEQUENCE_NUM, OBJECT_TYPE_CODE, ACTION_TYPE'
+      load_time_column: 'last_update_date'
+  - name: pon_auction_headers_all
+    dataset_parameters:
+      table_name: 'PON_AUCTION_HEADERS_ALL'
+      pk: 'AUCTION_HEADER_ID'
+      load_time_column: 'last_update_date'
+  - name: pon_auction_item_prices_all
+    dataset_parameters:
+      table_name: 'PON_AUCTION_ITEM_PRICES_ALL'
+      pk: 'AUCTION_HEADER_ID, LINE_NUMBER'
+      load_time_column: 'last_update_date'
+  - name: pon_award_allocations
+    dataset_parameters:
+      table_name: 'PON_AWARD_ALLOCATIONS'
+      pk: 'ORIG_REQ_LINE_ID, BID_LINE_NUMBER, BID_NUMBER'
+      load_time_column: 'last_update_date'
+  - name: por_browse_trees
+    dataset_parameters:
+      table_name: 'POR_BROWSE_TREES'
+      pk: 'PARENT_CATEGORY_ID, CHILD_CATEGORY_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: hr_organization_units_f_tl
+    dataset_parameters:
+      table_name: 'HR_ORGANIZATION_UNITS_F_TL'
+      pk: 'LAST_UPDATE_DATE, LAST_UPDATED_BY, ORGANIZATION_ID, LANGUAGE, EFFECTIVE_START_DATE'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: hz_locations
+    dataset_parameters:
+      table_name: 'HZ_LOCATIONS'
+      pk: 'LOCATION_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: hz_parties
+    dataset_parameters:
+      table_name: 'HZ_PARTIES'
+      pk: 'PARTY_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: hz_party_sites
+    dataset_parameters:
+      table_name: 'HZ_PARTY_SITES'
+      pk: 'PARTY_SITE_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      model_type: 'fl_model'
+      fl_model_batch_size: 10000
+  - name: per_all_people_f
+    dataset_parameters:
+      table_name: 'PER_ALL_PEOPLE_F'
+      pk: 'PERSON_ID, EFFECTIVE_START_DATE'
+      load_time_column: 'LAST_UPDATE_DATE'
+      use_case: 'finance, procurement, hr'
+  - name: po_action_history
+    dataset_parameters:
+      table_name: 'PO_ACTION_HISTORY'
+      pk: 'OBJECT_ID, OBJECT_TYPE_CODE, OBJECT_SUB_TYPE_CODE, SEQUENCE_NUM, ACTION_CODE'
+      load_time_column: 'LAST_UPDATE_DATE'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: po_versions
+    dataset_parameters:
+      table_name: 'PO_VERSIONS'
+      pk: 'VERSION_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: por_req_distributions_all
+    dataset_parameters:
+      table_name: 'POR_REQ_DISTRIBUTIONS_ALL'
+      pk: 'DISTRIBUTION_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+      model_type: 'fl_model'
+      fl_model_batch_size: 100000
+  - name: por_smart_forms_all_tl
+    dataset_parameters:
+      table_name: 'POR_SMART_FORMS_ALL_TL'
+      pk: 'SMART_FORM_ID,LANGUAGE'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: poz_address_requests
+    dataset_parameters:
+      table_name: 'POZ_ADDRESS_REQUESTS'
+      pk: 'ADDRESS_REQUEST_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: poz_supplier_contacts_v
+    dataset_parameters:
+      table_name: 'POZ_SUPPLIER_CONTACTS_V'
+      pk: 'VENDOR_ID, VENDOR_SITE_ID, VENDOR_CONTACT_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: poz_supplier_registrations
+    dataset_parameters:
+      table_name: 'POZ_SUPPLIER_REGISTRATIONS'
+      pk: 'SUPPLIER_REG_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: poz_supplier_sites_all_m
+    dataset_parameters:
+      table_name: 'POZ_SUPPLIER_SITES_ALL_M'
+      pk: 'VENDOR_SITE_ID'
+      load_time_column: 'LAST_UPDATE_DATE'
+  - name: poz_supplier_sites_v
+    dataset_parameters:
+      table_name: 'POZ_SUPPLIER_SITES_V'
+      pk: 'VENDOR_SITE_ID'
+      load_time_column: 'LAST_UPDATE_DATE'

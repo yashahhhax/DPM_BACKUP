@@ -1,0 +1,46 @@
+pipeline_name: pl_ipera_api_to_parquet_guest_devices
+
+schedule:
+    frequency: Day
+    interval: 1
+    hours: [09]
+    minutes: [45]
+
+activated: false
+
+datastore_parameters:
+  base_url: 'https://api.iperawifi.com/api/v1/'
+  datastore_name: 'ipera'
+  dataset_name: 'guest_devices'
+  relative_url: 'guest-devices'
+  filter_column : 'created_at'
+  workflow_name: 'wf_ingest_ipera_api_to_parquet'
+  use_case: 'ipera'
+  load_days: '10'
+  # skip_orchestration: true
+
+datasets:
+  - name: fwad
+    dataset_parameters:
+      table_name: 'fwad'
+      secret_name: 'cloud-iperawifi-api-prd-fwad-apikey'
+  - name: swad
+    dataset_parameters:
+      table_name: 'swad'
+      secret_name: 'cloud-iperawifi-api-prd-swad-apikey'
+  - name: tlp
+    dataset_parameters:
+      table_name: 'tlp'
+      secret_name: 'cloud-iperawifi-api-prd-tlp-apikey'
+  - name: wbw
+    dataset_parameters:
+      table_name: 'wbw'
+      secret_name: 'cloud-iperawifi-api-prd-wbw-apikey'
+  - name: yww
+    dataset_parameters:
+      table_name: 'yww'
+      secret_name: 'cloud-iperawifi-api-prd-yww-apikey'
+  - name: clymb
+    dataset_parameters:
+      table_name: 'clymb'
+      secret_name: 'cloud-iperawifi-api-prd-clymb-apikey'

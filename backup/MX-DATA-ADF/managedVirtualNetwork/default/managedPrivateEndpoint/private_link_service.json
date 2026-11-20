@@ -1,0 +1,10 @@
+{
+	"name": "private_link_service",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/312989a6-ad5b-42b5-b553-4bb71ea31df6/resourceGroups/rg-mx-data-adf-inges-nonprd/providers/Microsoft.Network/privateLinkServices/pls-mx-data-adf-inges-nonprd-01",
+		"groupId": "",
+		"fqdns": [
+			"cdc-mx-data.privatelink.database.windows.net"
+		]
+	}
+}

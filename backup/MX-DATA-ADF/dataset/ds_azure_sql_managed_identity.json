@@ -1,0 +1,41 @@
+{
+	"name": "ds_azure_sql_managed_identity",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_sql_managed_identity",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"server_name": "@dataset().server_name",
+				"database_name": {
+					"value": "@dataset().database_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"server_name": {
+				"type": "String"
+			},
+			"database_name": {
+				"type": "String",
+				"defaultValue": "watermarks"
+			},
+			"table_name": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "dbo",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().table_name",
+				"type": "Expression"
+			}
+		}
+	}
+}

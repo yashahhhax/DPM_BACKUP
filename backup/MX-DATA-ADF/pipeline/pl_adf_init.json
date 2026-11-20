@@ -1,0 +1,41 @@
+{
+	"name": "pl_adf_init",
+	"properties": {
+		"activities": [
+			{
+				"name": "create watermark",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_managed_identity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"server_name": {
+							"value": "@concat('sql-mx-data-adf-inges-' , pipeline().globalParameters.environment, '-01.database.windows.net')",
+							"type": "Expression"
+						},
+						"database_name": "watermarks"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "CREATE TABLE watermarktable (\n    TableName NVARCHAR(255),\n    WatermarkValue NVARCHAR(50)\n)"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"annotations": []
+	}
+}

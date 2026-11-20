@@ -1,0 +1,75 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "KPI ID (Auto)",
+                "type": "String"
+            },
+            "sink": {
+                "name": "kpi_id",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "KPI Name",
+                "type": "String"
+            },
+            "sink": {
+                "name": "kpi_name",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "KPI Description",
+                "type": "String"
+            },
+            "sink": {
+                "name": "kpi_description",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Active Flag",
+                "type": "String"
+            },
+            "sink": {
+                "name": "active_flag",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "KPI Level",
+                "type": "String"
+            },
+            "sink": {
+                "name": "kpi_level",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Source Table",
+                "type": "String"
+            },
+            "sink": {
+                "name": "source_table",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

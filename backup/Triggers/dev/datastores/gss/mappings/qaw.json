@@ -1,0 +1,133 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "Prop_0"
+            },
+            "sink": {
+                "name": "id"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_1"
+            },
+            "sink": {
+                "name": "started_on"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_2"
+            },
+            "sink": {
+                "name": "last_updated_on"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_3"
+            },
+            "sink": {
+                "name": "status"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_4"
+            },
+            "sink": {
+                "name": "collector"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_5"
+            },
+            "sink": {
+                "name": "language"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_6"
+            },
+            "sink": {
+                "name": "ip_address"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_7"
+            },
+            "sink": {
+                "name": "device"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_8"
+            },
+            "sink": {
+                "name": "nationality"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_9"
+            },
+            "sink": {
+                "name": "country_of_residence"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_10"
+            },
+            "sink": {
+                "name": "emirate"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_11"
+            },
+            "sink": {
+                "name": "no_of_guest"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_12"
+            },
+            "sink": {
+                "name": "country_of_residence_not_to_be_displayed"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_13"
+            },
+            "sink": {
+                "name": "nationality_1"
+            }
+        },
+        {
+            "source": {
+                "name": "Prop_14"
+            },
+            "sink": {
+                "name": "country_of_residence_1"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time"
+            },
+            "sink": {
+                "name": "adf_load_time"
+            }
+        }
+    ]
+}

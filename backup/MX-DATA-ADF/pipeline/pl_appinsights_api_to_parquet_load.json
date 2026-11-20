@@ -1,0 +1,185 @@
+{
+	"name": "pl_appinsights_api_to_parquet_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetToken",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"linkedServices": [
+						{
+							"referenceName": "ls_key_vault",
+							"type": "LinkedServiceReference"
+						}
+					],
+					"url": {
+						"value": "@concat(pipeline().globalParameters.key_vault_uri, '/secrets/', pipeline().parameters.secret_name, '?api-version=7.0')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "ForEach Day",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetToken",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@range(0,add(int(pipeline().parameters.no_of_days),1))",
+						"type": "Expression"
+					},
+					"batchCount": 5,
+					"activities": [
+						{
+							"name": "Copy AppInsights API to Raw Json",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:30:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"additionalHeaders": {
+										"x-api-key": {
+											"value": "@trim(activity('GetToken').output.value)",
+											"type": "Expression"
+										},
+										"Content-Type": "application/json"
+									},
+									"paginationRules": {
+										"supportRFC5988": "true"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_rest_api",
+									"type": "DatasetReference",
+									"parameters": {
+										"base_url": {
+											"value": "@pipeline().parameters.base_url",
+											"type": "Expression"
+										},
+										"relative_url": {
+											"value": "@concat('?query=',uriComponent(concat(\n'union isfuzzy=true requests | where timestamp >= datetime(\"', formatDateTime(addDays(pipeline().parameters.start_timestamp,item()), 'yyyy-MM-ddT00:00:00'),\n'\") and timestamp <= datetime(\"', formatDateTime(addDays(pipeline().parameters.start_timestamp,item()), 'yyyy-MM-ddT23:59:59'),\n'\") | where * has \"/v3.0/guests\" or * has \"/v1/frictionless\" or * has \"/createUserYasId/YI\" or * has \"/v1/identity/forgotpassword\" or * has \"/purcahseSummary\" or * has \"/scvext/api/v1/contactlessenrollment\" or * has \"/scvext/api/v1/linkedTickets\" | order by timestamp desc'\n)))",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_adls_json",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": {
+											"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+											"type": "Expression"
+										},
+										"container_name": {
+											"value": "@pipeline().globalParameters.storage_container_datalake",
+											"type": "Expression"
+										},
+										"directory": {
+											"value": "@toLower(concat('raw_',pipeline().parameters.datastore_name,'/',pipeline().parameters.schema_name,'_',pipeline().parameters.table_name, '/', pipeline().parameters.adf_load_time))",
+											"type": "Expression"
+										},
+										"file_name": {
+											"value": "@toLower(concat(pipeline().parameters.table_name, '_', formatDateTime(addDays(pipeline().parameters.start_timestamp,item()), 'yyyyMMdd000000'), '_', formatDateTime(addDays(pipeline().parameters.start_timestamp,item()), 'yyyyMMdd235959'), '.json'))",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"base_url": {
+				"type": "string"
+			},
+			"secret_name": {
+				"type": "string"
+			},
+			"datastore_name": {
+				"type": "string"
+			},
+			"schema_name": {
+				"type": "string"
+			},
+			"table_name": {
+				"type": "string"
+			},
+			"start_timestamp": {
+				"type": "string"
+			},
+			"end_timestamp": {
+				"type": "string"
+			},
+			"adf_load_time": {
+				"type": "string"
+			},
+			"no_of_days": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"query": {
+				"type": "String"
+			},
+			"file_name": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Facepass"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,196 @@
+{
+	"name": "pl_trigger_workflow",
+	"properties": {
+		"activities": [
+			{
+				"name": "Trigger table specific workflow",
+				"description": "Will trigger the workflo",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 300,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": {
+						"value": "@concat(pipeline().parameters.databricks_workspace_url, '/api/2.1/jobs/run-now')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "on-prem-self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"value": "@json(concat(\n  '{',\n    '\"cause\":\"Kicked off from ADF\",',\n    '\"job_id\":', pipeline().parameters.job_id, ',',\n    '\"job_parameters\":', string(pipeline().parameters.job_parameters),\n  '}'\n))\n",
+						"type": "Expression"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+					}
+				}
+			},
+			{
+				"name": "Workflow completed",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "Trigger table specific workflow",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('Get job status').output.status.state, 'TERMINATED')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Get job status",
+							"description": "",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Wait",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 300,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"url": {
+									"value": "@concat(pipeline().parameters.databricks_workspace_url, '/api/2.2/jobs/runs/get?run_id=', activity('Trigger table specific workflow').output.run_id)",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "on-prem-self-hosted-runtime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"body": {
+									"cause": "Kicked off from ADF"
+								},
+								"authentication": {
+									"type": "MSI",
+									"resource": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+								}
+							}
+						},
+						{
+							"name": "Wait",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 30
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "If workflow_not_success",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Workflow completed",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals(activity('Get job status').output.status.termination_details.code, 'SUCCESS'))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Set pipeline_return_values",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "pipelineReturnValue",
+								"value": [
+									{
+										"key": "status",
+										"value": {
+											"type": "Expression",
+											"content": "@activity('Get job status').output.status"
+										}
+									},
+									{
+										"key": "task_run_id",
+										"value": {
+											"type": "Expression",
+											"content": "@activity('Get job status').output.tasks[0].run_id"
+										}
+									}
+								],
+								"setSystemVariable": true
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "fail_pipeline",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": {
+									"value": "@string(activity('Get job status').output)",
+									"type": "Expression"
+								},
+								"errorCode": "1"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"job_id": {
+				"type": "string"
+			},
+			"job_parameters": {
+				"type": "object"
+			},
+			"databricks_workspace_url": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"job_id": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Databricks"
+		},
+		"annotations": []
+	}
+}

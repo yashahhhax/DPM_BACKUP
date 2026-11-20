@@ -1,0 +1,43 @@
+name: UAT
+
+resources:
+  repositories:
+    - repository: templateRepo
+      type: git
+      name: MX-DATA-DEVOPS-TEMPLATES
+      ref: refs/heads/main
+    - repository: sharedRepo
+      type: git
+      name: MX-DATA-ADB 
+      ref: $(Build.SourceBranch)
+
+trigger:
+  branches:
+    include:
+    - uat   # UAT pipeline trigger when uat changes happen
+
+parameters:
+- name: skipApply
+  displayName: Skip Apply?
+  type: boolean
+  default: false
+
+stages:
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: 'Transformation UAT'
+    service_connection: 'sp-mx-data-cicd-uat-01'
+    agent_pool_name: 'data-platform'
+    environment: 'uat'
+    folder_name: 'shared_transformation'
+    skip_apply: ${{ parameters.skipApply }}
+    job_to_run: wf_workflow_orchestration_config
+
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: 'Ingestion UAT'
+    service_connection: 'sp-mx-data-cicd-uat-01'
+    agent_pool_name: 'data-platform'
+    environment: 'uat'
+    folder_name: 'shared_ingestion'
+    skip_apply: ${{ parameters.skipApply }}

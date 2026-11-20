@@ -1,0 +1,54 @@
+resources:
+  jobs:
+    wf_c360_master_kpi:
+      name: wf_c360_master_kpi
+      permissions:
+      - group_name: ${var.can_manage_run_group}
+        level: CAN_MANAGE_RUN
+      tasks:
+        - task_key: send_etl_start_notification
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_job_alerts.py
+            base_parameters:
+              job_run_id: "{{job.run_id}}"
+              alert_type: start
+            source: WORKSPACE
+        - task_key: plt_master_kpi
+          depends_on:
+            - task_key: send_etl_start_notification
+          run_if: ALL_DONE
+          notebook_task:
+            notebook_path: ../notebooks/platinum/c360_kpis/plt_master_kpi.py
+            base_parameters:
+              current_job_run_id: "{{job.run_id}}"
+            source: WORKSPACE
+        - task_key: job_status_logging
+          depends_on:
+            - task_key: plt_master_kpi
+          run_if: ALL_DONE
+          notebook_task:
+            notebook_path: ../shared_code/logging/get_all_job_details.py
+            base_parameters:
+              job_config: '{ "master_job": { "job_name": "wf_c360_master_kpi", "tag": "customer360" }, "job_names": []}'
+            source: WORKSPACE
+        - task_key: failure_team_notification
+          depends_on:
+            - task_key: job_status_logging
+          run_if: ALL_DONE
+          notebook_task:
+            notebook_path: ../shared_code/logging/etl_job_alerts.py
+            base_parameters:
+              job_run_id: "{{job.run_id}}"
+              alert_type: failure
+            source: WORKSPACE
+      tags:
+        use_case: customer360
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: usecase
+          default: customer360
+      run_as:
+        service_principal_name: ${var.service_principal_name}

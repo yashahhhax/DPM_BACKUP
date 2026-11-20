@@ -1,0 +1,49 @@
+pipeline_name: pl_odbc_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [04]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'fusion'
+  connection_string: 'DSN=ATP'
+  user_name: 'xxbip'
+  secret_name: 'onprem-atp-oracle-svc-prd-password'
+  use_case: 'oracle_gl'
+  # skip_orchestration: true
+
+datasets:
+  - name: xxbip_xxflpm_bi_coa_dept_master_all
+    dataset_parameters:
+      schema_name: 'xxbip'
+      table_name: 'xxflpm_bi_coa_dept_master_all'
+  - name: xxflpm_bi_coa_comp_master_all
+    dataset_parameters:
+      schema_name: 'XXBIP'
+      table_name: 'xxflpm_bi_coa_comp_master_all'
+  - name: xxflp_bi_gl_acct_analy_ob_all
+    pipeline_name: pl_odbc_to_parquet_incremental
+    dataset_parameters:
+      schema_name: 'xxapps'
+      table_name: 'xxflp_bi_gl_acct_analy_ob_all'
+      pk: 'LINE_UNIQUE_ID, ACCOUNT, ENTITY, RUN_DATE, GL_DATE'
+      load_time_column: 'RUN_DATE'
+  - name: xxflpm_gl_trial_balance_v
+    dataset_parameters:
+      schema_name: 'xxapps'
+      table_name: 'xxflpm_gl_trial_balance_v'
+  - name: xxapps_xxflpm_bi_coa_acct_master_all
+    dataset_parameters:
+      schema_name: 'xxapps'
+      table_name: 'xxflpm_bi_coa_acct_master_all'
+  - name: xxapps_xxflpm_bi_acct_map_hdr_all
+    dataset_parameters:
+      schema_name: 'xxapps'
+      table_name: 'xxflpm_bi_acct_map_hdr_all'
+  - name: xxapps_xxflpm_bi_acct_map_dtl_all
+    dataset_parameters:
+      schema_name: 'xxapps'
+      table_name: 'xxflpm_bi_acct_map_dtl_all'

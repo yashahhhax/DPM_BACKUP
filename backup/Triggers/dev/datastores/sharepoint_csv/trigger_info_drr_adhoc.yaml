@@ -1,0 +1,151 @@
+pipeline_name: pl_adhoc_sharepoint_csv_to_parquet
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [7]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'sharepoint_file'
+  tenant_id: '0b0b76ba-8e32-4c41-8130-65ed5ca4353c'
+  user_name: '23548861-9379-4ee8-9b2f-680f630b2020'
+  secret_name: 'cloud-sharepoint-svc-prd-password'
+  site: 'FARAHFLFIN'
+  schema_name: 'drr'
+  use_case: 'drr'
+  # skip_orchestration: true
+
+datasets:
+  - name: t_fwad_budget
+    dataset_parameters:
+      path: "@concat(formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('FWAD_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"FWAD_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_wbw_budget
+    dataset_parameters:
+      path: "@concat(formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('WBW_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"WBW_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_swad_budget
+    dataset_parameters:
+      path: "@concat(formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('SWAD_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"SWAD_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_yww_budget
+    dataset_parameters:
+      path: "@concat(formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('YWW_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"YWW_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_qaw_budget
+    dataset_parameters:
+      path: "@concat(formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('QAW_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"QAW_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_clymb_budget
+    dataset_parameters:
+      path: "@concat(formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('CLYMB_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"CLYMB_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_tlp_budget
+    dataset_parameters:
+      path: "@concat(formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('TLP_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"TLP_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+  - name: t_aaz_budget
+    dataset_parameters:
+      path: "@concat(formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('AAZ_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_budget'
+      workflow_name: 'wf_mxdrr_revenue_budget'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"AAZ_BUDGET_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmqQMKl9vrmuR5cVdXWYq8cf'
+
+  # Forecast triggers
+  - name: t_fwad_forecast
+    dataset_parameters:
+      path: "@concat( formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('FWAD_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"FWAD_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_wbw_forecast
+    dataset_parameters:
+      path: "@concat( formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('WBW_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"WBW_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_swad_forecast
+    dataset_parameters:
+      path: "@concat( formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('SWAD_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"SWAD_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_yww_forecast
+    dataset_parameters:
+      path: "@concat( formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('YWW_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"YWW_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_qaw_forecast
+    dataset_parameters:
+      path: "@concat( formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('QAW_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"QAW_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_clymb_forecast
+    dataset_parameters:
+      path: "@concat( formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('CLYMB_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"CLYMB_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_tlp_forecast
+    dataset_parameters:
+      path: "@concat( formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('TLP_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"TLP_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'
+  - name: t_aaz_forecast
+    dataset_parameters:
+      path: "@concat( formatDateTime(utcnow(), 'yyyy'), '/')"
+      input_file_name: "@concat('AAZ_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv')"
+      table_name: 'budgetforecast_forecast'
+      workflow_name: 'wf_mxdrr_revenue_forecast'
+      workflow_parameters: "@concat('{ \"source_file_name\": \"AAZ_FORECAST_', formatDateTime(utcnow(), 'yyyy'), '.csv\" }')"
+      drive_id: 'b!0SuTvDQmqEC-nZURiVe42iWGcL_wUjdDv0hoVGEXPmr72wqK902YRoCRFMm2F6h8'

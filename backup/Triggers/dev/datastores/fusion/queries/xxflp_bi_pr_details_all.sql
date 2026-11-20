@@ -1,0 +1,4 @@
+select 
+    SUPPLIER_CATEGORY as SUB_CATEGORY_CODE, 
+    SUPPLIER_SUB_CATEGORY as SUB_CATEGORY_NAME
+FROM xxapps.xxflp_bi_pr_details_all

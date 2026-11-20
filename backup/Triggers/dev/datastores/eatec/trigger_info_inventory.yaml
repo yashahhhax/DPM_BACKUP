@@ -1,0 +1,180 @@
+pipeline_name: pl_sql_server_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [12]
+  minutes: [00]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'eatec'
+  server_name: '10.140.9.42'
+  user_name: 'farah\svc_mx_data_prd'
+  secret_name: 'onprem-sqlserver-wdws-svc-prd-password'
+  database_name: 'eatecx'
+  schema_name: 'dbo'
+  use_case: 'inventory'
+  # skip_orchestration: true
+
+datasets:
+  - name: currencyrates
+    dataset_parameters:
+      table_name: 'currencyrates'
+  - name: farah03
+    dataset_parameters:
+      table_name: 'farah03'
+  - name: farah05
+    dataset_parameters:
+      table_name: 'farah05'
+  - name: farah10
+    dataset_parameters:
+      table_name: 'farah10'
+  - name: farah16
+    dataset_parameters:
+      table_name: 'farah16'
+  - name: ingactsummary
+    # pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'ingactsummary'
+      # load_time_column: 'postdate'
+      # pk: 'item, location, postdate'
+  - name: inglocs
+    # pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'inglocs'
+      # load_time_column: 'postdate'
+      # pk: 'item, location'
+  - name: inglots
+    dataset_parameters:
+      table_name: 'inglots'
+  - name: ingother
+    dataset_parameters:
+      table_name: 'ingother'
+  - name: ingpurchases
+    # pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'ingpurchases'
+      # load_time_column: 'postdate'
+      # pk: 'intnum'
+  - name: ingpurchases2
+    dataset_parameters:
+      table_name: 'ingpurchases2'
+  - name: ingredients
+    dataset_parameters:
+      table_name: 'ingredients'
+  - name: ingusage
+    # pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'ingusage'
+      # load_time_column: 'postdate'
+      # pk: 'intnum'
+  - name: phydetail
+    # pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'phydetail'
+      # load_time_column: 'postdate'
+      # pk: 'dummyindx'
+  - name: phyhead
+    dataset_parameters:
+      table_name: 'phyhead'
+  - name: podetail
+    # pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'podetail'
+      # load_time_column: 'postdate'
+      # pk: 'intnum'
+  - name: pohead
+    dataset_parameters:
+      table_name: 'pohead'
+  - name: products
+    dataset_parameters:
+      table_name: 'products'
+  - name: reqdetail
+    # pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'reqdetail'
+      # load_time_column: 'postdate'
+      # pk: 'dummyindx'
+  - name: reqhead
+    dataset_parameters:
+      table_name: 'reqhead'
+  - name: rqadetail
+    # pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'rqadetail'
+      # load_time_column: 'postdate'
+      # pk: 'dummyindx'
+  - name: rqahead
+    dataset_parameters:
+      table_name: 'rqahead'
+  - name: spldetail
+    dataset_parameters:
+      table_name: 'spldetail'
+  - name: splhead
+    dataset_parameters:
+      table_name: 'splhead'
+  - name: suppliers
+    dataset_parameters:
+      table_name: 'suppliers'
+  - name: trndetail
+    # pipeline_name: pl_sql_server_to_parquet_incremental
+    dataset_parameters:
+      table_name: 'trndetail'
+      # load_time_column: 'postdate'
+      # pk: 'dummyindx'
+  - name: trnhead
+    dataset_parameters:
+      table_name: 'trnhead'
+  - name: zassociations
+    dataset_parameters:
+      table_name: 'zassociations'
+  - name: zetup04
+    dataset_parameters:
+      table_name: 'zetup04'
+  - name: zetup05
+    dataset_parameters:
+      table_name: 'zetup05'
+  - name: zetup07
+    dataset_parameters:
+      table_name: 'zetup07'
+  - name: zetup08
+    dataset_parameters:
+      table_name: 'zetup08'
+  - name: zetup13
+    dataset_parameters:
+      table_name: 'zetup13'
+  - name: zetup18
+    dataset_parameters:
+      table_name: 'zetup18'
+  - name: zetup21
+    dataset_parameters:
+      table_name: 'zetup21'
+  - name: zetup26
+    dataset_parameters:
+      table_name: 'zetup26'
+  - name: zetup51
+    dataset_parameters:
+      table_name: 'zetup51'
+  - name: zetup61
+    dataset_parameters:
+      table_name: 'zetup61'
+  - name: zetup62
+    dataset_parameters:
+      table_name: 'zetup62'
+  - name: zetup63
+    dataset_parameters:
+      table_name: 'zetup63'
+  - name: zetup64
+    dataset_parameters:
+      table_name: 'zetup64'
+  - name: zetup65
+    dataset_parameters:
+      table_name: 'zetup65'
+  - name: zetup66
+    dataset_parameters:
+      table_name: 'zetup66'
+  - name: zetup91
+    dataset_parameters:
+      table_name: 'zetup91'

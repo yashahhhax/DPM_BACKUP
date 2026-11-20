@@ -1,0 +1,166 @@
+pipeline_name: pl_sql_server_to_parquet_fullload
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [08]
+  minutes: [30]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'eaomni'
+  server_name: '10.140.9.55'
+  user_name: 'farah\svc_mx_data_prd'
+  secret_name: 'onprem-sqlserver-wdws-svc-prd-password'
+  database_name: 'BOS_YBA'
+  schema_name: 'dbo'
+  use_case: 'ea_drr'
+  # skip_orchestration: true
+
+datasets:
+  #EA DRR
+  - name: data_ledger
+    dataset_parameters:
+      table_name: 'data_ledger'
+  - name: cnf_event
+    dataset_parameters:
+      table_name: 'CNF_Event'
+  - name: cnf_location
+    dataset_parameters:
+      table_name: 'CNF_LOCATION'
+  - name: cnf_lookup
+    dataset_parameters:
+      table_name: 'CNF_LOOKUP'
+  - name: cnf_performance
+    dataset_parameters:
+      table_name: 'CNF_PERFORMANCE'
+  - name: cnf_seatcategory
+    dataset_parameters:
+      table_name: 'CNF_SEATCATEGORY'
+  - name: cnf_envelopecapacity
+    dataset_parameters:
+      table_name: 'CNF_ENVELOPECAPACITY'
+  - name: cnf_operatingarea
+    dataset_parameters:
+      table_name: 'CNF_OperatingArea'
+  - name: cnf_workstation
+    dataset_parameters:
+      table_name: 'CNF_WORKSTATION'
+  - name: cnf_matrixcell
+    dataset_parameters:
+      table_name: 'CNF_MATRIXCELL'
+  - name: cnf_matrixsheet
+    dataset_parameters:
+      table_name: 'CNF_MATRIXSHEET'
+  - name: cnf_attributesetdetail
+    dataset_parameters:
+      table_name: 'CNF_ATTRIBUTESETDETAIL'
+  - name: cnf_attribute
+    dataset_parameters:
+      table_name: 'CNF_ATTRIBUTE'
+  - name: cnf_statisticalgroupvalidity
+    dataset_parameters:
+      table_name: 'CNF_STATISTICALGROUPVALIDITY'
+  - name: cnf_statisticalgroup
+    dataset_parameters:
+      table_name: 'CNF_STATISTICALGROUP'
+  - name: cnf_dmgcategory
+    dataset_parameters:
+      table_name: 'CNF_DmgCategory'
+  - name: cnf_promotion
+    dataset_parameters:
+      table_name: 'CNF_Promotion'
+  - name: cnf_user
+    dataset_parameters:
+      table_name: 'CNF_User'
+  - name: adm_gate
+    dataset_parameters:
+      table_name: 'adm_gate'
+  - name: cnf_attributeset
+    dataset_parameters:
+      table_name: 'cnf_attributeset'
+  - name: cnf_promotionitemrule
+    dataset_parameters:
+      table_name: 'cnf_promotionitemrule'
+  - name: cnf_promotionitem
+    dataset_parameters:
+      table_name: 'cnf_promotionitem'
+  - name: cnf_site
+    dataset_parameters:
+      table_name: 'cnf_site'
+  - name: data_dmgdata
+    dataset_parameters:
+      table_name: 'data_dmgdata'
+  - name: cnf_lookuptable
+    dataset_parameters:
+      table_name: 'cnf_lookuptable'
+  - name: data_aptrotationcount
+    dataset_parameters:
+      table_name: 'data_aptrotationcount'
+  - name: data_lock
+    dataset_parameters:
+      table_name: 'data_lock'
+  - name: data_mediaidentifier
+    dataset_parameters:
+      table_name: 'data_mediaidentifier'
+  - name: data_note
+    dataset_parameters:
+      table_name: 'data_note'
+  - name: data_payment
+    dataset_parameters:
+      table_name: 'data_payment'
+  - name: data_reservation
+    dataset_parameters:
+      table_name: 'data_reservation'
+  - name: data_sale
+    dataset_parameters:
+      table_name: 'data_sale'
+  - name: data_saleitem
+    dataset_parameters:
+      table_name: 'data_saleitem'
+  - name: data_saleitem2performance
+    dataset_parameters:
+      table_name: 'data_saleitem2performance'
+  - name: data_saleitem2ticket
+    dataset_parameters:
+      table_name: 'data_saleitem2ticket'
+  - name: data_saleitemrule
+    dataset_parameters:
+      table_name: 'data_saleitemrule'
+  - name: data_ticket
+    dataset_parameters:
+      table_name: 'data_ticket'
+  - name: data_ticket2media
+    dataset_parameters:
+      table_name: 'data_ticket2media'
+  - name: data_ticketusage
+    dataset_parameters:
+      table_name: 'data_ticketusage'
+  - name: data_transaction
+    dataset_parameters:
+      table_name: 'data_transaction'
+  - name: data_transaction2ticket
+    dataset_parameters:
+      table_name: 'data_transaction2ticket'
+  - name: data_voucher
+    dataset_parameters:
+      table_name: 'data_voucher'
+  - name: data_paymentcredit
+    dataset_parameters:
+      table_name: 'data_paymentcredit'
+  - name: data_saleitem2costcenter
+    dataset_parameters:
+      table_name: 'data_saleitem2costcenter'
+  - name: data_account
+    dataset_parameters:
+      table_name: 'data_account'
+  - name: cnf_spacestructure
+    dataset_parameters:
+      table_name: 'CNF_SpaceStructure'
+  - name: cnf_envelope
+    dataset_parameters:
+      table_name: 'CNF_Envelope'
+  - name: cnd_accounts
+    dataset_parameters:
+      table_name: 'CND_Accounts'

@@ -1,0 +1,52 @@
+{
+	"name": "ls_odbc",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"connection_string": {
+				"type": "String",
+				"defaultValue": "DSN=ATP"
+			},
+			"user_name": {
+				"type": "String",
+				"defaultValue": "xxbip"
+			},
+			"key_vault_uri": {
+				"type": "String",
+				"defaultValue": "https://kv-mx-data-adf-inges-dev.vault.azure.net/"
+			},
+			"secret_name": {
+				"type": "String",
+				"defaultValue": "onprem-atp-oracle-svc-prd-password"
+			}
+		},
+		"annotations": [],
+		"type": "Odbc",
+		"typeProperties": {
+			"connectionString": "@{linkedService().connection_string}",
+			"authenticationType": "Basic",
+			"userName": "@{linkedService().user_name}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": {
+					"value": "@linkedService().secret_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

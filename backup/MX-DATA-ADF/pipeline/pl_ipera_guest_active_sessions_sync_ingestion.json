@@ -1,0 +1,146 @@
+{
+	"name": "pl_ipera_guest_active_sessions_sync_ingestion",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(concat(pipeline().parameters.dataset_name,'_',pipeline().parameters.table_name))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"base_url\" : \"@{pipeline().parameters.base_url}\",\n  \"relative_url\":\"@{pipeline().parameters.relative_url}\",\n  \"secret_key\":\"@{pipeline().parameters.secret_name}\",\n  \"datastore_name\": \"@{toLower(pipeline().parameters.datastore_name)}\",\n  \"dataset_name\": \"@{toLower(pipeline().parameters.dataset_name)}\",\n  \"table_name\": \"@{toLower(pipeline().parameters.table_name)}\",\n  \"write_mode\": \"append\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure_ingest",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Skipped",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.dataset_name,'_',pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 20,
+		"parameters": {
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-iperawifi-api-prd-activesessions-apikey"
+			},
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://api.iperawifi.com/api/v1/"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "ipera"
+			},
+			"dataset_name": {
+				"type": "string",
+				"defaultValue": "guest_active_sessions"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "swad"
+			},
+			"relative_url": {
+				"type": "string",
+				"defaultValue": "locations-analytics/active-sessions"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_ipera_api_to_parquet_every_minute"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "ipera"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"folder": {
+			"name": "Ipera"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(concat(pipeline().parameters.dataset_name,'_',pipeline().parameters.table_name))",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

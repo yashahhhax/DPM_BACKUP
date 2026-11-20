@@ -1,0 +1,54 @@
+resources:
+  jobs:
+    wf_ingest_customer360_genesys:
+      name: wf_ingest_customer360_genesys
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN      
+      webhook_notifications:
+        on_failure:
+          - id: ${var.ingest_teams_webhook}
+      max_concurrent_runs: 100
+      tasks:
+        - task_key: ingest_customer360_genesys_extract_email
+          notebook_task:
+            notebook_path: ../notebooks/ingest_customer360_genesys_extract_email.py
+          disable_auto_optimization: true
+        - task_key: ingest_customer360_genesys_extract_voice
+          notebook_task:
+            notebook_path: ../notebooks/ingest_customer360_genesys_extract_voice.py
+          disable_auto_optimization: true
+        - task_key: job_status_logging
+          depends_on:
+            - task_key: ingest_customer360_genesys_extract_email
+            - task_key: ingest_customer360_genesys_extract_voice
+          run_if: ALL_DONE
+          notebook_task:
+            notebook_path: ../shared_code/logging/get_all_job_details.py
+            base_parameters:
+              job_config: |
+                {
+                  "master_job": {
+                    "job_name": "wf_ingest_customer360_genesys",
+                    "tag": "customer360"
+                  }
+                }
+      tags:
+        use_case: customer360
+      queue:
+        enabled: true
+      parameters:
+        - name: env
+          default: ${var.environment}
+        - name: datastore_name
+          default: "genesys"
+        - name: dataset_name
+          default: "customer360"
+        - name: start_date
+          default: ""
+        - name: end_date
+          default: ""
+        - name: secret_name
+          default: "cloud-genesys-api-prd-apikey"
+
+      performance_target: PERFORMANCE_OPTIMIZED

@@ -1,0 +1,290 @@
+{
+	"name": "pl_google_bigquery_to_parquet_fullload",
+	"properties": {
+		"activities": [
+			{
+				"name": "google_bigquery_to_parquet",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "GoogleBigQueryV2Source",
+						"additionalColumns": [
+							{
+								"name": "adf_load_time",
+								"value": {
+									"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+									"type": "Expression"
+								}
+							}
+						],
+						"query": {
+							"value": "@if(\n    equals(empty(pipeline().parameters.query), false), \n    replace(pipeline().parameters.query, '\\n', '\\r\\n'), \n    concat('SELECT * FROM ', pipeline().parameters.schema_name, '.', pipeline().parameters.table_name)\n)\n",
+							"type": "Expression"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"value": "@json(replace(string(pipeline().parameters.column_mapping), '\\n', '\\r\\n'))",
+						"type": "Expression"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_google_bigquery",
+						"type": "DatasetReference",
+						"parameters": {
+							"project_id": {
+								"value": "@pipeline().parameters.project_id",
+								"type": "Expression"
+							},
+							"secret_name": {
+								"value": "@pipeline().parameters.secret_name",
+								"type": "Expression"
+							},
+							"key_vault_uri": {
+								"value": "@pipeline().globalParameters.key_vault_uri",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_adls_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"storage_account_uri": "@pipeline().globalParameters.storage_account_datalake_uri",
+							"container_name": "@pipeline().globalParameters.storage_container_datalake",
+							"datastore": {
+								"value": "@toLower(pipeline().parameters.datastore_name)",
+								"type": "Expression"
+							},
+							"dataset": {
+								"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+								"type": "Expression"
+							},
+							"tablename": {
+								"value": "@pipeline().parameters.table_name",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Delete incremental files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "google_bigquery_to_parquet",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_adls_parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"storage_account_uri": "@pipeline().globalParameters.storage_account_datalake_uri",
+							"container_name": "@pipeline().globalParameters.storage_container_datalake",
+							"datastore": "@toLower(pipeline().parameters.datastore_name)",
+							"dataset": {
+								"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+								"type": "Expression"
+							},
+							"tablename": {
+								"value": " ",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": false,
+						"wildcardFileName": "20*",
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Delete incremental files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"total_rows": {
+							"value": "@activity('google_bigquery_to_parquet').output.rowsRead",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "@pipeline().parameters.workflow_parameter",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"project_id": {
+				"type": "string",
+				"defaultValue": "sap-od-miralbtoc"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-gbq-api-prd-apikey"
+			},
+			"query": {
+				"type": "string"
+			},
+			"schema_name": {
+				"type": "string",
+				"defaultValue": "emarsys_miralbtoc_876026434"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "email_campaigns_v2_876026434"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "emarsys"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "emarsys_gbq"
+			},
+			"column_mapping": {
+				"type": "object"
+			},
+			"workflow_name": {
+				"type": "string"
+			},
+			"workflow_parameter": {
+				"type": "string"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

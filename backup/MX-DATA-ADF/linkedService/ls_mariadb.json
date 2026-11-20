@@ -1,0 +1,53 @@
+{
+	"name": "ls_mariadb",
+	"properties": {
+		"parameters": {
+			"server_name": {
+				"type": "String"
+			},
+			"database_name": {
+				"type": "String"
+			},
+			"user_name": {
+				"type": "String"
+			},
+			"key_vault_uri": {
+				"type": "String"
+			},
+			"secret_name": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "MariaDB",
+		"typeProperties": {
+			"server": "@{linkedService().server_name}",
+			"port": 3306,
+			"database": "@{linkedService().database_name}",
+			"username": "@{linkedService().user_name}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": {
+					"value": "@linkedService().secret_name",
+					"type": "Expression"
+				}
+			},
+			"driverVersion": "v2",
+			"sslMode": 0
+		},
+		"connectVia": {
+			"referenceName": "self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

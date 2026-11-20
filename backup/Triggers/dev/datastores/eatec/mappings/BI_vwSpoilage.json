@@ -1,0 +1,165 @@
+{
+    "type": "TabularTranslator",
+    "mappings": [
+        {
+            "source": {
+                "name": "Site",
+                "type": "String"
+            },
+            "sink": {
+                "name": "site",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Location",
+                "type": "String"
+            },
+            "sink": {
+                "name": "location",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Location Department",
+                "type": "String"
+            },
+            "sink": {
+                "name": "location_department",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Posting Date",
+                "type": "DateTime"
+            },
+            "sink": {
+                "name": "posting_date",
+                "type": "DateTime"
+            }
+        },
+        {
+            "source": {
+                "name": "Posted By",
+                "type": "String"
+            },
+            "sink": {
+                "name": "posted_by",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Item_Description",
+                "type": "String"
+            },
+            "sink": {
+                "name": "item_description",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "SKU",
+                "type": "String"
+            },
+            "sink": {
+                "name": "sku",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "BU",
+                "type": "String"
+            },
+            "sink": {
+                "name": "bu",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Item Status",
+                "type": "String"
+            },
+            "sink": {
+                "name": "item_status",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "UOM",
+                "type": "String"
+            },
+            "sink": {
+                "name": "uom",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Item Type",
+                "type": "String"
+            },
+            "sink": {
+                "name": "item_type",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Usage_Type",
+                "type": "String"
+            },
+            "sink": {
+                "name": "usage_type",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Spoilage Reason",
+                "type": "String"
+            },
+            "sink": {
+                "name": "spoilage_reason",
+                "type": "String"
+            }
+        },
+        {
+            "source": {
+                "name": "Qty",
+                "type": "Double"
+            },
+            "sink": {
+                "name": "qty",
+                "type": "Double"
+            }
+        },
+        {
+            "source": {
+                "name": "Usage Value",
+                "type": "Decimal"
+            },
+            "sink": {
+                "name": "usage_value",
+                "type": "Decimal"
+            }
+        },
+        {
+            "source": {
+                "name": "adf_load_time",
+                "type": "String"
+            },
+            "sink": {
+                "name": "adf_load_time",
+                "type": "String"
+            }
+        }
+    ]
+}

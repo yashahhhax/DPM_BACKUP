@@ -1,0 +1,431 @@
+{
+	"name": "pl_oracle_fusion_bicc_hr_incremental",
+	"properties": {
+		"activities": [
+			{
+				"name": "LookupOldWaterMarkActivity",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat(\n    'SELECT * FROM watermarktable WHERE TableName = ''', \n    toLower(concat(pipeline().parameters.datastore_name,'.',pipeline().parameters.table_name)), \n    ''' ORDER BY watermarkvalue DESC'\n)",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql_managed_identity",
+						"type": "DatasetReference",
+						"parameters": {
+							"server_name": {
+								"value": "@pipeline().globalParameters.sqldb_fqdn",
+								"type": "Expression"
+							},
+							"database_name": "watermarks",
+							"table_name": "watermarktable"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Set new_water_mark",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "new_watermark",
+					"value": {
+						"value": "@formatDateTime(\n    if(\n        and(\n            bool(pipeline().parameters.full_load),\n            not(empty(pipeline().parameters.full_load_date))\n        ),\n        pipeline().parameters.full_load_date,\n        convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')\n    ),\n    'yyyy-MM-dd 00:00:00'\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "If full_load or new incremental table",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "LookupOldWaterMarkActivity",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set new_water_mark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(bool(pipeline().parameters.full_load), equals(activity('LookupOldWaterMarkActivity').output.count, 0))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Set days_list",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "days_list",
+								"value": {
+									"value": "@range(\n    1,\n    div(\n        sub(\n            ticks(startOfDay(variables('new_watermark'))),\n            if(\n                greater(int(pipeline().parameters.load_days), -1),\n                ticks(startOfDay(addDays(variables('new_watermark'), mul(int(pipeline().parameters.load_days), -1)))),\n                ticks(startOfDay(activity('LookupOldWaterMarkActivity').output.value[0].WatermarkValue))\n            )\n        ),\n        864000000000\n    )\n)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set old_watermark",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "old_watermark",
+								"value": {
+									"value": "@if(\n    greater(int(pipeline().parameters.load_days), -1),\n    formatDateTime(addDays(variables('new_watermark'), mul(int(pipeline().parameters.load_days), -1)), 'yyyy-MM-ddTHH:mm:ss'),\n\tformatDateTime(activity('LookupOldWaterMarkActivity').output.value[0].WatermarkValue, 'yyyy-MM-ddTHH:mm:ss')\n)",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "full_load",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_oracle_fusion_bicc_load",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"user_name": {
+										"value": "@pipeline().parameters.user_name",
+										"type": "Expression"
+									},
+									"secret_name": {
+										"value": "@pipeline().parameters.secret_name",
+										"type": "Expression"
+									},
+									"base_url": {
+										"value": "@pipeline().parameters.base_url",
+										"type": "Expression"
+									},
+									"source_directory": {
+										"value": "@pipeline().parameters.source_path",
+										"type": "Expression"
+									},
+									"datastore_name": {
+										"value": "@pipeline().parameters.datastore_name",
+										"type": "Expression"
+									},
+									"table_name": {
+										"value": "@pipeline().parameters.table_name",
+										"type": "Expression"
+									},
+									"pk": {
+										"value": "@pipeline().parameters.pk",
+										"type": "Expression"
+									},
+									"load_time_column": {
+										"value": "@pipeline().parameters.load_time_column",
+										"type": "Expression"
+									},
+									"business_date": {
+										"value": "@formatDateTime(variables('new_watermark'), 'yyyy-MM-ddTHH:mm:ss')",
+										"type": "Expression"
+									},
+									"full_load": true,
+									"column_mapping": {
+										"value": "@pipeline().parameters.column_mapping",
+										"type": "Expression"
+									},
+									"adf_load_time": {
+										"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+										"type": "Expression"
+									},
+									"skip_backup": {
+										"value": "@pipeline().parameters.skip_backup",
+										"type": "Expression"
+									},
+									"skip_exec_adb": {
+										"value": "@pipeline().parameters.skip_exec_adb",
+										"type": "Expression"
+									},
+									"skip_orchestration": {
+										"value": "@pipeline().parameters.skip_orchestration",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ForEach day",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "If full_load or new incremental table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('days_list')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "incremental_load",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_oracle_fusion_bicc_load",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"user_name": {
+										"value": "@pipeline().parameters.user_name",
+										"type": "Expression"
+									},
+									"secret_name": {
+										"value": "@pipeline().parameters.secret_name",
+										"type": "Expression"
+									},
+									"base_url": {
+										"value": "@pipeline().parameters.base_url",
+										"type": "Expression"
+									},
+									"source_directory": {
+										"value": "@pipeline().parameters.source_path",
+										"type": "Expression"
+									},
+									"datastore_name": {
+										"value": "@pipeline().parameters.datastore_name",
+										"type": "Expression"
+									},
+									"table_name": {
+										"value": "@pipeline().parameters.table_name",
+										"type": "Expression"
+									},
+									"pk": {
+										"value": "@pipeline().parameters.pk",
+										"type": "Expression"
+									},
+									"load_time_column": {
+										"value": "@pipeline().parameters.load_time_column",
+										"type": "Expression"
+									},
+									"business_date": {
+										"value": "@formatDateTime(addDays(variables('old_watermark'),item()), 'yyyy-MM-ddTHH:mm:ss')",
+										"type": "Expression"
+									},
+									"full_load": false,
+									"column_mapping": {
+										"value": "@pipeline().parameters.column_mapping",
+										"type": "Expression"
+									},
+									"adf_load_time": {
+										"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+										"type": "Expression"
+									},
+									"skip_backup": {
+										"value": "@pipeline().parameters.skip_backup",
+										"type": "Expression"
+									},
+									"skip_exec_adb": {
+										"value": "@pipeline().parameters.skip_exec_adb",
+										"type": "Expression"
+									},
+									"skip_orchestration": {
+										"value": "@pipeline().parameters.skip_orchestration",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "ForEach day",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 50,
+		"parameters": {
+			"user_name": {
+				"type": "string",
+				"defaultValue": "c36f679f141df2591f90cab7befe6f0c8f2a770f"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-fusion-oci-svc-prd-password"
+			},
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://axzjleyzf4ti.compat.objectstorage.me-dubai-1.oraclecloud.com"
+			},
+			"source_path": {
+				"type": "string",
+				"defaultValue": "FusionHCM_Azure_ADF"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "fusion_bicc_hr"
+			},
+			"table_name": {
+				"type": "string"
+			},
+			"pk": {
+				"type": "string"
+			},
+			"load_time_column": {
+				"type": "string"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "hr"
+			},
+			"full_load": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"column_mapping": {
+				"type": "object"
+			},
+			"load_days": {
+				"type": "string",
+				"defaultValue": "-1"
+			},
+			"full_load_date": {
+				"type": "string"
+			},
+			"skip_backup": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"skip_exec_adb": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"new_watermark": {
+				"type": "String"
+			},
+			"days_list": {
+				"type": "Array"
+			},
+			"old_watermark": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "BICC"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

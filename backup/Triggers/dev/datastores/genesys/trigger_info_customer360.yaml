@@ -1,0 +1,26 @@
+pipeline_name: pl_customer_360_incremental
+
+schedule:
+  frequency: Day
+  interval: 1
+  hours: [04]
+  minutes: [00]
+
+activated: false
+
+datastore_parameters:
+  datastore_name: 'genesys'
+  schema_name: 'customer360'
+  workflow_name: 'wf_ingest_customer360_genesys'
+  secret_name: 'cloud-genesys-api-prd-apikey'
+  use_case: 'customer360'       
+  # skip_orchestration: true
+
+datasets:
+  - name: voice_conversations
+    dataset_parameters:
+      table_name: 'voice_conversations'
+      start_date: "@formatDateTime(addDays(convertTimeZone(utcNow(),'UTC','Arabian Standard Time'),-7),'yyyy-MM-dd')"
+      end_date: "@formatDateTime(convertTimeZone(utcNow(),'UTC','Arabian Standard Time'),'yyyy-MM-dd')"
+      
+  

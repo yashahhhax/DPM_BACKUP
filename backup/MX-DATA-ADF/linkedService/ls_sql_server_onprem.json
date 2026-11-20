@@ -1,0 +1,50 @@
+{
+	"name": "ls_sql_server_onprem",
+	"properties": {
+		"parameters": {
+			"key_vault_uri": {
+				"type": "string"
+			},
+			"server_name": {
+				"type": "string"
+			},
+			"database_name": {
+				"type": "string"
+			},
+			"user_name": {
+				"type": "string"
+			},
+			"secret_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "@{linkedService().server_name}",
+			"database": "@{linkedService().database_name}",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "Windows",
+			"userName": "@{linkedService().user_name}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"key_vault_uri": {
+							"value": "@linkedService().key_vault_uri",
+							"type": "Expression"
+						}
+					}
+				},
+				"secretName": "@linkedService().secret_name"
+			}
+		},
+		"connectVia": {
+			"referenceName": "on-prem-self-hosted-runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,422 @@
+{
+	"name": "pl_oracle_fusion_bip_fullload",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetToken",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"linkedServices": [
+						{
+							"referenceName": "ls_key_vault",
+							"type": "LinkedServiceReference"
+						}
+					],
+					"url": {
+						"value": "@concat(pipeline().globalParameters.key_vault_uri, '/secrets/', pipeline().parameters.secret_name, '?api-version=7.0')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "switch_model",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"datastore_name\": \"@{toLower(pipeline().parameters.datastore_name)}\",\n  \"table_name\": \"@{toLower(pipeline().parameters.table_name)}\",\n  \"write_mode\": \"overwrite\",\n  \"input_file_name\": \"@{concat(formatDateTime(variables('new_watermark'), 'yyyyMMddHHmmss'), '/')}\"\n}",
+							"type": "Expression"
+						},
+						"ingest_job_id": {
+							"value": "@if(equals(pipeline().parameters.datastore_name, 'fusion_bip_inv'), pipeline().globalParameters.databricks_wf_ingest_fusion_bip_inventory_job_id, pipeline().globalParameters.databricks_wf_ingest_fusion_bip_fusion_job_id)",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set_current_time",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "new_watermark",
+					"value": {
+						"value": "@formatDateTime(\n    convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time'),\n    'yyyy-MM-ddTHH:mm:ss'\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_from_date",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "from_date",
+					"value": {
+						"value": "@formatDateTime(if(empty(pipeline().parameters.from_date), '01-01-2000', pipeline().parameters.from_date), 'MM-dd-yyyy')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "switch_model",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "GetToken",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_current_time",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_from_date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@toLower(pipeline().parameters.model_type)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "normal_model",
+							"activities": [
+								{
+									"name": "copy_bip_report_normal_model",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 2,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "XmlSource",
+											"storeSettings": {
+												"type": "HttpReadSettings",
+												"requestMethod": "POST",
+												"additionalHeaders": "Content-Type: text/xml",
+												"requestBody": {
+													"value": "@concat(\n    '<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v2=\"http://xmlns.oracle.com/oxp/service/v2\">',\n        '<soapenv:Header/>',\n        '<soapenv:Body>',\n            '<v2:runReport>',\n                '<v2:reportRequest>',\n                    '<v2:XDOPropertyList>',\n                        '<v2:metaDataList></v2:metaDataList>',\n                    '</v2:XDOPropertyList>',\n                    '<v2:attributeFormat>csv</v2:attributeFormat>',\n                    '<v2:parameterNameValues>',\n                        '<v2:listOfParamNameValues>',\n\n                            '<v2:item>',\n                                '<v2:name>p_from_dt</v2:name>',\n                                '<v2:values>',\n                                    '<v2:item>',\n                                        formatDateTime(\n                                            variables('from_date'),\n                                            'MM-dd-yyyy'\n                                        ),\n                                    '</v2:item>',\n                                '</v2:values>',\n                            '</v2:item>',\n\n                            '<v2:item>',\n                                '<v2:name>p_to_dt</v2:name>',\n                                '<v2:values>',\n                                    '<v2:item>',\n                                        formatDateTime(\n                                           variables('new_watermark'),\n                                            'MM-dd-yyyy'\n                                        ),\n                                    '</v2:item>',\n                                '</v2:values>',\n                            '</v2:item>',\n\n                        '</v2:listOfParamNameValues>',\n                    '</v2:parameterNameValues>',\n\n                    '<v2:reportAbsolutePath>',\n                        concat(\n                            pipeline().parameters.source_path,\n                            toUpper(pipeline().parameters.table_name),\n                            '.xdo'\n                        ),\n                    '</v2:reportAbsolutePath>',\n\n                    '<v2:sizeOfDataChunkDownload>-1</v2:sizeOfDataChunkDownload>',\n\n                '</v2:reportRequest>',\n                '<v2:userID>', pipeline().parameters.user_name, '</v2:userID>',\n                '<v2:password>', activity('GetToken').output.value, '</v2:password>',\n            '</v2:runReport>',\n        '</soapenv:Body>',\n    '</soapenv:Envelope>'\n)",
+													"type": "Expression"
+												},
+												"requestTimeout": ""
+											},
+											"formatSettings": {
+												"type": "XmlReadSettings",
+												"validationMode": "none",
+												"namespaces": true
+											}
+										},
+										"sink": {
+											"type": "JsonSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "JsonWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "ds_http_xml",
+											"type": "DatasetReference",
+											"parameters": {
+												"base_url": {
+													"value": "@pipeline().parameters.base_url",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_adls_json",
+											"type": "DatasetReference",
+											"parameters": {
+												"storage_account_uri": {
+													"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+													"type": "Expression"
+												},
+												"container_name": {
+													"value": "@pipeline().globalParameters.storage_container_datalake",
+													"type": "Expression"
+												},
+												"directory": {
+													"value": "@toLower(concat('raw_', pipeline().parameters.datastore_name,'/',pipeline().parameters.table_name,'/',formatDateTime(variables('new_watermark'), 'yyyyMMddHHmmss')))",
+													"type": "Expression"
+												},
+												"file_name": {
+													"value": "@concat(\n    toLower(pipeline().parameters.table_name), '_',\n    formatDateTime(variables('new_watermark'), 'yyyyMMddHHmmss'), '_',\n    formatDateTime(variables('from_date'), 'yyyyMMdd'),\n    '_',\n    formatDateTime(variables('new_watermark'), 'yyyyMMdd'),\n    '.json'\n)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "fl_model",
+							"activities": [
+								{
+									"name": "copy_bip_report_fl_model",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "pl_oracle_fusion_bip_fl_model",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"user_name": {
+												"value": "@pipeline().parameters.user_name",
+												"type": "Expression"
+											},
+											"token": {
+												"value": "@activity('GetToken').output.value",
+												"type": "Expression"
+											},
+											"base_url": {
+												"value": "@pipeline().parameters.base_url",
+												"type": "Expression"
+											},
+											"report_path": {
+												"value": "@pipeline().parameters.source_path",
+												"type": "Expression"
+											},
+											"datastore_name": {
+												"value": "@pipeline().parameters.datastore_name",
+												"type": "Expression"
+											},
+											"table_name": {
+												"value": "@pipeline().parameters.table_name",
+												"type": "Expression"
+											},
+											"fetch": {
+												"value": "@pipeline().parameters.fl_model_batch_size",
+												"type": "Expression"
+											},
+											"adf_load_time": {
+												"value": "@formatDateTime(variables('new_watermark'), 'yyyy-MM-ddTHH:mm:ss')",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"concurrency": 50,
+		"parameters": {
+			"user_name": {
+				"type": "string",
+				"defaultValue": "biacm.admin"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-fusion-bip-svc-prd-password"
+			},
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://enpk.fa.em8.oraclecloud.com:443/xmlpserver/services/v2/ReportService"
+			},
+			"source_path": {
+				"type": "string",
+				"defaultValue": "/Custom/Data_Team/Fusion_AZ_Extract_DE/"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "fusion_bip"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "PAY_RUN_RESULT_VALUES"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "mdop"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_fusion_bip_fusion"
+			},
+			"from_date": {
+				"type": "string"
+			},
+			"model_type": {
+				"type": "string",
+				"defaultValue": "normal_model"
+			},
+			"fl_model_batch_size": {
+				"type": "int",
+				"defaultValue": 100000
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"xml_body": {
+				"type": "String"
+			},
+			"token": {
+				"type": "String"
+			},
+			"new_watermark": {
+				"type": "String"
+			},
+			"from_date": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "BIP"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

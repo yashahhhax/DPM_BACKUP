@@ -1,0 +1,678 @@
+{
+	"name": "pl_surveyhero_api_to_parquet",
+	"properties": {
+		"activities": [
+			{
+				"name": "LookupOldWaterMarkActivity",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat(\n    'SELECT * FROM watermarktable WHERE TableName = ''', \n    toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)), \n    ''' ORDER BY watermarkvalue DESC'\n)",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql_managed_identity",
+						"type": "DatasetReference",
+						"parameters": {
+							"server_name": {
+								"value": "@pipeline().globalParameters.sqldb_fqdn",
+								"type": "Expression"
+							},
+							"database_name": "watermarks",
+							"table_name": "watermarktable"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Set new_watermark",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "new_watermark",
+					"value": {
+						"value": "@formatDateTime(\n    convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time'),\n    'yyyy-MM-dd''T''HH:mm:ss'\n)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "If full_load or new incremental table",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "LookupOldWaterMarkActivity",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set new_watermark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(bool(pipeline().parameters.full_load), equals(activity('LookupOldWaterMarkActivity').output.count, 0))",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Set from_date_inc",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "from_date",
+								"value": {
+									"value": "@formatDateTime(\n    if(\n        greater(int(pipeline().parameters.load_days), -1),\n        addDays(variables('new_watermark'), mul(int(pipeline().parameters.load_days), -1)),\n        activity('LookupOldWaterMarkActivity').output.value[0].WatermarkValue\n    ),\n    'yyyy-MM-dd''T''HH:mm:ss'\n)",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Set from_date",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "from_date",
+								"value": "2019-02-01T00:00:00"
+							}
+						},
+						{
+							"name": "fullload_delete_old_files",
+							"description": "In the case if a full load we're going to delete all the old table files in the storage account folder. ",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_adls_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": "@pipeline().globalParameters.storage_account_datalake_uri",
+										"container_name": "@pipeline().globalParameters.storage_container_datalake",
+										"datastore": {
+											"value": "@pipeline().parameters.datastore_name",
+											"type": "Expression"
+										},
+										"dataset": {
+											"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+											"type": "Expression"
+										},
+										"tablename": " "
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "update_watermark",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "for_each_batch",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "exec_pl_trigger_sql_query",
+				"description": "Get new_watermark",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_sql_query",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"workspace_url": {
+							"value": "@pipeline().globalParameters.databricks_transformation_workspace_url",
+							"type": "Expression"
+						},
+						"sql_serverless_id": {
+							"value": "@pipeline().globalParameters.databricks_transformation_sql_serverless_id",
+							"type": "Expression"
+						},
+						"sql_statement": {
+							"value": "@concat(\n\t'select max(to_timestamp(last_updated_on, ''MM/dd/yyyy HH:mm:ss'')) as max_date from transformation_',\n\tpipeline().globalParameters.environment,\n\t'.brz_',\n\ttoLower(replace(pipeline().parameters.datastore_name, '-', '_')),\n\t'.vw_',\n\ttoLower(replace(pipeline().parameters.schema_name, '-', '_')), '_',\n\ttoLower(replace(pipeline().parameters.table_name, '-', '_'))\n)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "for_each_batch",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "If full_load or new incremental table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "GetToken",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@range(\n  0,\n  add(\n    int(\n      div(\n        sub(\n          ticks(startOfDay(variables('new_watermark'))),\n          ticks(startOfDay(variables('from_date')))\n        ),\n        mul(int(variables('batch_days')), 864000000000)\n      )\n    ),\n    1\n  )\n)",
+						"type": "Expression"
+					},
+					"batchCount": 10,
+					"activities": [
+						{
+							"name": "copy_surveyhero_api_to_parquet",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:30:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 60,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"additionalColumns": [
+										{
+											"name": "adf_load_time",
+											"value": {
+												"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+												"type": "Expression"
+											}
+										}
+									],
+									"storeSettings": {
+										"type": "HttpReadSettings",
+										"requestMethod": "GET",
+										"additionalHeaders": {
+											"value": "@{concat('Authorization: Basic ', base64(concat(pipeline().parameters.user_name, ':', activity('GetToken').output.value)))}",
+											"type": "Expression"
+										}
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings",
+										"skipLineCount": 1
+									}
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"value": "@json(replace(string(pipeline().parameters.column_mapping), '\\n', '\\r\\n'))",
+									"type": "Expression"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_http_csv_without_header",
+									"type": "DatasetReference",
+									"parameters": {
+										"base_url": {
+											"value": "@concat(\n  pipeline().parameters.base_url,\n  pipeline().parameters.survey_id,\n  '/responses?status=completed&format=csv',\n  '&last_updated_on[from]=',\n  addDays(\n    variables('from_date'),\n    mul(item(), variables('batch_days'))\n  ),\n  '&last_updated_on[to]=',\n  if(\n    greater(\n      addDays(\n        variables('from_date'),\n        add(\n          mul(item(), variables('batch_days')),\n          variables('batch_days')\n        )\n      ),\n      variables('new_watermark')\n    ),\n    variables('new_watermark'),\n    addDays(\n      variables('from_date'),\n      add(\n        mul(item(), variables('batch_days')),\n        variables('batch_days')\n      )\n    )\n  )\n)",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_adls_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"storage_account_uri": {
+											"value": "@pipeline().globalParameters.storage_account_datalake_uri",
+											"type": "Expression"
+										},
+										"container_name": {
+											"value": "@pipeline().globalParameters.storage_container_datalake",
+											"type": "Expression"
+										},
+										"datastore": {
+											"value": "@toLower(pipeline().parameters.datastore_name)",
+											"type": "Expression"
+										},
+										"dataset": {
+											"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+											"type": "Expression"
+										},
+										"tablename": {
+											"value": "@concat(\n  toLower(pipeline().parameters.table_name),\n  '_',\n  formatDateTime(\n    addDays(\n      variables('from_date'),\n      mul(item(), variables('batch_days'))\n    ),\n    'yyyyMMddHHmmss'\n  ),\n  '_',\n  formatDateTime(\n    if(\n      greater(\n        addDays(\n          variables('from_date'),\n          add(\n            mul(item(), variables('batch_days')),\n            variables('batch_days')\n          )\n        ),\n        variables('new_watermark')\n      ),\n      variables('new_watermark'),\n      addDays(\n        variables('from_date'),\n        add(\n          mul(item(), variables('batch_days')),\n          variables('batch_days')\n        )\n      )\n    ),\n    'yyyyMMddHHmmss'\n  )\n)",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "GetToken",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"linkedServices": [
+						{
+							"referenceName": "ls_key_vault",
+							"type": "LinkedServiceReference"
+						}
+					],
+					"url": {
+						"value": "@concat(pipeline().globalParameters.key_vault_uri, '/secrets/', pipeline().parameters.secret_name, '?api-version=7.0')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "update_watermark",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "exec_pl_trigger_sql_query",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_managed_identity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"server_name": "@pipeline().globalParameters.sqldb_fqdn",
+						"database_name": "watermarks"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": {
+								"value": "UPDATE watermarktable SET [WatermarkValue] = '@{activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output}' WHERE [TableName] = '@{toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))}';\n\nIF @@ROWCOUNT = 0\n\nINSERT INTO watermarktable ([WatermarkValue], [TableName])\nVALUES (\n'@{activity('exec_pl_trigger_sql_query').output.pipelineReturnValue.query_output}',\n'@{toLower(concat(pipeline().parameters.datastore_name, '.', pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))}'\n);",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "00:10:00"
+				}
+			}
+		],
+		"concurrency": 20,
+		"parameters": {
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://api.surveyhero.com/v1/surveys/"
+			},
+			"user_name": {
+				"type": "string",
+				"defaultValue": "98621-1025"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-surveyhero-api-prd-apikey"
+			},
+			"survey_id": {
+				"type": "string",
+				"defaultValue": "112446"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "surveyhero"
+			},
+			"schema_name": {
+				"type": "string",
+				"defaultValue": "gss"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "FWAD"
+			},
+			"load_days": {
+				"type": "int",
+				"defaultValue": -1
+			},
+			"full_load": {
+				"type": "bool",
+				"defaultValue": false
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "gss"
+			},
+			"column_mapping": {
+				"type": "object",
+				"defaultValue": {
+					"type": "TabularTranslator",
+					"mappings": [
+						{
+							"source": {
+								"name": "ID"
+							},
+							"sink": {
+								"name": "id"
+							}
+						},
+						{
+							"source": {
+								"name": "Started on"
+							},
+							"sink": {
+								"name": "started_on"
+							}
+						},
+						{
+							"source": {
+								"name": "Last updated on"
+							},
+							"sink": {
+								"name": "last_updated_on"
+							}
+						},
+						{
+							"source": {
+								"name": "Status"
+							},
+							"sink": {
+								"name": "status"
+							}
+						},
+						{
+							"source": {
+								"name": "Collector"
+							},
+							"sink": {
+								"name": "collector"
+							}
+						},
+						{
+							"source": {
+								"name": "Language"
+							},
+							"sink": {
+								"name": "language"
+							}
+						},
+						{
+							"source": {
+								"name": "IP address"
+							},
+							"sink": {
+								"name": "ip_address"
+							}
+						},
+						{
+							"source": {
+								"name": "Device"
+							},
+							"sink": {
+								"name": "device"
+							}
+						},
+						{
+							"source": {
+								"name": "In which Country do you live?"
+							},
+							"sink": {
+								"name": "country_of_residence"
+							}
+						},
+						{
+							"source": {
+								"name": "In which Emirate do you stay?"
+							},
+							"sink": {
+								"name": "emirate"
+							}
+						},
+						{
+							"source": {
+								"name": "What is your Nationality?"
+							},
+							"sink": {
+								"name": "nationality"
+							}
+						},
+						{
+							"source": {
+								"name": "Gender"
+							},
+							"sink": {
+								"name": "gender"
+							}
+						},
+						{
+							"source": {
+								"name": "How did you get here?"
+							},
+							"sink": {
+								"name": "mode_of_transport"
+							}
+						},
+						{
+							"source": {
+								"name": "How many Guests are you in your group?"
+							},
+							"sink": {
+								"name": "no_of_guest"
+							}
+						},
+						{
+							"source": {
+								"name": "adf_load_time"
+							},
+							"sink": {
+								"name": "adf_load_time"
+							}
+						}
+					]
+				}
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"new_watermark": {
+				"type": "String"
+			},
+			"from_date": {
+				"type": "String"
+			},
+			"batch_days": {
+				"type": "Integer",
+				"defaultValue": 15
+			}
+		},
+		"folder": {
+			"name": "GSS"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

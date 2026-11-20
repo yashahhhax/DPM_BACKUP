@@ -1,0 +1,472 @@
+{
+	"name": "pl_drr_source_lookup",
+	"properties": {
+		"activities": [
+			{
+				"name": "Omni_Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "SELECT COUNT(ACCOUNTID) AS ACCOUNTID_count FROM DATA_Account",
+							"type": "Expression"
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_sql_server",
+						"type": "DatasetReference",
+						"parameters": {
+							"key_vault_uri": "https://kv-mx-data-adf-inges-dev.vault.azure.net/",
+							"schema_name": "dbo",
+							"table_name": "DATA_Account",
+							"server_name": "10.140.9.38",
+							"database_name": "BOS_FPK",
+							"user_name": "farah\\svc_mx_data_prd",
+							"secret_name": "onprem-sqlserver-wdws-svc-prd-password"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set_Omni_Variables",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Omni_Lookup",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Omni",
+					"value": {
+						"value": "@concat(\n    '<tr><td>OMNI</td><td>',\n    utcNow(),\n    '</td><td>',\n    if(equals(activity('Omni_Lookup').status,'Succeeded'),'Up','Down'),\n    '</td><td>',\n    activity('Omni_Lookup').status,\n    '</td><td>',\n    if(\n        equals(activity('Omni_Lookup').status,'Succeeded'),\n        'No Issues Found',\n        coalesce(activity('Omni_Lookup').error.message,'Error')\n    ),\n    '</td></tr>'\n)\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Oracle_Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OdbcSource",
+						"query": "SELECT COUNT(1) AS EMPLOYEES_ALL_COUNT FROM XXFLP_BI_EMPLOYEES_ALL"
+					},
+					"dataset": {
+						"referenceName": "ds_odbc",
+						"type": "DatasetReference",
+						"parameters": {
+							"table_name": "XXFLP_BI_EMPLOYEES_ALL",
+							"connection_string": "DSN=ATP",
+							"user_name": "XXBIP",
+							"key_vault_uri": "https://kv-mx-data-adf-inges-dev.vault.azure.net/",
+							"secret_name": "onprem-atp-oracle-svc-prd-password"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set_Oracle_Variables",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Oracle_Lookup",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Oracle",
+					"value": {
+						"value": "@concat(\n    '<tr><td>ORACLE</td><td>',\n    utcNow(),\n    '</td><td>',\n    if(equals(activity('Oracle_Lookup').status,'Succeeded'),'Up','Down'),\n    '</td><td>',\n    activity('Oracle_Lookup').status,\n    '</td><td>',\n    if(\n        equals(activity('Oracle_Lookup').status,'Succeeded'),\n        'No Issues Found',\n        coalesce(activity('Oracle_Lookup').error.message,'Error')\n    ),\n    '</td></tr>'\n)\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SCV_Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT COUNT(1) AS scv_count FROM t_mdm_guest",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_azure_sql",
+						"type": "DatasetReference",
+						"parameters": {
+							"server_name": "fe-uat-cdm-scvprimary.database.windows.net",
+							"user_name": "feuatcdmscvadmin",
+							"secret_name": "cloud-scv-sqlserver-sql-svc-password-uat",
+							"database_name": "fe-uat-cdm-scv-db",
+							"key_vault_uri": "https://kv-mx-data-adf-inges-dev.vault.azure.net/",
+							"schema_name": "dbo",
+							"table_name": "t_mdm_guest"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set_SCV_Variables",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "SCV_Lookup",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "SCV",
+					"value": {
+						"value": "@concat(\n    '<tr><td>SCV</td><td>',\n    utcNow(),\n    '</td><td>',\n    if(equals(activity('SCV_Lookup').status,'Succeeded'),'Up','Down'),\n    '</td><td>',\n    activity('SCV_Lookup').status,\n    '</td><td>',\n    if(\n        equals(activity('SCV_Lookup').status,'Succeeded'),\n        'No Issues Found',\n        coalesce(activity('SCV_Lookup').error.message,'Error')\n    ),\n    '</td></tr>'\n)\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "EATEC_Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "SELECT COUNT(1) AS EATEC_COUNT FROM zassociations",
+							"type": "Expression"
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_sql_server",
+						"type": "DatasetReference",
+						"parameters": {
+							"key_vault_uri": "https://kv-mx-data-adf-inges-dev.vault.azure.net/",
+							"schema_name": "dbo",
+							"table_name": "zassociations",
+							"server_name": "10.140.9.42",
+							"database_name": "eatecx",
+							"user_name": "farah\\svc_mx_data_prd",
+							"secret_name": "onprem-sqlserver-wdws-svc-prd-password"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set_EATEC_Variables",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "EATEC_Lookup",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "EATEC",
+					"value": {
+						"value": "@concat(\n    '<tr><td>EATEC</td><td>',\n    utcNow(),\n    '</td><td>',\n    if(equals(activity('EATEC_Lookup').status,'Succeeded'),'Up','Down'),\n    '</td><td>',\n    activity('EATEC_Lookup').status,\n    '</td><td>',\n    if(\n        equals(activity('EATEC_Lookup').status,'Succeeded'),\n        'No Issues Found',\n        coalesce(activity('EATEC_Lookup').error.message,'Error')\n    ),\n    '</td></tr>'\n)\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "IG_Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "SELECT COUNT(1) AS IG_COUNT FROM [ig_dimension].[dbo].[Tender_Dimension]",
+							"type": "Expression"
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_sql_server",
+						"type": "DatasetReference",
+						"parameters": {
+							"key_vault_uri": "https://kv-mx-data-adf-inges-dev.vault.azure.net/",
+							"schema_name": "dbo",
+							"table_name": "[ig_dimension].[dbo].[Tender_Dimension]",
+							"server_name": "10.140.9.19",
+							"database_name": "IG_BUSINESS",
+							"user_name": "farah\\svc_mx_data_prd",
+							"secret_name": "onprem-sqlserver-wdws-svc-prd-password"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set_IG_Variables",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "IG_Lookup",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "IG",
+					"value": {
+						"value": "@concat(\n    '<tr><td>IG</td><td>',\n    utcNow(),\n    '</td><td>',\n    if(equals(activity('IG_Lookup').status,'Succeeded'),'Up','Down'),\n    '</td><td>',\n    activity('IG_Lookup').status,\n    '</td><td>',\n    if(\n        equals(activity('IG_Lookup').status,'Succeeded'),\n        'No Issues Found',\n        coalesce(activity('IG_Lookup').error.message,'Error')\n    ),\n    '</td></tr>'\n)\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Sharepoint_Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SharePointOnlineListSource",
+						"httpRequestTimeout": "00:05:00"
+					},
+					"dataset": {
+						"referenceName": "ds_sharepoint_list",
+						"type": "DatasetReference",
+						"parameters": {
+							"site_url": "https://miralgroup.sharepoint.com/sites/FARAHFLFIN",
+							"tenant_id": "0b0b76ba-8e32-4c41-8130-65ed5ca4353c",
+							"user_name": "738137a5-7c47-4b54-9f09-ad895300f9c2",
+							"key_vault_uri": "https://kv-mx-data-adf-inges-dev.vault.azure.net/",
+							"cert_secret_name": "cloud-sharepoint-svc-prd-certificate-txt-01",
+							"pass_secret_name": "cloud-sharepoint-svc-prd-certificate-password-01",
+							"list_name": "ProductMaster"
+						}
+					}
+				}
+			},
+			{
+				"name": "Set_Sharepoint_Variables",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Sharepoint_Lookup",
+						"dependencyConditions": [
+							"Succeeded",
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Sharepoint",
+					"value": {
+						"value": "@concat(\n    '<tr><td>SHAREPOINT</td><td>',\n    utcNow(),\n    '</td><td>',\n    if(equals(activity('Sharepoint_Lookup').status,'Succeeded'),'Up','Down'),\n    '</td><td>',\n    activity('Sharepoint_Lookup').status,\n    '</td><td>',\n    if(\n        equals(activity('Sharepoint_Lookup').status,'Succeeded'),\n        'No Issues Found',\n        coalesce(activity('Sharepoint_Lookup').error.message,'Error')\n    ),\n    '</td></tr>'\n)\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Build_Email_Table",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set_Sharepoint_Variables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set_IG_Variables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set_EATEC_Variables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set_SCV_Variables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set_Oracle_Variables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set_Omni_Variables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "EmailBody",
+					"value": {
+						"value": "@concat(\n    '<html><body>',\n    '<p>Dear Team,</p>',\n    '<p>Please find below the latest source connection status:</p><br>',\n    '<table border=\"1\" cellspacing=\"0\" cellpadding=\"5\" style=\"border-collapse:collapse;text-align:center;font-family:Arial;font-size:13px;width:90%;\">',\n    '<tr style=\"background-color:#4472C4;color:white;\">',\n    '<th>Source System</th><th>Last Checked</th><th>Connection</th><th>Status</th><th>Error</th></tr>',\n    variables('Omni'),\n    variables('Oracle'),\n    variables('SCV'),\n    variables('EATEC'),\n    variables('IG'),\n    variables('Sharepoint'),\n    '</table>',\n    '<br><p>Regards,<br>Data Team</p>',\n    '</body></html>'\n)\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Send_Email_Notification",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Build_Email_Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@variables('email_url')",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "@json(concat('{\n  \"subject\": \"DPM - Daily DRR Source Connection Health Report\",\n  \"to\":\"', pipeline().parameters.receviers_email,\n  '\",\"body\": \"', replace(variables('EmailBody'), '\"', '\\\"'), '\"\n}'))",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"receviers_email": {
+				"type": "string",
+				"defaultValue": "de.alerts@miral.ae"
+			}
+		},
+		"variables": {
+			"Omni": {
+				"type": "String"
+			},
+			"Oracle": {
+				"type": "String"
+			},
+			"SCV": {
+				"type": "String"
+			},
+			"EATEC": {
+				"type": "String"
+			},
+			"IG": {
+				"type": "String"
+			},
+			"Sharepoint": {
+				"type": "String"
+			},
+			"EmailBody": {
+				"type": "String"
+			},
+			"email_url": {
+				"type": "String",
+				"defaultValue": "https://prod-10.uaenorth.logic.azure.com:443/workflows/41f05c14bb444ba786cffbb8ff3e0dcb/triggers/http-trigger/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fhttp-trigger%2Frun&sv=1.0&sig=29GyYOaYvXqHXy6LPnKFKGbHEDolPCpxZeGcBRXaR3A"
+			}
+		},
+		"folder": {
+			"name": "DRR"
+		},
+		"annotations": []
+	}
+}

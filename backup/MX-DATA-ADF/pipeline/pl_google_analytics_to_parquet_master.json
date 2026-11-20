@@ -1,0 +1,592 @@
+{
+	"name": "pl_google_analytics_to_parquet_master",
+	"properties": {
+		"activities": [
+			{
+				"name": "set_no_days",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "set_start_date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set_end_date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "no_days",
+					"value": {
+						"value": "@string(div(sub(\n    ticks(variables('end_date')),\n    ticks(variables('start_date'))\n), 864000000000))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "get_job_id",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"turnOffAsync": false,
+					"url": {
+						"value": "@concat(pipeline().globalParameters.databricks_ingestion_workspace_url, '/api/2.1/jobs/list?name=', pipeline().parameters.jwt_workflow_name)",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"body": {
+						"job_id": 727808969713426
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+					}
+				}
+			},
+			{
+				"name": "for_each_day",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "set_no_days",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "get_jwt_token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set adf_load_time",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@range(0,add(int(variables('no_days')),1))",
+						"type": "Expression"
+					},
+					"batchCount": 15,
+					"activities": [
+						{
+							"name": "g4_sample_data",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 60,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json",
+									"Authorization": {
+										"value": "@concat('Bearer ',json(activity('get_jwt_token').output.notebook_output.result).access_token\n)",
+										"type": "Expression"
+									}
+								},
+								"url": {
+									"value": "@concat(pipeline().parameters.base_url,pipeline().parameters.schema_name,':runReport')",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "self-hosted-runtime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"body": {
+									"value": "{\n    \"dateRanges\": [\n        {\n        \"startDate\": \"@{formatDateTime(addDays(variables('start_date'),int(item())),'yyyy-MM-dd')}\", \n        \"endDate\": \"@{formatDateTime(addDays(variables('start_date'),int(item())),'yyyy-MM-dd')}\"\n        }\n    ],\n    \"metrics\": [\n        {\"name\": \"totalUsers\"},\n        {\"name\": \"newUsers\"},\n        {\"name\": \"sessions\"},\n        {\"name\": \"bounceRate\"},\n        {\"name\": \"screenPageViews\"},\n        {\"name\": \"userEngagementDuration\"},\n        {\"name\": \"transactions\"}\n    ],\n    \"dimensions\": [\n        {\"name\": \"country\"},\n        {\"name\": \"city\"},\n        {\"name\": \"sessionCampaignName\"},\n        {\"name\": \"browser\"},\n        {\"name\": \"sessionDefaultChannelGrouping\"},\n        {\"name\": \"language\"},\n        {\"name\": \"sessionMedium\"},\n        {\"name\": \"sessionSource\"},\n        {\"name\": \"deviceCategory\"}\n    ],\n    \"limit\": 1,\n    \"offset\": 0\n}",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Switch",
+							"type": "Switch",
+							"dependsOn": [
+								{
+									"activity": "g4_sample_data",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"on": {
+									"value": "@if(\n  and(\n    contains(activity('g4_sample_data').output,'rowCount'),\n    not(equals(activity('g4_sample_data').output.rowCount,0))\n  ),\n  if(\n    or(\n      contains(pipeline().parameters.table_name, 'SESSIONS'),\n      contains(pipeline().parameters.table_name, 'sessions')\n    ),\n    'SESSIONS',\n    'SUMMARY'\n  ),\n  ''\n)",
+									"type": "Expression"
+								},
+								"cases": [
+									{
+										"value": "SESSIONS",
+										"activities": [
+											{
+												"name": "pl_ga_sessions_to_raw_copy",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"policy": {
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "pl_ga_sessions_to_raw_copy",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true,
+													"parameters": {
+														"base_url": {
+															"value": "@pipeline().parameters.base_url",
+															"type": "Expression"
+														},
+														"jwt_token": {
+															"value": "@json(activity('get_jwt_token').output.notebook_output.result).access_token",
+															"type": "Expression"
+														},
+														"start_date": {
+															"value": "@formatDateTime(addDays(variables('start_date'),int(item())),'yyyy-MM-dd')",
+															"type": "Expression"
+														},
+														"end_date": {
+															"value": "@formatDateTime(addDays(variables('start_date'),int(item())),'yyyy-MM-dd')",
+															"type": "Expression"
+														},
+														"datastore_name": {
+															"value": "@toLower(pipeline().parameters.datastore_name)",
+															"type": "Expression"
+														},
+														"schema_name": {
+															"value": "@toLower(pipeline().parameters.schema_name)",
+															"type": "Expression"
+														},
+														"table_name": {
+															"value": "@toLower(pipeline().parameters.table_name)",
+															"type": "Expression"
+														},
+														"adf_load_time": {
+															"value": "@variables('adf_load_time')",
+															"type": "Expression"
+														}
+													}
+												}
+											}
+										]
+									},
+									{
+										"value": "SUMMARY",
+										"activities": [
+											{
+												"name": "pl_ga_summary_to_raw_copy",
+												"type": "ExecutePipeline",
+												"dependsOn": [],
+												"policy": {
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"pipeline": {
+														"referenceName": "pl_ga_summary_to_raw_copy",
+														"type": "PipelineReference"
+													},
+													"waitOnCompletion": true,
+													"parameters": {
+														"base_url": {
+															"value": "@pipeline().parameters.base_url",
+															"type": "Expression"
+														},
+														"jwt_token": {
+															"value": "@json(activity('get_jwt_token').output.notebook_output.result).access_token",
+															"type": "Expression"
+														},
+														"total_pages": {
+															"value": "@string(  \n    if( \n        greater(  \n            mod(int(activity('g4_sample_data').output.rowCount),int(variables('page_size'))),  \n            0  \n        ),  \n        add(1, int(div(int(activity('g4_sample_data').output.rowCount),int(variables('page_size'))))),  \n        div(int(activity('g4_sample_data').output.rowCount),int(variables('page_size')))  \n    )  \n)",
+															"type": "Expression"
+														},
+														"start_date": {
+															"value": "@formatDateTime(adddays(variables('start_date'),int(item())),'yyyy-MM-dd')",
+															"type": "Expression"
+														},
+														"end_date": {
+															"value": "@formatDateTime(addDays(variables('start_date'),int(item())),'yyyy-MM-dd')",
+															"type": "Expression"
+														},
+														"page_size": {
+															"value": "@variables('page_size')",
+															"type": "Expression"
+														},
+														"datastore_name": {
+															"value": "@toLower(pipeline().parameters.datastore_name)",
+															"type": "Expression"
+														},
+														"schema_name": {
+															"value": "@toLower(pipeline().parameters.schema_name)",
+															"type": "Expression"
+														},
+														"table_name": {
+															"value": "@toLower(pipeline().parameters.table_name)",
+															"type": "Expression"
+														},
+														"adf_load_time": {
+															"value": "@variables('adf_load_time')",
+															"type": "Expression"
+														}
+													}
+												}
+											}
+										]
+									}
+								],
+								"defaultActivities": [
+									{
+										"name": "set_data_status",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "data_status",
+											"value": {
+												"value": "@concat('No data for date: ',formatDateTime(adddays(variables('start_date'),int(item())),'yyyy-MM-dd'))",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "set_start_date",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "start_date",
+					"value": {
+						"value": "@formatDateTime(pipeline().parameters.from_date, 'yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "set_end_date",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "end_date",
+					"value": {
+						"value": "@formatDateTime(pipeline().parameters.to_date, 'yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "run_jwt_token_wf",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "get_job_id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_workflow",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"job_id": {
+							"value": "@string(activity('get_job_id').output.jobs[0].job_id)",
+							"type": "Expression"
+						},
+						"job_parameters": {
+							"value": "{\n  \"secret_name\": \"@{pipeline().parameters.secret_name}\"\n}",
+							"type": "Expression"
+						},
+						"databricks_workspace_url": {
+							"value": "@pipeline().globalParameters.databricks_ingestion_workspace_url",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "get_jwt_token",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "run_jwt_token_wf",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": {
+						"value": "@concat(pipeline().globalParameters.databricks_ingestion_workspace_url,'/api/2.1/jobs/runs/get-output?run_id=',activity('run_jwt_token_wf').output.pipelineReturnValue.task_run_id)",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "self-hosted-runtime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d"
+					}
+				}
+			},
+			{
+				"name": "Set adf_load_time",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "adf_load_time",
+					"value": {
+						"value": "@formatDateTime(convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time'), 'yyyyMMddHHmmss')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Execute adb ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "for_each_day",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_adb_ingestion",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@toLower(concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name))",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@toLower(pipeline().parameters.datastore_name)\n",
+							"type": "Expression"
+						},
+						"additional_wf_name": {
+							"value": "@pipeline().parameters.workflow_name",
+							"type": "Expression"
+						},
+						"additional_wf_parameters": {
+							"value": "{\n  \"storage_account_uri\": \"@{pipeline().globalParameters.storage_account_datalake_uri}\",\n  \"container_name\": \"@{pipeline().globalParameters.storage_container_datalake}\",\n  \"datastore_name\": \"@{pipeline().parameters.datastore_name}\",\n  \"dataset_name\": \"@{pipeline().parameters.schema_name}\",\n  \"table_name\": \"@{pipeline().parameters.table_name}\",\n  \"write_mode\": \"overwrite\",\n  \"adf_load_time\": \"@{formatDateTime(pipeline().TriggerTime, 'yyyy-MM-ddTHH:mm:ss')}\",\n  \"input_file_name\": \"@{concat(variables('adf_load_time'), '/')}\"\n}",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "pl_execute_failure",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute adb ingestion",
+						"dependencyConditions": [
+							"Failed",
+							"Skipped"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_trigger_ingestion_failure",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"table_name": {
+							"value": "@concat(pipeline().parameters.schema_name, '_', pipeline().parameters.table_name)",
+							"type": "Expression"
+						},
+						"datastore_name": {
+							"value": "@pipeline().parameters.datastore_name",
+							"type": "Expression"
+						},
+						"use_case": {
+							"value": "@pipeline().parameters.use_case",
+							"type": "Expression"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"run_id": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"trigger_time": {
+							"value": "@convertTimeZone(pipeline().TriggerTime, 'UTC', 'Arabian Standard Time')",
+							"type": "Expression"
+						},
+						"skip_orchestration": {
+							"value": "@pipeline().parameters.skip_orchestration",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"concurrency": 20,
+		"parameters": {
+			"base_url": {
+				"type": "string",
+				"defaultValue": "https://analyticsdata.googleapis.com/v1beta/properties/"
+			},
+			"secret_name": {
+				"type": "string",
+				"defaultValue": "cloud-ga4-api-prd-apikey"
+			},
+			"jwt_workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_get_ga_jwt_token"
+			},
+			"datastore_name": {
+				"type": "string",
+				"defaultValue": "google_analytics"
+			},
+			"table_name": {
+				"type": "string",
+				"defaultValue": "fwad_sessions"
+			},
+			"schema_name": {
+				"type": "string",
+				"defaultValue": "296551087"
+			},
+			"workflow_name": {
+				"type": "string",
+				"defaultValue": "wf_ingest_google_analytics"
+			},
+			"from_date": {
+				"type": "string"
+			},
+			"to_date": {
+				"type": "string"
+			},
+			"use_case": {
+				"type": "string",
+				"defaultValue": "google_analytics"
+			},
+			"skip_orchestration": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"variables": {
+			"adf_load_time": {
+				"type": "String"
+			},
+			"no_days": {
+				"type": "String"
+			},
+			"start_date": {
+				"type": "String"
+			},
+			"end_date": {
+				"type": "String"
+			},
+			"data_status": {
+				"type": "String"
+			},
+			"page_size": {
+				"type": "String",
+				"defaultValue": "1000"
+			}
+		},
+		"folder": {
+			"name": "GoogleAnalytics"
+		},
+		"annotations": [
+			"@concat('datasource_', toLower(pipeline().parameters.datastore_name))",
+			"@toLower(pipeline().parameters.table_name)",
+			"@toLower(pipeline().parameters.use_case)"
+		]
+	}
+}

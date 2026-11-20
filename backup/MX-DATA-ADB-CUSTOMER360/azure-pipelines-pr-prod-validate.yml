@@ -1,0 +1,68 @@
+name: PR Prod Validation CUSTOMER360
+
+pr:
+  branches:
+    include:
+      - main
+
+trigger: none
+
+resources:
+  repositories:
+    - repository: templateRepo
+      type: git
+      name: MX-DATA-DEVOPS-TEMPLATES
+      ref: refs/heads/main
+    - repository: sharedRepo
+      type: git
+      name: MX-DATA-ADB
+      ref: refs/heads/main
+
+stages:
+# -------------------
+# Pre-Prod Validation Stage (Main customer360)
+# -------------------
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: "Transformation_PreProd"
+    environment: "preprd"
+    service_connection: "sp-mx-data-cicd-preprd-01"
+    agent_pool_name: "data-platform-preprd"
+    folder_name: "customer360"
+    skip_apply: true
+
+# -------------------
+# Pre-Prod Validation Stage (Ingestion)
+# -------------------
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: "Ingestion_PreProd"
+    environment: "preprd"
+    service_connection: "sp-mx-data-cicd-preprd-01"
+    agent_pool_name: "data-platform-preprd"
+    folder_name: "customer360/ingestion"
+    skip_apply: true
+
+# -------------------
+# Prod Validation Stage (Main customer360)
+# -------------------
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: "Transformation_Prod"
+    environment: "prd"
+    service_connection: "sp-mx-data-cicd-prd-01"
+    agent_pool_name: "data-platform-prd"
+    folder_name: "customer360"
+    skip_apply: true
+
+# -------------------
+# Prod Validation Stage (Ingestion)
+# -------------------
+- template: asset_bundle.yml@templateRepo
+  parameters:
+    name: "Ingestion_PRD"
+    environment: "prd"
+    service_connection: "sp-mx-data-cicd-prd-01"
+    agent_pool_name: "data-platform-prd"
+    folder_name: "customer360/ingestion"
+    skip_apply: true

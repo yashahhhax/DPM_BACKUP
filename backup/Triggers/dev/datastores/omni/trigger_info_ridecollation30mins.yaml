@@ -1,0 +1,32 @@
+pipeline_name: pl_sql_server_to_parquet_fullload
+
+schedule:
+    frequency: Day
+    interval: 1
+    # hours: [10,11,12,13,14,15,16,17,18,19,20,21,22]
+    # minutes: [20,50]
+    hours: [10]
+    minutes: [30]
+  
+activated: false
+
+datastore_parameters:
+  datastore_name: 'omni'
+  server_name: '10.140.9.38'
+  user_name: 'farah\svc_mx_data_prd'
+  secret_name: 'onprem-sqlserver-wdws-svc-prd-password'
+  database_name: 'BOS_FPK'
+  schema_name: 'dbo'
+  use_case: 'ridecollation'
+  # skip_orchestration: true
+
+datasets:
+  - name: vw_inpark_omni_hourly_attendance
+    dataset_parameters:
+      table_name: 'Vw_inPark_Omni_Hourly_Attendance'
+  - name: vw_inpark_omni_virtualqueue_capacity
+    dataset_parameters:
+      table_name: 'Vw_inPark_Omni_VirtualQueue_Capacity'
+  - name: Omni_VirtualQueue_SRQP_Capacity
+    dataset_parameters:
+      table_name: 'Omni_VirtualQueue_SRQP_Capacity'

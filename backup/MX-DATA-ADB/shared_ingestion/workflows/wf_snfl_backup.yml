@@ -1,0 +1,25 @@
+resources:
+  jobs:
+    wf_snfl_bkp:
+      name: wf_snfl_bkp
+      permissions:
+        - group_name: ${var.can_manage_run_group}
+          level: CAN_MANAGE_RUN
+      schedule:
+        quartz_cron_expression: 21 0 9 * * ?
+        timezone_id: Asia/Dubai
+        pause_status: PAUSED
+      tasks:
+        - task_key: wf_snfl_bkp
+          notebook_task:
+            notebook_path: ../notebooks/ingestion/snfl_backup.py
+            base_parameters:
+              env: ${var.environment}
+              secret_scope: ${var.databricks_secret_scope}
+              tables: ""
+            source: WORKSPACE
+          existing_cluster_id: ${var.databricks_cluster_id}
+      tags:
+        use_case: snowflake_backup
+      queue:
+        enabled: true
